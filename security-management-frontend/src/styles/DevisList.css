@@ -1,0 +1,28 @@
+.devis-list .btn-add {
+    margin-bottom: 1em;
+    background: #1976d2;
+    color: white;
+    border: none;
+    padding: 0.5em 1em;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.tbl-devis {
+    width: 100%;
+    border-collapse: collapse;
+}
+.tbl-devis th, .tbl-devis td {
+    border: 1px solid #ccc;
+    padding: 0.3em 0.5em;
+    text-align: left;
+}
+.tbl-devis .actions button {
+    margin-right: 0.3em;
+}
+.no-data {
+    font-style: italic;
+    text-align: center;
+}
+.error {
+    color: red;
+}

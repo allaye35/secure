@@ -1,0 +1,49 @@
+.notification-form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: .5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+.notification-form-container h2 {
+    margin-bottom: 1rem;
+    color: #004085;
+}
+.notification-form-container label {
+    display: block;
+    margin: .75rem 0;
+    font-weight: 500;
+}
+.notification-form-container input,
+.notification-form-container select,
+.notification-form-container textarea {
+    width: 100%;
+    padding: .6rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: .25rem;
+    font-size: .95rem;
+}
+.notification-form-container textarea {
+    min-height: 4rem;
+    resize: vertical;
+}
+.btn.submit-btn {
+    margin-top: 1rem;
+    background-color: #17a2b8;
+    color: #fff;
+    border: none;
+    padding: .6rem 1.2rem;
+    border-radius: .25rem;
+    cursor: pointer;
+}
+.btn.submit-btn:hover {
+    background-color: #138496;
+}
+.error {
+    color: #c00;
+    background: #fdd;
+    padding: .5rem 1rem;
+    border-radius: .25rem;
+}

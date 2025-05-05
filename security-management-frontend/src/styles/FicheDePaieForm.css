@@ -1,0 +1,19 @@
+.fp-form {
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 1rem;
+}
+.fp-form form label {
+    display: block;
+    margin-bottom: 0.5rem;
+}
+.fp-form form input,
+.fp-form form select {
+    width: 100%;
+    padding: 0.4rem;
+    margin-top: 0.2rem;
+}
+.btn-submit {
+    margin-top: 1rem;
+    padding: 0.6rem 1.2rem;
+}

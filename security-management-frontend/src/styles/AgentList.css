@@ -1,0 +1,89 @@
+/* ─── Ajustements de colonnes ──────────────────────────────────── */
+.agent-table th:nth-child(2),
+.agent-table td:nth-child(2) {
+    /* Nom / Prénom */
+    width: 180px;              /* plus d’espace */
+}
+
+.agent-table th:nth-child(3),
+.agent-table td:nth-child(3) {
+    /* Email */
+    width: 220px;
+}
+
+.agent-table th:nth-child(4),
+.agent-table td:nth-child(4) {
+    /* Tél. */
+    width: 100px;
+}
+
+/* tu peux continuer ainsi pour chaque colonne si nécessaire */
+
+/* ─── Espacement et alignement des boutons ───────────────────── */
+.actions {
+    display: flex;
+    gap: 0.5rem;              /* espace entre les boutons */
+    align-items: center;
+}
+
+.actions .btn {
+    flex-shrink: 0;           /* pour ne pas se réduire */
+    padding: 0.5rem 0.8rem;    /* taille un peu réduite pour tout aligner */
+    font-size: 0.85rem;
+    line-height: 1.2;
+}
+
+/* ─── Optionnel : icônes + texte pour les actions ─────────────── */
+/* Si tu veux ajouter un pictogramme avant le texte */
+.btn.view::before {
+    content: "👁️ ";
+}
+.btn.edit::before {
+    content: "✏️ ";
+}
+.btn.delete::before {
+    content: "🗑️ ";
+}
+
+/* ─── Rappels des réglages globaux pour cohérence ─────────────── */
+.agent-list-container {
+    max-width: 1200px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+.agent-table {
+    width: 100%;
+    min-width: 900px;
+    border-collapse: collapse;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.agent-table thead th {
+    position: sticky;
+    top: 0;
+    background: #f8f9fa;
+    padding: 1rem 1.2rem;
+    text-align: left;
+    font-weight: 600;
+    border-bottom: 2px solid #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.agent-table th,
+.agent-table td {
+    padding: 1rem 1.2rem;
+    border-bottom: 1px solid #e0e0e0;
+    font-size: 0.95rem;
+}
+
+.address-cell {
+    max-width: 250px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}

@@ -1,0 +1,88 @@
+/* 👉 Conteneur principal, plus aéré */
+.detail-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+}
+
+/* 👉 Carte Leaflet en plein largeur & 80vh de hauteur */
+.map-preview {
+    width: 100%;
+    height: 80vh;               /* passe de 500px à 80% de la hauteur d'écran */
+    margin-bottom: 2rem;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+}
+
+/* 👉 Info‐group en grille 2 colonnes, plus d’espace */
+.info-group {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: 0.75rem 2rem;
+    margin-bottom: 2rem;
+}
+.info-group label {
+    font-weight: 700;
+    color: #444;
+    align-self: start;
+}
+.info-group p {
+    margin: 0;
+    font-size: 1rem;
+    color: #222;
+}
+
+/* 👉 Missions, un peu plus large & contrasté */
+.missions-detail {
+    margin-top: 2.5rem;
+}
+.missions-detail h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    color: #222;
+}
+.missions-detail ul {
+    list-style: disc inside;
+    padding-left: 0;
+    margin: 0;
+}
+.missions-detail li {
+    margin-bottom: 1.2rem;
+    line-height: 1.6;
+}
+.mission-title {
+    font-weight: 600;
+    margin-right: 0.8rem;
+}
+.mission-meta {
+    display: block;
+    font-style: italic;
+    color: #555;
+    font-size: 0.9rem;
+    margin-top: 0.2rem;
+}
+
+/* 👉 Boutons d’action plus visibles */
+.btn-action {
+    padding: 0.7rem 1.4rem;
+    font-size: 1rem;
+    margin-right: 1rem;
+}
+.btn-back {
+    margin-top: 3rem;
+    padding: 0.7rem 1.6rem;
+    font-size: 1rem;
+}
+
+/* Loader & erreur centrés */
+.loader, .error {
+    text-align: center;
+    margin: 4rem 0;
+    font-size: 1.2rem;
+}
+.loader { color: #1976d2; }
+.error  { color: #c62828; }

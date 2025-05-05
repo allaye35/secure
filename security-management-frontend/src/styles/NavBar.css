@@ -1,0 +1,179 @@
+/* src/styles/NavBar.css */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background: #0d0d1a;
+    color: #fff;
+}
+
+.navbar-left a,
+.navbar-right a,
+.navbar-logout-btn {
+    margin-left: 1rem;
+    color: #fff;
+    text-decoration: none;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+}
+
+.navbar-user {
+    margin-right: 0.5rem;
+}
+/* src/styles/NavBar.css */
+.navbar {
+    display: flex;
+    align-items: center;
+    background-color: #0d47a1;
+    padding: 0 1rem;
+    height: 4rem;
+    color: white;
+}
+
+.navbar-left {
+    margin-right: 1.5rem;
+    position: relative;
+}
+
+.navbar-left a,
+.dropdown-btn {
+    color: white;
+    background: none;
+    border: none;
+    font-size: 1rem;
+    cursor: pointer;
+    text-decoration: none;
+    padding: 0.5rem;
+}
+
+.dropdown-btn:focus {
+    outline: none;
+}
+
+.dropdown-menu {
+    position: absolute;
+    top: 100%;
+    left: 0;
+    background: white;
+    color: #333;
+    list-style: none;
+    margin: 0.25rem 0 0;
+    padding: 0.25rem 0;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+    border-radius: 0.25rem;
+    min-width: 10rem;
+    z-index: 100;
+}
+
+.dropdown-menu li {
+    padding: 0;
+}
+
+.dropdown-menu li a {
+    display: block;
+    padding: 0.5rem 1rem;
+    color: #333;
+    text-decoration: none;
+}
+
+.dropdown-menu li a:hover {
+    background-color: #f0f0f0;
+}
+
+.navbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+}
+
+.navbar-right a {
+    color: white;
+    text-decoration: none;
+    margin-left: 1rem;
+}
+
+.navbar-user {
+    margin-right: 1rem;
+}
+
+.navbar-logout-btn {
+    background: #ff5252;
+    border: none;
+    color: white;
+    padding: 0.4rem 0.8rem;
+    border-radius: 0.25rem;
+    cursor: pointer;
+}
+
+.navbar-logout-btn:hover {
+    background: #e04848;
+}
+
+/* src/styles/NavBar.css */
+.navbar {
+    display: flex;
+    align-items: center;
+    background: #0052cc;
+    padding: 0.5rem 1rem;
+}
+
+.navbar-left {
+    position: relative;
+    margin-right: 1rem;
+}
+
+.navbar-left a,
+.dropdown-btn {
+    color: white;
+    background: none;
+    border: none;
+    cursor: pointer;
+    font: inherit;
+    padding: 0.25rem 0.5rem;
+}
+
+.dropdown-menu {
+    list-style: none;
+    margin: 0;
+    padding: 0.25rem 0;
+    background: white;
+    position: absolute;
+    top: 100%;
+    left: 0;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.2);
+    z-index: 100;
+}
+
+.dropdown-menu li a {
+    display: block;
+    padding: 0.25rem 1rem;
+    color: #0052cc;
+    text-decoration: none;
+}
+
+.dropdown-menu li a:hover {
+    background: #f0f0f0;
+}
+
+.navbar-right {
+    margin-left: auto;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.navbar-user {
+    color: white;
+}
+
+.navbar-logout-btn {
+    background: #c82333;
+    color: white;
+    border: none;
+    padding: 0.25rem 0.75rem;
+    cursor: pointer;
+    font: inherit;
+}

@@ -1,0 +1,151 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# BlueJ files
+*.ctxt
+
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
+hs_err_pid*
+replay_pid*
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle/
+build/
+!gradle/wrapper/gradle-wrapper.jar
+
+# Eclipse
+.classpath
+.project
+.settings/
+.apt_generated
+.factorypath
+.springBeans
+.sts4-cache
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# VS Code
+.vscode/
+
+# Spring Boot
+spring-boot-*.pid
+
+# Node.js
+node_modules/
+npm-debug.log
+yarn-error.log
+yarn-debug.log
+.pnp/
+.pnp.js
+
+# Testing
+/coverage
+
+# production
+/build
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Database files
+*.db
+*.mv.db
+*.trace.db
+*.sqlite
+*.sqlite3
+
+# Git specific files
+*.pack
+*.idx
+*.prune
+*.bundle
+.git/objects/*
+.git/refs/*
+.git/packed-refs
+.git/FETCH_HEAD
+.git/ORIG_HEAD
+
+# Bin directories
+**/bin/
+
+# Docker
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log
+
+# OS specific
+.DS_Store
+Thumbs.db
+desktop.ini
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+
+# Misc
+*.swp
+*.swo
+*~
+*.tmp
+*.temp
+.attach_pid*
+
+# Lock files
+package-lock.json
+yarn.lock
+
+# Exclude large and unnecessary files
+node_modules/
+*.pack
+*.log
+*.cache/
+*.xml
+all_files.txt
+large_files.txt
+large_files_filtered.txt
+pack_file_analysis.txt

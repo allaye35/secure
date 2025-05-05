@@ -1,0 +1,68 @@
+/* src/styles/AgentDetail.css */
+
+.agent-detail {
+    max-width: 800px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background-color: #fff;
+    border-radius: 0.5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+}
+
+.agent-detail h2 {
+    font-size: 1.75rem;
+    margin-bottom: 1rem;
+    color: #004085;
+}
+
+.agent-detail .info-block {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem 2rem;
+    margin-bottom: 2rem;
+}
+
+.agent-detail .info-block p {
+    margin: 0.25rem 0;
+    line-height: 1.4;
+}
+
+.agent-detail section {
+    margin-bottom: 1.75rem;
+}
+
+.agent-detail section h3 {
+    font-size: 1.25rem;
+    margin-bottom: 0.5rem;
+    color: #003366;
+}
+
+.agent-detail ul {
+    list-style: disc inside;
+    margin: 0;
+    padding: 0.5rem 0 0.5rem 1rem;
+}
+.agent-detail ul li {
+    margin-bottom: 0.4rem;
+}
+
+.back-link {
+    display: inline-block;
+    margin-top: 1rem;
+    color: #0056b3;
+    text-decoration: none;
+    font-weight: 500;
+}
+.back-link:hover {
+    text-decoration: underline;
+}
+
+.error {
+    color: #dc3545;
+    background-color: #f8d7da;
+    padding: 0.5rem 1rem;
+    border-radius: 0.25rem;
+    margin: 1rem 0;
+}

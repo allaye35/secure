@@ -1,0 +1,27 @@
+.zone-list-container {
+    max-width: 1000px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+}
+.controls {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.controls h2 { color: #004085; margin: 0; }
+.search-input { flex: 1; padding: 0.5rem; }
+.add-btn { background: #28a745; color: #fff; }
+.table-wrapper { overflow-x: auto; }
+.zone-table { width: 100%; border-collapse: collapse; }
+.zone-table th, .zone-table td {
+    padding: 0.75rem;
+    border-bottom: 1px solid #ddd;
+}
+.zone-table thead { background: #f8f9fa; }
+.actions { display: flex; gap: 0.5rem; }
+.btn.view { background: #17a2b8; color: #fff; }
+.btn.edit { background: #ffc107; color: #212529; }
+.btn.delete { background: #dc3545; color: #fff; }
+.no-data { text-align: center; padding: 1rem; color: #666; }
+.error { margin: 1rem 0; color: #721c24; background: #f8d7da; padding: 0.5rem; }

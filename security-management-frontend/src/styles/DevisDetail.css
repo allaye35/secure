@@ -1,0 +1,57 @@
+/* src/styles/DevisDetail.css */
+.devis-detail {
+    max-width: 600px;
+    margin: 1em auto;
+    padding: 1em;
+    border: 1px solid #ccc;
+    border-radius: 6px;
+}
+.devis-detail h2 {
+    margin-bottom: 0.5em;
+}
+.field,
+.field-group {
+    margin-bottom: 1em;
+    display: flex;
+    flex-wrap: wrap;
+}
+.field .label {
+    width: 150px;
+    font-weight: bold;
+}
+.field p {
+    margin: 0.2em 0;
+}
+.field-group .field {
+    flex: 1;
+    min-width: 200px;
+}
+.actions {
+    margin-top: 1.5em;
+    display: flex;
+    gap: 0.5em;
+}
+.actions button {
+    padding: 0.5em 1em;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+.actions button:hover {
+    opacity: 0.9;
+}
+.actions button:first-child {
+    background: #eee;
+}
+.actions button:nth-child(2) {
+    background: #1976d2;
+    color: white;
+}
+.actions button:nth-child(3) {
+    background: #d32f2f;
+    color: white;
+}
+.error {
+    color: red;
+    text-align: center;
+}

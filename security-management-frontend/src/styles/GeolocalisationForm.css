@@ -1,0 +1,87 @@
+/* src/styles/GeolocalisationForm.css */
+
+.form-container {
+    max-width: 900px;
+    margin: 2rem auto;
+    padding: 2rem;
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.1);
+}
+
+.form-container h2 {
+    font-size: 2rem;
+    margin-bottom: 1.5rem;
+}
+
+.form-error {
+    color: #c62828;
+    font-weight: 600;
+    margin-bottom: 1rem;
+}
+
+.geo-form .form-group {
+    margin-bottom: 1.5rem;
+}
+
+.geo-form .form-group label {
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+    display: block;
+}
+
+.geo-form .form-group input,
+.geo-form .form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    font-size: 1rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+}
+
+.coords-group {
+    display: flex;
+    gap: 2rem;
+}
+
+.map-preview-large {
+    margin: 1.5rem 0;
+    border: 2px solid #007bff;
+    border-radius: 6px;
+    overflow: hidden;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+    margin-top: 2rem;
+}
+
+.btn-submit {
+    background: #007bff;
+    color: #fff;
+    padding: 0.8rem 1.6rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .2s;
+}
+.btn-submit:hover:not(:disabled) {
+    background: #0056b3;
+}
+
+.btn-cancel {
+    background: #eee;
+    color: #333;
+    padding: 0.8rem 1.6rem;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background .2s;
+}
+.btn-cancel:hover:not(:disabled) {
+    background: #ddd;
+}

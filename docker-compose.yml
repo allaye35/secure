@@ -1,0 +1,50 @@
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: mysql-db
+    restart: always
+    environment:
+      MYSQL_DATABASE: security_db
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_USER: securite
+      MYSQL_PASSWORD: securite123
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build:
+      context: ./SecurityManagementApp
+      dockerfile: Dockerfile
+    container_name: security-backend
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:mysql://mysql-db:3306/security_db
+      SPRING_DATASOURCE_USERNAME: securite
+      SPRING_DATASOURCE_PASSWORD: securite123
+    ports:
+      - "8080:8080"
+
+  # (Optionnel) Service phpMyAdmin pour accéder via navigateur
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin
+    container_name: phpmyadmin
+    restart: always
+    ports:
+      - "8081:80"
+    environment:
+      PMA_HOST: mysql-db
+      PMA_PORT: 3306
+    depends_on:
+      - mysql
+
+volumes:
+  mysql_data:

@@ -1,0 +1,50 @@
+.carte-form-container {
+    max-width: 600px;
+    margin: 2rem auto;
+    padding: 1.5rem;
+    background: #fff;
+    border-radius: .5rem;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    font-family: 'Segoe UI', sans-serif;
+}
+
+.carte-form-container h2 {
+    margin-bottom: 1rem;
+    color: #004085;
+}
+
+.carte-form-container label {
+    display: block;
+    margin: .75rem 0;
+    font-weight: 500;
+}
+
+.carte-form-container input,
+.carte-form-container select {
+    width: 100%;
+    padding: .6rem 1rem;
+    border: 1px solid #ccc;
+    border-radius: .25rem;
+    font-size: .95rem;
+}
+
+.btn.submit-btn {
+    margin-top: 1rem;
+    background-color: #007bff;
+    color: #fff;
+    border: none;
+    padding: .6rem 1.2rem;
+    border-radius: .25rem;
+    cursor: pointer;
+}
+
+.btn.submit-btn:hover {
+    background-color: #0069d9;
+}
+
+.error {
+    color: #c00;
+    background: #fdd;
+    padding: .5rem 1rem;
+    border-radius: .25rem;
+}
