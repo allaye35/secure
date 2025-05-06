@@ -176,4 +176,36 @@ public class AgentDeSecuriteServiceImpl implements AgentDeSecuriteService {
         return agentMapper.toDto(agent);
     }
 
+    @Override
+    public List<AgentDeSecuriteDto> getAgentsByZoneId(Long zoneId) {
+        // Vérifier si la zone existe
+        ZoneDeTravail zone = zoneRepo.findById(zoneId)
+                .orElseThrow(() -> new IllegalArgumentException("Zone non trouvée : " + zoneId));
+        
+        // Récupérer tous les agents associés à cette zone
+        List<AgentDeSecurite> agents = agentRepo.findByZonesDeTravail(zone);
+        
+        // Convertir les entités en DTOs
+        return agents.stream()
+                .map(agentMapper::toDto)
+                .collect(Collectors.toList());
+    }
+
+    @Override
+    public AgentDeSecuriteDto removeFromZoneDeTravail(Long agentId, Long zoneId) {
+        AgentDeSecurite agent = agentRepo.findById(agentId)
+                .orElseThrow(() -> new RuntimeException("Agent non trouvé : " + agentId));
+        
+        ZoneDeTravail zone = zoneRepo.findById(zoneId)
+                .orElseThrow(() -> new RuntimeException("Zone non trouvée : " + zoneId));
+        
+        // Retirer la zone spécifique de la liste des zones de l'agent
+        agent.getZonesDeTravail().remove(zone);
+        
+        // Sauvegarder l'agent mis à jour
+        agent = agentRepo.save(agent);
+        
+        return agentMapper.toDto(agent);
+    }
+
 }

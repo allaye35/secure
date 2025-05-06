@@ -1,8 +1,10 @@
 package com.boulevardsecurity.securitymanagementapp.controller;
 
 import com.boulevardsecurity.securitymanagementapp.Enums.TypeZone;
+import com.boulevardsecurity.securitymanagementapp.dto.AgentDeSecuriteDto;
 import com.boulevardsecurity.securitymanagementapp.dto.ZoneDeTravailCreateDto;
 import com.boulevardsecurity.securitymanagementapp.dto.ZoneDeTravailDto;
+import com.boulevardsecurity.securitymanagementapp.service.AgentDeSecuriteService;
 import com.boulevardsecurity.securitymanagementapp.service.ZoneDeTravailService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +19,7 @@ import java.util.List;
 public class ZoneDeTravailController {
 
     private final ZoneDeTravailService service;
+    private final AgentDeSecuriteService agentService;
 
     /** Crée une nouvelle zone */
     @PostMapping
@@ -69,6 +72,49 @@ public class ZoneDeTravailController {
         }
     }
 
+    /** Récupérer les agents affectés à une zone */
+    @GetMapping("/{id}/agents")
+    public ResponseEntity<List<AgentDeSecuriteDto>> getAgentsByZoneId(@PathVariable Long id) {
+        try {
+            List<AgentDeSecuriteDto> agents = agentService.getAgentsByZoneId(id);
+            return ResponseEntity.ok(agents);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /** 
+     * Affecter un agent à une zone 
+     * Note: Utilise la même logique que l'endpoint PUT /api/agents/{agentId}/zone/{zoneId}
+     */
+    @PostMapping("/{zoneId}/agents/{agentId}")
+    public ResponseEntity<AgentDeSecuriteDto> assignAgentToZone(
+            @PathVariable Long zoneId,
+            @PathVariable Long agentId
+    ) {
+        try {
+            // Utiliser le service existant dans AgentDeSecuriteService qui permet déjà d'assigner une zone à un agent
+            AgentDeSecuriteDto dto = agentService.assignZoneDeTravail(agentId, zoneId);
+            return ResponseEntity.ok(dto);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /** Retirer un agent d'une zone */
+    @DeleteMapping("/{zoneId}/agents/{agentId}")
+    public ResponseEntity<Void> removeAgentFromZone(
+            @PathVariable Long zoneId,
+            @PathVariable Long agentId
+    ) {
+        try {
+            agentService.removeFromZoneDeTravail(agentId);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+    
     /** Suppression */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {

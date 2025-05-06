@@ -74,7 +74,8 @@ import ArticleDetail from "./components/articles/ArticleDetail";
 
 /* ─── Zones de travail ──────────────────────────────────────── */
 import ZoneList      from "./components/zones/ZoneList";
-import ZoneForm      from "./components/zones/ZoneForm";
+import ZoneCreate    from "./components/zones/ZoneCreate";
+import ZoneEdit      from "./components/zones/ZoneEdit";
 import ZoneDetail    from "./components/zones/ZoneDetail";
 
 /* ─── Disponibilités ───────────────────────────────────────── */
@@ -209,8 +210,8 @@ export default function App() {
 
                 {/* Zones de travail */}
                 <Route path="/zones"          element={<ZoneList />} />
-                <Route path="/zones/create"   element={<ZoneForm />} />
-                <Route path="/zones/edit/:id" element={<ZoneForm />} />
+                <Route path="/zones/create"   element={<ZoneCreate />} />
+                <Route path="/zones/edit/:id" element={<ZoneEdit />} />
                 <Route path="/zones/:id"      element={<ZoneDetail />} />
 
                 {/* Disponibilités */}

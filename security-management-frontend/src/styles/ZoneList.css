@@ -25,3 +25,11 @@
 .btn.delete { background: #dc3545; color: #fff; }
 .no-data { text-align: center; padding: 1rem; color: #666; }
 .error { margin: 1rem 0; color: #721c24; background: #f8d7da; padding: 0.5rem; }
+.warning-message {
+    background-color: #fff3cd;
+    color: #856404;
+    border: 1px solid #ffeeba;
+    border-radius: 4px;
+    padding: 0.75rem 1.25rem;
+    margin-bottom: 1rem;
+}

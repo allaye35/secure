@@ -21,6 +21,14 @@ public interface AgentDeSecuriteService {
     void deleteAgent(Long id);
 
     AgentDeSecuriteDto assignZoneDeTravail(Long agentId, Long zoneId);
+    
+    /**
+     * Retire un agent d'une zone de travail spécifique
+     * @param agentId L'ID de l'agent à retirer
+     * @param zoneId L'ID de la zone dont l'agent doit être retiré
+     * @return L'agent mis à jour
+     */
+    AgentDeSecuriteDto removeFromZoneDeTravail(Long agentId, Long zoneId);
 
     DisponibiliteDto ajouterDisponibilite(Long agentId, DisponibiliteCreationDto dispoDto);
 
@@ -37,7 +45,12 @@ public interface AgentDeSecuriteService {
     public AgentDeSecuriteDto assignCarteExistante(Long agentId, Long carteId);
 
     public AgentDeSecuriteDto assignDiplomeExistante(Long agentId, Long diplomeId);
-
-
+    
+    /**
+     * Récupère tous les agents affectés à une zone spécifique
+     * @param zoneId L'ID de la zone
+     * @return La liste des agents dans cette zone
+     */
+    List<AgentDeSecuriteDto> getAgentsByZoneId(Long zoneId);
 }
 
