@@ -7,7 +7,7 @@ const CarteProCreate = () => {
     const navigate = useNavigate();
     const [data, setData] = useState({
         agentId: "",
-        typeCarte: "SSP",
+        typeCarte: "CQP_APS",
         numeroCarte: "",
         dateDebut: "",
         dateFin: ""
@@ -18,14 +18,22 @@ const CarteProCreate = () => {
         e.preventDefault();
         setError(null);
         try {
-            await CarteProService.create({
+            // S'assurer que agentId est un nombre
+            const formattedData = {
                 ...data,
-                dateDebut: data.dateDebut,
-                dateFin:   data.dateFin
-            });
+                agentId: parseInt(data.agentId, 10)
+            };
+            
+            // Vérifier que toutes les données requises sont présentes
+            if (!formattedData.agentId || isNaN(formattedData.agentId)) {
+                throw new Error("Veuillez sélectionner un agent valide");
+            }
+            
+            await CarteProService.create(formattedData);
             navigate("/cartes-professionnelles");
-        } catch {
-            setError("Échec de la création.");
+        } catch (err) {
+            console.error("Erreur lors de la création:", err);
+            setError(err.message || "Échec de la création de la carte professionnelle");
         }
     };
 

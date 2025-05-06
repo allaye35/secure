@@ -87,6 +87,7 @@ import DisponibiliteEdit   from "./components/disponibilites/DisponibiliteEdit";
 import CarteProList   from "./components/cartesPro/CarteProList";
 import CarteProCreate from "./components/cartesPro/CarteProCreate";
 import CarteProEdit   from "./components/cartesPro/CarteProEdit";
+import CarteProDetail from "./components/cartesPro/CarteProDetail";
 
 /* ─── Diplômes SSIAP ───────────────────────────────────────── */
 import DiplomeList    from "./components/diplomes/DiplomeList";
@@ -223,6 +224,7 @@ export default function App() {
                 <Route path="/cartes-professionnelles"          element={<CarteProList />} />
                 <Route path="/cartes-professionnelles/create"   element={<CarteProCreate />} />
                 <Route path="/cartes-professionnelles/edit/:id" element={<CarteProEdit />} />
+                <Route path="/cartes-professionnelles/:id"      element={<CarteProDetail />} />
 
                 {/* Diplômes SSIAP */}
                 <Route path="/diplomes-ssiap"          element={<DiplomeList />} />

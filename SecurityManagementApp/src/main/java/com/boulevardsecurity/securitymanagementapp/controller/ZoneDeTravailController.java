@@ -108,7 +108,7 @@ public class ZoneDeTravailController {
             @PathVariable Long agentId
     ) {
         try {
-            agentService.removeFromZoneDeTravail(agentId);
+            agentService.removeFromZoneDeTravail(agentId, zoneId);
             return ResponseEntity.noContent().build();
         } catch (RuntimeException e) {
             return ResponseEntity.notFound().build();
