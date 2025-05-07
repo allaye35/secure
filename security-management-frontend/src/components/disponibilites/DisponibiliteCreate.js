@@ -1,6 +1,7 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import DisponibiliteService from "../../services/DisponibiliteService";
+import AgentService from "../../services/AgentService";
 import DisponibiliteForm from "./DisponibiliteForm";
 
 const DisponibiliteCreate = () => {
@@ -10,7 +11,18 @@ const DisponibiliteCreate = () => {
         dateDebut: "",
         dateFin: ""
     });
+    const [agents, setAgents] = useState([]);
     const [error, setError] = useState(null);
+
+    // Chargement de la liste des agents au montage du composant
+    useEffect(() => {
+        AgentService.getAllAgents()
+            .then(response => setAgents(response.data))
+            .catch(err => {
+                console.error("Erreur lors du chargement des agents", err);
+                setError("Impossible de charger la liste des agents.");
+            });
+    }, []);
 
     const handleSubmit = async e => {
         e.preventDefault();
@@ -35,6 +47,7 @@ const DisponibiliteCreate = () => {
             setData={setData}
             onSubmit={handleSubmit}
             error={error}
+            agents={agents}
         />
     );
 };

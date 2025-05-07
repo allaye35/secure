@@ -3,14 +3,25 @@ package com.boulevardsecurity.securitymanagementapp.service.impl;
 import com.boulevardsecurity.securitymanagementapp.dto.FactureCreateDto;
 import com.boulevardsecurity.securitymanagementapp.dto.FactureDto;
 import com.boulevardsecurity.securitymanagementapp.mapper.FactureMapper;
+import com.boulevardsecurity.securitymanagementapp.model.Devis;
 import com.boulevardsecurity.securitymanagementapp.model.Facture;
+import com.boulevardsecurity.securitymanagementapp.model.Mission;
+import com.boulevardsecurity.securitymanagementapp.model.Client;
+import com.boulevardsecurity.securitymanagementapp.Enums.StatutFacture;
+import com.boulevardsecurity.securitymanagementapp.repository.DevisRepository;
 import com.boulevardsecurity.securitymanagementapp.repository.FactureRepository;
+import com.boulevardsecurity.securitymanagementapp.repository.ClientRepository;
+import com.boulevardsecurity.securitymanagementapp.repository.MissionRepository;
 import com.boulevardsecurity.securitymanagementapp.service.FactureService;
+import com.boulevardsecurity.securitymanagementapp.service.TarificationDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
+import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
@@ -19,6 +30,10 @@ public class FactureServiceImpl implements FactureService {
 
     private final FactureRepository repo;
     private final FactureMapper mapper;
+    private final DevisRepository repDevis;
+    private final ClientRepository clientRepository;
+    private final MissionRepository missionRepository;
+    private final TarificationDomainService tarification;
 
     @Override
     public FactureDto create(FactureCreateDto dto) {
@@ -65,5 +80,113 @@ public class FactureServiceImpl implements FactureService {
             throw new IllegalArgumentException("Facture introuvable id=" + id);
         }
         repo.deleteById(id);
+    }
+    
+    /**
+     * Crée une facture à partir d'un devis existant
+     */
+    public Facture creerDepuisDevis(Long devisId) {
+        Devis d = repDevis.findById(devisId)
+                .orElseThrow(() -> new IllegalArgumentException("Devis introuvable id=" + devisId));
+
+        // Pour chaque mission, applique le chiffrage correct avant de créer la facture
+        d.getMissions().forEach(this::appliquerChiffrage);
+
+        // Calcul du total HT à partir des missions
+        BigDecimal totalHT = d.getMissions().stream()
+                              .map(tarification::montantHT)
+                              .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        // Utilisation du même taux de TVA que celui du devis ou un calcul moyen
+        BigDecimal tauxTVA = d.getMissions().isEmpty() ? 
+            BigDecimal.valueOf(0.2) : // Taux par défaut si pas de mission
+            d.getMissions().get(0).getTarif().getTauxTVA(); // Prend le taux de la première mission
+            
+        BigDecimal tva = tarification.tva(totalHT, tauxTVA);
+        BigDecimal ttc = tarification.ttc(totalHT, tva);
+
+        Facture f = Facture.builder()
+            .referenceFacture(genererReference())
+            .dateEmission(LocalDate.now())
+            .statut(StatutFacture.EN_ATTENTE)
+            .montantHT(totalHT)
+            .montantTVA(tva)
+            .montantTTC(ttc)
+            .devis(d)
+            .entreprise(d.getEntreprise())
+            .client(d.getClient())
+            .missions(d.getMissions())
+            .build();
+
+        return repo.save(f);
+    }
+    
+    /**
+     * Crée une facture pour un client sur une période donnée
+     */
+    public Facture creerPourClientEtPeriode(Long clientId, LocalDate debut, LocalDate fin) {
+        Client client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new IllegalArgumentException("Client introuvable id=" + clientId));
+                
+        // Récupère toutes les missions du client dans la période spécifiée en utilisant la relation via Devis
+        List<Mission> missions = missionRepository.findByDevis_Client_IdAndDateDebutBetween(clientId, debut, fin);
+        
+        if (missions.isEmpty()) {
+            throw new IllegalArgumentException("Aucune mission trouvée pour ce client dans la période spécifiée");
+        }
+        
+        // Pour chaque mission, applique le chiffrage correct
+        missions.forEach(this::appliquerChiffrage);
+        
+        // Calcul du total HT à partir des missions
+        BigDecimal totalHT = missions.stream()
+                              .map(tarification::montantHT)
+                              .reduce(BigDecimal.ZERO, BigDecimal::add);
+                              
+        // Utilisation du même taux de TVA que celui des missions ou un calcul moyen
+        BigDecimal tauxTVA = missions.get(0).getTarif().getTauxTVA();
+        BigDecimal tva = tarification.tva(totalHT, tauxTVA);
+        BigDecimal ttc = tarification.ttc(totalHT, tva);
+        
+        // Trouver l'entreprise à partir de la première mission ou du premier devis
+        var entreprise = missions.isEmpty() || missions.get(0).getDevis() == null ?
+            null : missions.get(0).getDevis().getEntreprise();
+        
+        Facture f = Facture.builder()
+            .referenceFacture(genererReference())
+            .dateEmission(LocalDate.now())
+            .statut(StatutFacture.EN_ATTENTE)
+            .montantHT(totalHT)
+            .montantTVA(tva)
+            .montantTTC(ttc)
+            .client(client)
+            .entreprise(entreprise)
+            .missions(missions)
+            .build();
+            
+        return repo.save(f);
+    }
+    
+    /**
+     * Applique le chiffrage d'une mission en tenant compte des majorations
+     */
+    private void appliquerChiffrage(Mission m) {
+        BigDecimal ht = tarification.montantHT(m);
+        BigDecimal taux = m.getTarif().getTauxTVA();
+        BigDecimal tva = tarification.tva(ht, taux);
+
+        m.setMontantHT(ht);
+        m.setMontantTVA(tva);
+        m.setMontantTTC(tarification.ttc(ht, tva));
+        
+        // Sauvegarde les changements
+        missionRepository.save(m);
+    }
+    
+    /**
+     * Génère une référence unique pour une facture
+     */
+    private String genererReference() {
+        return "FACT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
 }

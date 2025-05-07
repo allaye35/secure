@@ -33,6 +33,24 @@
     line-height: 1.2;
 }
 
+/* ─── Styles pour les informations de l'agent dans la liste des diplômes ─────────────── */
+.agent-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.agent-info strong {
+    color: #2c3e50;
+    font-size: 0.95rem;
+}
+
+.agent-email {
+    color: #7f8c8d;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
 /* ─── Optionnel : icônes + texte pour les actions ─────────────── */
 /* Si tu veux ajouter un pictogramme avant le texte */
 .btn.view::before {
@@ -86,4 +104,66 @@
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
+}
+
+/* ─── Styles pour le message de chargement ─────────────── */
+.loading {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 200px;
+    font-size: 1.2rem;
+    color: #7f8c8d;
+}
+
+/* ─── Styles pour les filtres de recherche ─────────────────── */
+.search-filters {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1rem;
+    padding: 1rem;
+    background-color: #f8f9fa;
+    border-radius: .5rem;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+}
+
+.search-input {
+    width: 100%;
+    padding: .6rem 1rem;
+    border: 1px solid #ddd;
+    border-radius: .25rem;
+    font-size: 1rem;
+}
+
+.filter-group {
+    display: flex;
+    flex-direction: column;
+    min-width: 180px;
+}
+
+.filter-group label {
+    font-size: .85rem;
+    margin-bottom: .25rem;
+    color: #555;
+}
+
+.filter-select {
+    padding: .6rem .5rem;
+    border: 1px solid #ddd;
+    border-radius: .25rem;
+    background: #fff;
+    font-size: 0.9rem;
+}
+
+.filter-info {
+    margin-bottom: 1rem;
+    color: #666;
+    font-style: italic;
+    font-size: 0.9rem;
 }

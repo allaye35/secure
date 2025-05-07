@@ -23,6 +23,5 @@ public class FactureDto {
     private Long            devisId;
     private Long            entrepriseId;
     private Long            clientId;
-    private Long            contratId;     // peut être null
     private List<Long>      missionIds;    // 0..n
 }

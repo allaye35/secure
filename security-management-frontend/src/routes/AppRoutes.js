@@ -9,6 +9,8 @@ import EntrepriseRoutes from "./EntrepriseRoutes";
 import GeolocalisationRoutes from "./GeolocalisationRoutes";
 import RapportRoutes from "./RapportRoutes";
 import DevisRoutes from "./DevisRoutes";
+import DisponibiliteRoutes from "./DisponibiliteRoutes";
+import FactureRoutes from "./FactureRoutes";
 
 const AppRoutes = () => {
   return (
@@ -26,6 +28,8 @@ const AppRoutes = () => {
         {GeolocalisationRoutes()}
         {RapportRoutes && RapportRoutes()}
         {DevisRoutes()}
+        {DisponibiliteRoutes()}
+        {FactureRoutes()}
       </>
     </Routes>
   );

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import DisponibiliteService from "../../services/DisponibiliteService";
+import AgentService from "../../services/AgentService";
 import DisponibiliteForm from "./DisponibiliteForm";
 
 const DisponibiliteEdit = () => {
@@ -12,9 +13,11 @@ const DisponibiliteEdit = () => {
         dateDebut: "",
         dateFin: ""
     });
+    const [agents, setAgents] = useState([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        // Chargement des données de la disponibilité
         DisponibiliteService.getById(id)
             .then(res => {
                 const dto = res.data;
@@ -25,6 +28,14 @@ const DisponibiliteEdit = () => {
                 });
             })
             .catch(() => setError("Impossible de charger la disponibilité."));
+
+        // Chargement de la liste des agents
+        AgentService.getAllAgents()
+            .then(response => setAgents(response.data))
+            .catch(err => {
+                console.error("Erreur lors du chargement des agents", err);
+                setError(erreur => erreur || "Impossible de charger la liste des agents.");
+            });
     }, [id]);
 
     const handleSubmit = async e => {
@@ -49,6 +60,7 @@ const DisponibiliteEdit = () => {
             setData={setData}
             onSubmit={handleSubmit}
             error={error}
+            agents={agents}
         />
     );
 };

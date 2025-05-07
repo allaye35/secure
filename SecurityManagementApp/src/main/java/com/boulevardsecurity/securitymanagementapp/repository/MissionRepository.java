@@ -25,4 +25,7 @@ public interface MissionRepository extends JpaRepository<Mission, Long> {
     
     // 🔹 Récupérer toutes les missions d'un contrat spécifique par son ID
     List<Mission> findByContrat_Id(Long contratId);
+    
+    // 🔹 Récupérer toutes les missions d'un client pour une période donnée
+    List<Mission> findByDevis_Client_IdAndDateDebutBetween(Long clientId, LocalDate debut, LocalDate fin);
 }

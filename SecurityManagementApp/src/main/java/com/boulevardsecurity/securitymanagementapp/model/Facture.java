@@ -55,9 +55,7 @@ public class Facture {
     @JoinColumn(name = "client_id")
     private Client client;
 
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "contrat_id")
-    private Contrat contrat;
+
 
     // Si tu veux rattacher plusieurs missions facturées
     @ManyToMany

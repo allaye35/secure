@@ -2,7 +2,10 @@ package com.boulevardsecurity.securitymanagementapp.controller;
 
 import com.boulevardsecurity.securitymanagementapp.dto.FactureCreateDto;
 import com.boulevardsecurity.securitymanagementapp.dto.FactureDto;
+import com.boulevardsecurity.securitymanagementapp.dto.PeriodeFacturationDto;
+import com.boulevardsecurity.securitymanagementapp.model.Facture;
 import com.boulevardsecurity.securitymanagementapp.service.FactureService;
+import com.boulevardsecurity.securitymanagementapp.service.impl.FactureServiceImpl;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -17,6 +20,7 @@ import java.util.List;
 public class FactureController {
 
     private final FactureService service;
+    private final FactureServiceImpl serviceImpl;
 
     /** Crée une nouvelle facture */
     @PostMapping
@@ -69,6 +73,38 @@ public class FactureController {
             return ResponseEntity.noContent().build();
         } catch (IllegalArgumentException e) {
             return ResponseEntity.notFound().build();
+        }
+    }
+    
+    /** Crée une facture pour un client sur une période donnée */
+    @PostMapping("/periode")
+    public ResponseEntity<?> createForPeriod(@RequestBody PeriodeFacturationDto periodeDto) {
+        try {
+            Facture facture = serviceImpl.creerPourClientEtPeriode(
+                periodeDto.getClientId(), 
+                periodeDto.getDateDebut(), 
+                periodeDto.getDateFin()
+            );
+            return ResponseEntity.status(HttpStatus.CREATED).body(service.findById(facture.getId()).get());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erreur lors de la création de la facture: " + e.getMessage());
+        }
+    }
+    
+    /** Crée une facture à partir d'un devis */
+    @PostMapping("/from-devis/{devisId}")
+    public ResponseEntity<?> createFromDevis(@PathVariable Long devisId) {
+        try {
+            Facture facture = serviceImpl.creerDepuisDevis(devisId);
+            return ResponseEntity.status(HttpStatus.CREATED).body(service.findById(facture.getId()).get());
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(e.getMessage());
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("Erreur lors de la création de la facture: " + e.getMessage());
         }
     }
 }

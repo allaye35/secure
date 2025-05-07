@@ -82,6 +82,7 @@ import ZoneDetail    from "./components/zones/ZoneDetail";
 import DisponibiliteList   from "./components/disponibilites/DisponibiliteList";
 import DisponibiliteCreate from "./components/disponibilites/DisponibiliteCreate";
 import DisponibiliteEdit   from "./components/disponibilites/DisponibiliteEdit";
+import DisponibiliteDetail from "./components/disponibilites/DisponibiliteDetail";
 
 /* ─── Cartes pro ───────────────────────────────────────────── */
 import CarteProList   from "./components/cartesPro/CarteProList";
@@ -93,6 +94,7 @@ import CarteProDetail from "./components/cartesPro/CarteProDetail";
 import DiplomeList    from "./components/diplomes/DiplomeList";
 import DiplomeCreate  from "./components/diplomes/DiplomeCreate";
 import DiplomeEdit    from "./components/diplomes/DiplomeEdit";
+import DiplomeDetail  from "./components/diplomes/DiplomeDetail";
 
 /* ─── Notifications ────────────────────────────────────────── */
 import NotificationList   from "./components/notifications/NotificationList";
@@ -219,6 +221,7 @@ export default function App() {
                 <Route path="/disponibilites"          element={<DisponibiliteList />} />
                 <Route path="/disponibilites/create"   element={<DisponibiliteCreate />} />
                 <Route path="/disponibilites/edit/:id" element={<DisponibiliteEdit />} />
+                <Route path="/disponibilites/:id"      element={<DisponibiliteDetail />} />
 
                 {/* Cartes professionnelles */}
                 <Route path="/cartes-professionnelles"          element={<CarteProList />} />
@@ -230,6 +233,7 @@ export default function App() {
                 <Route path="/diplomes-ssiap"          element={<DiplomeList />} />
                 <Route path="/diplomes-ssiap/create"   element={<DiplomeCreate />} />
                 <Route path="/diplomes-ssiap/edit/:id" element={<DiplomeEdit />} />
+                <Route path="/diplomes-ssiap/:id"      element={<DiplomeDetail />} />
 
                 {/* Notifications */}
                 <Route path="/notifications"          element={<NotificationList />} />

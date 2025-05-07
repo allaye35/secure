@@ -33,7 +33,6 @@ public class FactureMapper {
                 .devisId(f.getDevis().getId())
                 .entrepriseId(f.getEntreprise().getId())
                 .clientId(f.getClient().getId())
-                .contratId(f.getContrat() != null ? f.getContrat().getId() : null)
                 .missionIds(f.getMissions().stream()
                         .map(Mission::getId)
                         .collect(Collectors.toList()))
@@ -64,12 +63,7 @@ public class FactureMapper {
                 .client(client)
                 .build();
 
-        // contrat facultatif
-        if (dto.getContratId() != null) {
-            Contrat c = contratRepo.findById(dto.getContratId())
-                    .orElseThrow(() -> new IllegalArgumentException("Contrat id=" + dto.getContratId()));
-            f.setContrat(c);
-        }
+
 
         // missions facturées facultatives
         if (dto.getMissionIds() != null && !dto.getMissionIds().isEmpty()) {

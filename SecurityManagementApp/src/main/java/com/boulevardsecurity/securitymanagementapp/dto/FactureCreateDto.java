@@ -22,6 +22,5 @@ public class FactureCreateDto {
     private Long            devisId;
     private Long            entrepriseId;
     private Long            clientId;
-    private Long            contratId;     // facultatif
     private List<Long>      missionIds;    // facultatif
 }
