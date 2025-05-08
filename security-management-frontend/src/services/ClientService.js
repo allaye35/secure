@@ -38,6 +38,9 @@ const ClientService = {
     /** Obtenir l'historique des factures d'un client */
     getHistoriqueFactures: (clientId) => api.get(`${PATH}/${clientId}/factures`),
     
+    /** Obtenir les entreprises associées à un client */
+    getEntreprises: (clientId) => api.get(`${PATH}/${clientId}/entreprises`),
+    
     /** Associer un client à une entreprise */
     associerEntreprise: (clientId, entrepriseId) => 
         api.post(`${PATH}/${clientId}/entreprises/${entrepriseId}`),

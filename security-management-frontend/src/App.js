@@ -117,6 +117,7 @@ import DevisDetail from "./components/devis/DevisDetail";
 import FactureList   from "./components/factures/FactureList";
 import FactureForm   from "./components/factures/FactureForm";
 import FactureDetail from "./components/factures/FactureDetail";
+import FacturePrint  from "./components/factures/FacturePrint";
 
 import FicheDePaieList            from "./components/ficheDePaie/FicheDePaieList";
 import FicheDePaieForm            from "./components/ficheDePaie/FicheDePaieForm";
@@ -256,7 +257,7 @@ export default function App() {
                 <Route path="/factures/create"     element={<FactureForm />} />
                 <Route path="/factures/edit/:id"   element={<FactureForm />} />
                 <Route path="/factures/:id"        element={<FactureDetail />} />
-
+                <Route path="/factures/print/:id"  element={<FacturePrint />} />
 
                 <Route path="/fiches"           element={<FicheDePaieList />} />
                 <Route path="/fiches/create"    element={<FicheDePaieForm />} />

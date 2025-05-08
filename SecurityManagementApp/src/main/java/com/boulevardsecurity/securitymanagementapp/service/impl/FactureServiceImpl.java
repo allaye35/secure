@@ -16,9 +16,15 @@ import com.boulevardsecurity.securitymanagementapp.service.FactureService;
 import com.boulevardsecurity.securitymanagementapp.service.TarificationDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.thymeleaf.TemplateEngine;
+import org.thymeleaf.context.Context;
+import org.xhtmlrenderer.pdf.ITextRenderer;
 
+import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -34,6 +40,9 @@ public class FactureServiceImpl implements FactureService {
     private final ClientRepository clientRepository;
     private final MissionRepository missionRepository;
     private final TarificationDomainService tarification;
+
+    @Autowired
+    private TemplateEngine templateEngine;
 
     @Override
     public FactureDto create(FactureCreateDto dto) {
@@ -188,5 +197,45 @@ public class FactureServiceImpl implements FactureService {
      */
     private String genererReference() {
         return "FACT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
+    }
+
+    @Override
+    public byte[] generatePdf(Long id) {
+        Facture facture = repo.findById(id)
+                .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée avec l'ID: " + id));
+
+        // Vérifier que les relations sont chargées
+        Client client = facture.getClient();
+        if (client == null) {
+            throw new IllegalStateException("Client non trouvé pour la facture: " + id);
+        }
+
+        try {
+            // Préparation du contexte Thymeleaf
+            Context context = new Context();
+            context.setVariable("facture", facture);
+            context.setVariable("client", client);
+            context.setVariable("missions", facture.getMissions());
+            context.setVariable("dateEmission", 
+                facture.getDateEmission().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("dateEcheance", 
+                facture.getDateEcheance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("montantTotal", facture.getMontantTotal());
+
+            // Génération du HTML à partir du template
+            String htmlContent = templateEngine.process("facture-template", context);
+
+            // Conversion du HTML en PDF
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+            ITextRenderer renderer = new ITextRenderer();
+            renderer.setDocumentFromString(htmlContent);
+            renderer.layout();
+            renderer.createPDF(outputStream);
+            outputStream.close();
+
+            return outputStream.toByteArray();
+        } catch (Exception e) {
+            throw new RuntimeException("Erreur lors de la génération du PDF: " + e.getMessage(), e);
+        }
     }
 }

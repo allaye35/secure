@@ -1,29 +1,320 @@
 /* src/styles/FactureForm.css */
 .facture-form {
-    max-width: 600px;
-    margin: 2rem auto;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 20px;
+  background-color: #f9f9f9;
+  border-radius: 8px;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
 }
+
+.facture-form h2 {
+  color: #2c3e50;
+  margin-bottom: 20px;
+  text-align: center;
+}
+
+.facture-form h3 {
+  color: #3498db;
+  margin-top: 30px;
+  margin-bottom: 15px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 8px;
+}
+
 .facture-form label {
-    display: block;
-    margin-bottom: 0.5rem;
+  display: block;
+  margin-bottom: 0.5rem;
 }
+
 .facture-form input,
 .facture-form select,
 .facture-form textarea {
-    width: 100%;
-    padding: 0.5rem;
-    margin-bottom: 1rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
+  width: 100%;
+  padding: 0.5rem;
+  margin-bottom: 1rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
 }
+
+.error-message {
+  background-color: #f8d7da;
+  color: #721c24;
+  padding: 10px;
+  margin-bottom: 20px;
+  border-radius: 4px;
+  border: 1px solid #f5c6cb;
+}
+
+.form-group {
+  margin-bottom: 15px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 5px;
+  font-weight: 600;
+  color: #34495e;
+}
+
+.form-control {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 16px;
+}
+
+.form-control:focus {
+  border-color: #3498db;
+  outline: none;
+  box-shadow: 0 0 0 2px rgba(52, 152, 219, 0.2);
+}
+
+.date-range {
+  display: flex;
+  gap: 20px;
+}
+
+.date-range .form-group {
+  flex: 1;
+}
+
+.search-section {
+  margin-bottom: 20px;
+  background-color: #edf2f7;
+  padding: 15px;
+  border-radius: 6px;
+}
+
+.missions-section {
+  margin-top: 30px;
+}
+
+.missions-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.missions-actions {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+.missions-count {
+  background-color: #e1f5fe;
+  color: #0288d1;
+  padding: 5px 10px;
+  border-radius: 15px;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.btn-select-all {
+  background-color: #4caf50;
+  color: white;
+  border: none;
+  padding: 8px 15px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background-color 0.2s;
+}
+
+.btn-select-all:hover {
+  background-color: #388e3c;
+}
+
+.missions-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.mission-item {
+  background-color: white;
+  border-radius: 6px;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e0e0e0;
+}
+
+.mission-item:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.mission-item.selected {
+  border: 2px solid #3498db;
+  background-color: #ebf5fb;
+}
+
+.mission-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.mission-header h4 {
+  margin: 0;
+  font-size: 18px;
+  color: #2c3e50;
+}
+
+.mission-details {
+  font-size: 14px;
+}
+
+.mission-details p {
+  margin: 5px 0;
+}
+
+.mission-financials {
+  margin-top: 10px;
+  padding: 8px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  border-left: 3px solid #3498db;
+}
+
+.majorations {
+  margin-top: 10px;
+  font-size: 13px;
+}
+
+.majorations ul {
+  list-style: none;
+  padding-left: 10px;
+  margin-top: 5px;
+}
+
+.majorations li {
+  margin: 3px 0;
+}
+
+.facture-preview {
+  margin-top: 40px;
+  background-color: white;
+  padding: 20px;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.facture-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 30px;
+}
+
+.client-info, .entreprise-info, .facture-details {
+  flex: 1;
+  padding: 10px;
+}
+
+.client-info h4, .entreprise-info h4, .facture-details h4 {
+  color: #3498db;
+  margin-top: 0;
+  margin-bottom: 10px;
+  border-bottom: 1px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+.facture-table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-top: 20px;
+}
+
+.facture-table th, .facture-table td {
+  padding: 12px 15px;
+  text-align: left;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.facture-table th {
+  background-color: #f2f2f2;
+  font-weight: 600;
+}
+
+.facture-table tbody tr:hover {
+  background-color: #f9f9f9;
+}
+
+.facture-table tfoot tr {
+  background-color: #f2f8ff;
+  font-weight: 700;
+}
+
+.form-actions {
+  margin-top: 30px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+}
+
+.btn-preview, .btn-submit, .btn-cancel {
+  padding: 10px 20px;
+  border-radius: 4px;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+
+.btn-preview {
+  background-color: #2ecc71;
+  color: white;
+}
+
 .btn-submit {
-    padding: 0.5rem 1rem;
-    background: #28a745;
-    color: white;
-    border: none;
-    border-radius: 4px;
+  background-color: #3498db;
+  color: white;
 }
-.error {
-    color: red;
-    margin-bottom: 1rem;
+
+.btn-cancel {
+  background-color: #e74c3c;
+  color: white;
+}
+
+.btn-preview:hover, .btn-submit:hover {
+  opacity: 0.9;
+}
+
+.btn-cancel:hover {
+  background-color: #c0392b;
+}
+
+button:disabled {
+  background-color: #95a5a6;
+  cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .date-range {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .facture-header {
+    flex-direction: column;
+  }
+  
+  .missions-list {
+    grid-template-columns: 1fr;
+  }
+  
+  .missions-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  
+  .missions-actions {
+    margin-top: 10px;
+  }
 }

@@ -9,6 +9,7 @@ import com.boulevardsecurity.securitymanagementapp.repository.*;
 import com.boulevardsecurity.securitymanagementapp.service.GeocodingService;
 import com.boulevardsecurity.securitymanagementapp.service.IMissionService;
 import com.boulevardsecurity.securitymanagementapp.service.NotificationService;
+import com.boulevardsecurity.securitymanagementapp.service.TarificationDomainService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -38,6 +39,7 @@ public class ServiceMissionImpl implements IMissionService {
     private final MissionMapper                 mappeur;
     private final ContratDeTravailRepository    contratDeTravailRepository;
     private final FactureRepository             factureRepository;
+    private final TarificationDomainService     tarificationService;
 
     /* ─────────────── Lecture ─────────────── */
     @Override public List<MissionDto> listerToutes() {
@@ -215,11 +217,14 @@ public class ServiceMissionImpl implements IMissionService {
         return geo;
     }
     private void appliquerChiffrage(Mission m, TarifMission t){
-        BigDecimal ht  = t.getPrixUnitaireHT().multiply(BigDecimal.valueOf(m.getQuantite()));
-        BigDecimal tva = ht.multiply(t.getTauxTVA());
+        // Utilise le service de tarification pour calculer le montant HT en tenant compte des majorations
+        BigDecimal ht = tarificationService.montantHT(m);
+        // Calcule la TVA en utilisant le taux du tarif mission
+        BigDecimal tva = tarificationService.tva(ht, t.getTauxTVA());
+        // Stocke les montants calculés dans la mission
         m.setMontantHT(ht);
         m.setMontantTVA(tva);
-        m.setMontantTTC(ht.add(tva));
+        m.setMontantTTC(tarificationService.ttc(ht, tva));
     }
 
     /* ─────────────── Notifications ─────────────── */

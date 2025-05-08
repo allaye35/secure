@@ -7,7 +7,9 @@ import com.boulevardsecurity.securitymanagementapp.model.Facture;
 import com.boulevardsecurity.securitymanagementapp.service.FactureService;
 import com.boulevardsecurity.securitymanagementapp.service.impl.FactureServiceImpl;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -106,5 +108,18 @@ public class FactureController {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body("Erreur lors de la création de la facture: " + e.getMessage());
         }
+    }
+
+    /** Génère un PDF pour une facture */
+    @GetMapping("/{id}/pdf")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long id) {
+        byte[] pdfContent = service.generatePdf(id);
+        
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_PDF);
+        headers.setContentDispositionFormData("attachment", "facture-" + id + ".pdf");
+        headers.setCacheControl("must-revalidate, post-check=0, pre-check=0");
+        
+        return new ResponseEntity<>(pdfContent, headers, HttpStatus.OK);
     }
 }

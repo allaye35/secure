@@ -70,12 +70,9 @@ public class TarificationDomainService {
     LocalDateTime debut = LocalDateTime.of(m.getDateDebut(), m.getHeureDebut());
     LocalDateTime fin = LocalDateTime.of(m.getDateFin(), m.getHeureFin());
     
-    // Calcul des heures par type pour appliquer les différentes majorations
-    int heuresNormales = 0;
-    int heuresNuit = 0;
-    int heuresWeekend = 0;
-    int heuresDimanche = 0;
-    int heuresFerie = 0;
+    // Création de structures pour stocker les heures avec leurs majorations applicables
+    // Chaque heure peut avoir plusieurs majorations
+    BigDecimal totalMontantHT = BigDecimal.ZERO;
     
     // On décompose la mission en tranches horaires d'une heure
     LocalDateTime current = debut;
@@ -88,54 +85,52 @@ public class TarificationDomainService {
       LocalDate currentDate = current.toLocalDate();
       LocalTime currentTime = current.toLocalTime();
       
-      // Vérifier le type d'heure pour cette tranche
+      // Prix unitaire de base pour une heure normale, selon le type de mission
+      BigDecimal prixUnitaire = m.getTarif().getPrixUnitaireHT();
+      BigDecimal montantHeure = prixUnitaire;
+      
+      // Les majorations sont désormais cumulatives
+      BigDecimal totalMajoration = BigDecimal.ZERO;
+      
+      // Application des majorations selon les conditions
+      // Jours fériés (toujours appliqué peu importe les autres conditions)
       if (isFerie(currentDate)) {
-        heuresFerie++;
-      } else if (isDimanche(currentDate)) {
-        heuresDimanche++;
-      } else if (isWeekend(currentDate)) {
-        heuresWeekend++;
-      } else if (isNuit(currentTime)) {
-        heuresNuit++;
+        totalMajoration = totalMajoration.add(m.getTarif().getMajorationFerie());
       } else {
-        heuresNormales++;
+        // Application cumulative des autres majorations si ce n'est pas férié
+        // Weekend (samedi)
+        if (isWeekend(currentDate)) {
+          totalMajoration = totalMajoration.add(m.getTarif().getMajorationWeekend());
+        }
+        
+        // Dimanche
+        if (isDimanche(currentDate)) {
+          totalMajoration = totalMajoration.add(m.getTarif().getMajorationDimanche());
+        }
+        
+        // Heures de nuit
+        if (isNuit(currentTime)) {
+          totalMajoration = totalMajoration.add(m.getTarif().getMajorationNuit());
+        }
       }
+      
+      // Calcul du montant pour cette heure avec toutes les majorations applicables
+      if (totalMajoration.compareTo(BigDecimal.ZERO) > 0) {
+        montantHeure = prixUnitaire.multiply(BigDecimal.ONE.add(totalMajoration));
+      }
+      
+      // Pour une heure partielle, on calcule la proportion exacte
+      BigDecimal proportionHeure = BigDecimal.valueOf(
+          (double) Duration.between(current, nextHour).toMinutes() / 60.0);
+      
+      montantHeure = montantHeure.multiply(proportionHeure);
+      totalMontantHT = totalMontantHT.add(montantHeure);
       
       current = nextHour;
     }
     
-    // Récupération du tarif spécifique au type de mission
-    // Prix unitaire de base pour une heure normale, selon le type de mission
-    BigDecimal prixUnitaire = m.getTarif().getPrixUnitaireHT();
-    
-    // Calcul du montant pour chaque type d'heure
-    BigDecimal montantNormal = prixUnitaire.multiply(BigDecimal.valueOf(heuresNormales));
-    
-    BigDecimal montantNuit = prixUnitaire
-        .multiply(BigDecimal.ONE.add(m.getTarif().getMajorationNuit()))
-        .multiply(BigDecimal.valueOf(heuresNuit));
-    
-    BigDecimal montantWeekend = prixUnitaire
-        .multiply(BigDecimal.ONE.add(m.getTarif().getMajorationWeekend()))
-        .multiply(BigDecimal.valueOf(heuresWeekend));
-    
-    BigDecimal montantDimanche = prixUnitaire
-        .multiply(BigDecimal.ONE.add(m.getTarif().getMajorationDimanche()))
-        .multiply(BigDecimal.valueOf(heuresDimanche));
-    
-    BigDecimal montantFerie = prixUnitaire
-        .multiply(BigDecimal.ONE.add(m.getTarif().getMajorationFerie()))
-        .multiply(BigDecimal.valueOf(heuresFerie));
-    
-    // Somme de tous les montants
-    BigDecimal totalHT = montantNormal
-        .add(montantNuit)
-        .add(montantWeekend)
-        .add(montantDimanche)
-        .add(montantFerie);
-    
     // Multiplication par le nombre d'agents et la quantité
-    return totalHT
+    return totalMontantHT
         .multiply(BigDecimal.valueOf(m.getNombreAgents()))
         .multiply(BigDecimal.valueOf(m.getQuantite()))
         .setScale(2, RoundingMode.HALF_UP);
@@ -154,7 +149,7 @@ public class TarificationDomainService {
    */
   private boolean isNuit(LocalTime time) {
     return (time.isAfter(DEBUT_NUIT) || time.equals(DEBUT_NUIT)) || 
-           (time.isBefore(FIN_NUIT) || time.equals(FIN_NUIT));
+           (time.isBefore(FIN_NUIT)); // Correction: 6:00 n'est plus inclus
   }
   
   /**

@@ -71,7 +71,7 @@ public class FactureMapper {
                 Mission m = missionRepo.findById(mid)
                         .orElseThrow(() -> new IllegalArgumentException("Mission id=" + mid));
                 f.getMissions().add(m);
-                m.getFactures().add(f);  // cohérence bidirectionnelle
+                m.getFactures().add(f);
             });
         }
 

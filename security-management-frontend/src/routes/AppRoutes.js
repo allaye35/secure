@@ -18,19 +18,17 @@ const AppRoutes = () => {
       {/* Page d'accueil */}
       <Route path="/" element={<Home />} />
 
-      {/* On insère la liste de <Route> renvoyée par nos sous-routes */}
-      <>
-        {AgentRoutes()}
-        {MissionRoutes()}
-        {PlanningRoutes()}
-        {SiteRoutes()}
-        {EntrepriseRoutes()}
-        {GeolocalisationRoutes()}
-        {RapportRoutes && RapportRoutes()}
-        {DevisRoutes()}
-        {DisponibiliteRoutes()}
-        {FactureRoutes()}
-      </>
+      {/* Inclusion directe de chaque route dans le composant Routes */}
+      {AgentRoutes()}
+      {MissionRoutes()}
+      {PlanningRoutes()}
+      {SiteRoutes()}
+      {EntrepriseRoutes()}
+      {GeolocalisationRoutes()}
+      {RapportRoutes && RapportRoutes()}
+      {DevisRoutes()}
+      {DisponibiliteRoutes()}
+      {FactureRoutes()}
     </Routes>
   );
 };

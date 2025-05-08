@@ -1,0 +1,319 @@
+/* Styles pour la page de détail de facture */
+.facture-detail {
+    background-color: white;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+    margin: 20px auto;
+    max-width: 1200px;
+    padding: 30px;
+}
+
+/* En-tête de facture */
+.facture-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 15px;
+}
+
+.facture-title {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.facture-icon {
+    font-size: 28px;
+    color: #1a73e8;
+}
+
+.facture-title h1 {
+    margin: 0;
+    font-size: 24px;
+    color: #333;
+}
+
+.facture-actions {
+    display: flex;
+    gap: 10px;
+}
+
+.btn-action {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background-color: #f5f5f5;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    padding: 8px 12px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: all 0.2s;
+}
+
+.btn-action:hover {
+    background-color: #e0e0e0;
+}
+
+/* Barre de statut */
+.facture-status-bar {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin-bottom: 30px;
+    align-items: center;
+}
+
+.facture-status {
+    padding: 8px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    font-size: 14px;
+}
+
+.status-paid {
+    background-color: #d4edda;
+    color: #155724;
+}
+
+.status-pending {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-late {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+.facture-date, .facture-period, .facture-devis {
+    font-size: 14px;
+    color: #555;
+}
+
+/* Contenu principal */
+.facture-content {
+    margin-top: 20px;
+}
+
+.facture-parties {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 30px;
+    margin-bottom: 30px;
+}
+
+.facture-party {
+    padding: 20px;
+    border-radius: 8px;
+    background-color: #f9f9f9;
+}
+
+.facture-party h3 {
+    margin-top: 0;
+    margin-bottom: 15px;
+    font-size: 18px;
+    color: #333;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 8px;
+}
+
+.party-name {
+    font-weight: bold;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+/* Détails de facture et tableau de missions */
+.facture-details {
+    margin-top: 30px;
+}
+
+.facture-details h3 {
+    margin-bottom: 20px;
+    font-size: 18px;
+    color: #333;
+}
+
+.missions-table-container {
+    overflow-x: auto;
+    margin-bottom: 30px;
+}
+
+.missions-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.missions-table th {
+    background-color: #f5f5f5;
+    padding: 12px;
+    text-align: left;
+    font-weight: bold;
+    color: #555;
+    border-bottom: 2px solid #ddd;
+}
+
+.missions-table td {
+    padding: 12px;
+    border-bottom: 1px solid #eee;
+}
+
+.missions-table tbody tr:hover {
+    background-color: #f9f9f9;
+}
+
+.no-missions {
+    text-align: center;
+    color: #666;
+    font-style: italic;
+    padding: 20px;
+    background-color: #f9f9f9;
+    border-radius: 4px;
+}
+
+/* Résumé des montants */
+.facture-summary {
+    margin-top: 20px;
+    width: 300px;
+    margin-left: auto;
+}
+
+.summary-item {
+    display: flex;
+    justify-content: space-between;
+    padding: 10px 0;
+    border-bottom: 1px solid #eee;
+}
+
+.summary-item.total {
+    font-weight: bold;
+    font-size: 18px;
+    color: #333;
+    border-top: 2px solid #ddd;
+    border-bottom: none;
+    margin-top: 10px;
+    padding-top: 15px;
+}
+
+.amount {
+    font-weight: bold;
+}
+
+/* Pied de page de la facture */
+.facture-footer {
+    margin-top: 40px;
+    padding-top: 20px;
+    border-top: 2px solid #f0f0f0;
+    color: #555;
+}
+
+.payment-terms {
+    text-align: center;
+    font-style: italic;
+    margin-bottom: 20px;
+}
+
+.payment-info, .payment-confirmation, .payment-reminder {
+    padding: 15px;
+    border-radius: 8px;
+    font-size: 14px;
+    margin-top: 20px;
+}
+
+.payment-info {
+    background-color: #e8f4fd;
+    color: #0c5460;
+}
+
+.payment-confirmation {
+    background-color: #d4edda;
+    color: #155724;
+    text-align: center;
+}
+
+.payment-reminder {
+    background-color: #f8d7da;
+    color: #721c24;
+}
+
+/* Éléments d'erreur et de chargement */
+.error-container {
+    text-align: center;
+    padding: 50px 20px;
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.error-icon {
+    font-size: 48px;
+    color: #dc3545;
+    margin-bottom: 20px;
+}
+
+.error-message {
+    color: #721c24;
+    background-color: #f8d7da;
+    border: 1px solid #f5c6cb;
+    border-radius: 4px;
+    padding: 15px;
+    margin-bottom: 20px;
+}
+
+.loading-container {
+    text-align: center;
+    padding: 50px 20px;
+}
+
+.loading-spinner {
+    display: inline-block;
+    width: 50px;
+    height: 50px;
+    border: 5px solid rgba(0, 0, 0, 0.1);
+    border-radius: 50%;
+    border-top-color: #1a73e8;
+    animation: spin 1s linear infinite;
+    margin-bottom: 20px;
+}
+
+@keyframes spin {
+    to {
+        transform: rotate(360deg);
+    }
+}
+
+/* Style d'impression */
+@media print {
+    body {
+        background-color: white;
+    }
+    
+    .facture-detail {
+        box-shadow: none;
+        margin: 0;
+        padding: 20px;
+        max-width: none;
+    }
+    
+    .facture-actions, .btn-action, button {
+        display: none;
+    }
+    
+    .facture-status-bar {
+        margin-bottom: 20px;
+    }
+    
+    .facture-status {
+        border: 1px solid #ddd;
+    }
+    
+    @page {
+        margin: 1cm;
+    }
+    
+    .facture-footer {
+        page-break-inside: avoid;
+    }
+}

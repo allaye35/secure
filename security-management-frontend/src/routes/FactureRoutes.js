@@ -10,9 +10,6 @@ const FactureRoutes = () => [
   // Liste des factures
   <Route key="factures" path="/factures" element={<FactureList />} />,
   
-  // Détail d'une facture
-  <Route key="facture-detail" path="/factures/:id" element={<FactureDetail />} />,
-  
   // Création de facture
   <Route key="facture-create" path="/factures/create" element={<FactureForm />} />,
   
@@ -22,8 +19,11 @@ const FactureRoutes = () => [
   // Création de facture pour une période
   <Route key="facture-periode" path="/factures/periode" element={<FacturePeriodeForm />} />,
   
-  // Impression d'une facture
-  <Route key="facture-print" path="/factures/print/:id" element={<FacturePrint />} />
+  // Impression d'une facture - mise avant la route de détail pour priorité
+  <Route key="facture-print" path="/factures/print/:id" element={<FacturePrint />} />,
+  
+  // Détail d'une facture - doit être en dernier car ":id" peut capturer "create", "print", etc.
+  <Route key="facture-detail" path="/factures/:id" element={<FactureDetail />} />
 ];
 
 export default FactureRoutes;

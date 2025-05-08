@@ -1,68 +1,47 @@
-// src/services/MissionService.js
 import api from "./api";
 
-const API_URL = "/missions";
+const PATH = "/missions";
 
 const MissionService = {
-  /** Récupérer toutes les missions */
-  getAllMissions: () =>
-      api.get(API_URL),
+    /**
+     * Récupérer toutes les missions
+     */
+    getAll: () => api.get(PATH),
 
-  /** Récupérer une mission par son ID */
-  getMissionById: (id) =>
-      api.get(`${API_URL}/${id}`),
+    /**
+     * Récupérer toutes les missions (alias pour getAll)
+     */
+    getAllMissions: () => api.get(PATH),
 
-  /** Créer une nouvelle mission */
-  createMission: (missionData) =>
-      api.post(API_URL, missionData),
+    /**
+     * Récupérer une mission par son ID
+     */
+    getById: (id) => api.get(`${PATH}/${id}`),
 
-  /** Mettre à jour une mission existante */
-  updateMission: (id, missionData) =>
-      api.put(`${API_URL}/${id}`, missionData),
-
-  /** Supprimer une mission */
-  deleteMission: (id) =>
-      api.delete(`${API_URL}/${id}`),
-
-  /** Assigner une liste d’agents à une mission */
-  assignAgents: (missionId, agentIds) =>
-      api.put(`${API_URL}/${missionId}/agents`, agentIds),
-
-  /** Assigner un site à une mission */
-  assignSite: (missionId, siteId) =>
-      api.put(`${API_URL}/${missionId}/site/${siteId}`),
-
-  /** Assigner un planning à une mission */
-  assignPlanning: (missionId, planningId) =>
-      api.put(`${API_URL}/${missionId}/planning/${planningId}`),
-
-  /** Assigner une entreprise à une mission (si utilisé) */
-  assignEntreprise: (missionId, entrepriseId) =>
-      api.put(`${API_URL}/${missionId}/entreprise/${entrepriseId}`),
-
-  /** Assigner une géolocalisation à une mission */
-  assignGeolocalisation: (missionId) =>
-      api.put(`${API_URL}/${missionId}/geoloc`),
-
-  /** Récupérer toutes les missions d’un agent */
-  getByAgent: (agentId) =>
-      api.get(`${API_URL}/agent/${agentId}`),
-
-  /** Récupérer toutes les missions d’un contrat */
-  getByContratId: (contratId) =>
-      api.get(`${API_URL}/contrat/${contratId}`),
-
-  /** Récupérer toutes les missions d’un planning */
-  getByPlanning: (planningId) =>
-      api.get(`${API_URL}/planning/${planningId}`),
-
-  /** Récupérer les missions commençant après une date */
-  getAfterDate: (date) =>
-      api.get(`${API_URL}/after/${date}`),
-
-  /** Récupérer les missions se terminant avant une date */
-  getBeforeDate: (date) =>
-      api.get(`${API_URL}/before/${date}`)
+    /**
+     * Obtenir les missions associées à un devis
+     */
+    getByDevis: (devisId) => api.get(`${PATH}/devis/${devisId}`),
+    
+    /**
+     * Récupérer les missions associées à un client
+     */
+    getMissionsByClient: (clientId) => api.get(`${PATH}/client/${clientId}`),
+    
+    /**
+     * Récupérer les missions actives d'un client (alternative à l'API du client)
+     */
+    getActivesByClient: (clientId) => api.get(`${PATH}/client/${clientId}/actives`),
+    
+    /**
+     * Mettre à jour une mission
+     */
+    update: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
+    
+    /**
+     * Associer une mission à une facture
+     */
+    associerFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`)
 };
 
 export default MissionService;
