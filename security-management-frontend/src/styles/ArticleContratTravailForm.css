@@ -1,0 +1,186 @@
+/* Styles pour le formulaire d'article de contrat de travail */
+
+.article-form-container {
+    max-width: 1000px;
+    margin: 0 auto;
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style pour les boutons circulaires */
+.btn-circle {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+}
+
+.btn-circle:hover {
+    transform: scale(1.05);
+    background-color: #f8f9fa;
+}
+
+/* Style pour l'éditeur de contenu */
+.content-editor {
+    min-height: 300px;
+    font-family: 'Courier New', monospace;
+    line-height: 1.6;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 15px;
+    transition: border-color 0.3s ease, box-shadow 0.3s ease;
+    background-color: #fcfcfc;
+}
+
+.content-editor:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0,123,255,.25);
+    background-color: #fff;
+}
+
+.form-control-lg {
+    font-size: 1rem;
+    padding: 0.75rem 1rem;
+    border-radius: 8px;
+    border: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+.form-control-lg:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Animation pour le bouton de sauvegarde */
+.btn-lg {
+    transition: all 0.3s ease;
+    border-radius: 8px;
+    font-weight: 500;
+    letter-spacing: 0.3px;
+}
+
+.btn-lg:hover:not(:disabled) {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+}
+
+.btn-lg:active:not(:disabled) {
+    transform: translateY(0);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* Amélioration de la lisibilité du formulaire */
+.form-label {
+    font-size: 1rem;
+    margin-bottom: 0.5rem;
+}
+
+.form-text {
+    font-size: 0.85rem;
+    margin-top: 0.5rem;
+}
+
+/* Effet de focus amélioré */
+.form-control:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.15);
+}
+
+/* Style pour les états de validation */
+.form-control.is-valid:focus, 
+.was-validated .form-control:valid:focus {
+    box-shadow: 0 0 0 0.25rem rgba(25, 135, 84, 0.15);
+}
+
+.form-control.is-invalid:focus, 
+.was-validated .form-control:invalid:focus {
+    box-shadow: 0 0 0 0.25rem rgba(220, 53, 69, 0.15);
+}
+
+/* Style pour l'alert de succès avec animation */
+.alert-success {
+    animation: fadeIn 0.5s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Responsive design */
+/* Ajout d'un fond d'informations */
+.info-bg {
+    background-color: #f0f7ff;
+    border-left: 4px solid #0d6efd;
+    padding: 15px;
+    border-radius: 5px;
+    margin-bottom: 20px;
+}
+
+.info-bg p {
+    margin-bottom: 0;
+    color: #333;
+}
+
+/* Styles pour la bannière de titre */
+.form-title-banner {
+    background: linear-gradient(135deg, #f5f7fa 0%, #e4e8ed 100%);
+    border-radius: 8px;
+    padding: 20px;
+    margin-bottom: 25px;
+    border-left: 5px solid #0d6efd;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+}
+
+.form-title-banner h3 {
+    margin: 0;
+    color: #2c3e50;
+    font-size: 1.4rem;
+}
+
+.form-title-banner p {
+    margin: 10px 0 0;
+    color: #6c757d;
+}
+
+/* Animation de la validation */
+.was-validated .form-control:valid {
+    animation: validPulse 0.5s ease;
+}
+
+@keyframes validPulse {
+    0% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0.4); }
+    70% { box-shadow: 0 0 0 10px rgba(25, 135, 84, 0); }
+    100% { box-shadow: 0 0 0 0 rgba(25, 135, 84, 0); }
+}
+
+@media (max-width: 768px) {
+    .card-body {
+        padding: 1.5rem 1rem;
+    }
+    
+    .d-flex.justify-content-between {
+        flex-direction: column;
+        gap: 1rem;
+    }
+    
+    .btn-lg {
+        width: 100%;
+    }
+    
+    .form-title-banner {
+        padding: 15px;
+    }
+    
+    .form-title-banner h3 {
+        font-size: 1.2rem;
+    }
+}
