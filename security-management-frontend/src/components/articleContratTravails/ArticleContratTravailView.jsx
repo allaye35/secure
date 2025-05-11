@@ -2,10 +2,13 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ArticleContratTravailService from "../../services/ArticleContratTravailService";
-import { Container, Card, Button, Row, Col, Spinner, Alert, Badge } from "react-bootstrap";
+import ContratDeTravailService from "../../services/ContratDeTravailService";
+import { Container, Card, Button, Row, Col, Spinner, Alert, Badge, OverlayTrigger, Tooltip } from "react-bootstrap";
 import { 
     FaFileContract, FaArrowLeft, FaEdit, FaTrash, FaRegFileAlt, 
-    FaClock, FaCalendarAlt, FaTimes, FaRegTimesCircle
+    FaClock, FaCalendarAlt, FaTimes, FaRegTimesCircle, FaPrint,
+    FaShare, FaDownload, FaRegLightbulb, FaFileSignature, FaLink,
+    FaRegCalendarAlt, FaUserTie
 } from "react-icons/fa";
 import "../../styles/ArticleContratTravailView.css";
 
@@ -13,16 +16,26 @@ export default function ArticleContratTravailView() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [article, setArticle] = useState(null);
+    const [contrat, setContrat] = useState(null);
+    const [contratLoading, setContratLoading] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(true);
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     
+    // Charger les données de l'article
     useEffect(() => {
         setLoading(true);
         ArticleContratTravailService.getById(id)
             .then(res => {
+                console.log("Article récupéré:", res.data);
                 setArticle(res.data);
-                setLoading(false);
+                
+                // Si l'article a un contrat associé, récupérer les infos du contrat
+                if (res.data.contratDeTravailId) {
+                    loadContratDetails(res.data.contratDeTravailId);
+                } else {
+                    setLoading(false);
+                }
             })
             .catch(err => {
                 console.error("Erreur lors du chargement de l'article:", err);
@@ -30,6 +43,24 @@ export default function ArticleContratTravailView() {
                 setLoading(false);
             });
     }, [id]);
+    
+    // Fonction pour charger les détails du contrat associé
+    const loadContratDetails = (contratId) => {
+        setContratLoading(true);
+        ContratDeTravailService.getById(contratId)
+            .then(res => {
+                console.log("Contrat récupéré:", res.data);
+                setContrat(res.data);
+            })
+            .catch(err => {
+                console.error("Erreur lors du chargement des détails du contrat:", err);
+                // Ne pas bloquer l'affichage de l'article en cas d'erreur sur le contrat
+            })
+            .finally(() => {
+                setContratLoading(false);
+                setLoading(false);
+            });
+    };
 
     const handleDelete = () => {
         setLoading(true);
@@ -77,9 +108,7 @@ export default function ArticleContratTravailView() {
         );
     }
 
-    if (!article) return null;
-
-    return (
+    if (!article) return null;    return (
         <Container className="article-view-container py-4">
             <Card className="shadow-sm article-detail-card">
                 <Card.Header className="bg-white py-3">
@@ -88,43 +117,67 @@ export default function ArticleContratTravailView() {
                             <FaFileContract className="me-2 text-primary" />
                             Article de contrat de travail
                         </h2>
-                        <div>
-                            <Button 
-                                variant="outline-secondary"
-                                className="btn-circle me-2"
-                                onClick={() => navigate('/article-contrat-travail')}
-                            >
-                                <FaArrowLeft />
-                            </Button>
+                        <div className="d-flex">
+                            <OverlayTrigger placement="top" overlay={<Tooltip>Retour à la liste</Tooltip>}>
+                                <Button 
+                                    variant="outline-secondary"
+                                    className="btn-circle me-2"
+                                    onClick={() => navigate('/article-contrat-travail')}
+                                >
+                                    <FaArrowLeft />
+                                </Button>
+                            </OverlayTrigger>
+                            
+                            <OverlayTrigger placement="top" overlay={<Tooltip>Télécharger au format PDF</Tooltip>}>
+                                <Button 
+                                    variant="outline-primary"
+                                    className="btn-circle me-2"
+                                >
+                                    <FaDownload />
+                                </Button>
+                            </OverlayTrigger>
+                            
+                            <OverlayTrigger placement="top" overlay={<Tooltip>Imprimer cet article</Tooltip>}>
+                                <Button 
+                                    variant="outline-dark"
+                                    className="btn-circle"
+                                    onClick={() => window.print()}
+                                >
+                                    <FaPrint />
+                                </Button>
+                            </OverlayTrigger>
                         </div>
                     </div>
                 </Card.Header>
 
                 <Card.Body className="px-4 py-4">
-                    <Row>
+                    <Row className="animate-fade-in-up">
                         <Col xs={12} className="mb-4">
-                            <Card className="border-0 bg-light">
+                            <Card className="border-0 bg-light info-card">
                                 <Card.Body>
-                                    <div className="d-flex justify-content-between">
+                                    <div className="d-flex justify-content-between flex-wrap">
                                         <div>
-                                            <Badge bg="primary" className="mb-2 px-3 py-2">ID: {article.id}</Badge>
+                                            <Badge bg="primary" className="badge-custom badge-id mb-2 px-3 py-2">
+                                                ID: {article.id}
+                                            </Badge>
                                             {article.contratDeTravailId && (
-                                                <Badge bg="info" className="mb-2 ms-2 px-3 py-2">
-                                                    Contrat #{article.contratDeTravailId}
+                                                <Badge bg="success" className="badge-custom badge-contract mb-2 px-3 py-2">
+                                                    <FaFileSignature className="me-1" /> Contrat #{article.contratDeTravailId}
                                                 </Badge>
                                             )}
                                         </div>
-                                        <div className="d-flex">
+                                        <div className="d-flex mt-2 mt-md-0">
                                             <Button 
                                                 as={Link} 
                                                 to={`/article-contrat-travail/edit/${article.id}`} 
                                                 variant="warning"
-                                                className="me-2"
+                                                className="action-btn action-btn-edit me-2"
                                             >
                                                 <FaEdit className="me-2" /> Modifier
                                             </Button>
                                             <Button 
                                                 variant="danger"
+                                                className="action-btn action-btn-delete"
                                                 onClick={() => setShowDeleteModal(true)}
                                             >
                                                 <FaTrash className="me-2" /> Supprimer
@@ -135,17 +188,65 @@ export default function ArticleContratTravailView() {
                             </Card>
                         </Col>
 
-                        <Col xs={12} className="mb-4">
-                            <h4 className="article-title">
+                        {contrat && (
+                            <Col xs={12} className="mb-4 animate-fade-in-up animation-delay-100">
+                                <Card className="border-0 shadow-sm hover-effect">
+                                    <Card.Body>
+                                        <h5 className="section-title">
+                                            <FaLink className="section-icon" />
+                                            Contrat associé
+                                        </h5>
+                                        <Row>
+                                            <Col md={6}>
+                                                <div className="contract-meta">
+                                                    <FaFileContract className="contract-meta-icon text-primary" />
+                                                    <strong>Référence:</strong> <span className="ms-1">{contrat.referenceContrat || "Non définie"}</span>
+                                                </div>
+                                                <div className="contract-meta">
+                                                    <FaFileSignature className="contract-meta-icon text-success" />
+                                                    <strong>Type:</strong> <span className="ms-1">{contrat.typeContrat || "Non défini"}</span>
+                                                </div>
+                                            </Col>
+                                            <Col md={6}>
+                                                {contrat.dateDebut && (
+                                                    <div className="contract-meta">
+                                                        <FaRegCalendarAlt className="contract-meta-icon text-info" />
+                                                        <strong>Début:</strong> <span className="ms-1">{new Date(contrat.dateDebut).toLocaleDateString('fr-FR')}</span>
+                                                    </div>
+                                                )}
+                                                {contrat.dateFin && (
+                                                    <div className="contract-meta">
+                                                        <FaRegCalendarAlt className="contract-meta-icon text-warning" />
+                                                        <strong>Fin:</strong> <span className="ms-1">{new Date(contrat.dateFin).toLocaleDateString('fr-FR')}</span>
+                                                    </div>
+                                                )}
+                                            </Col>
+                                        </Row>
+                                        <div className="text-end mt-2">
+                                            <Button 
+                                                as={Link} 
+                                                to={`/contrats-de-travail/${contrat.id}`} 
+                                                variant="outline-primary" 
+                                                size="sm"
+                                            >
+                                                Voir le contrat complet
+                                            </Button>
+                                        </div>
+                                    </Card.Body>
+                                </Card>
+                            </Col>
+                        )}
+
+                        <Col xs={12} className="mb-4 animate-fade-in-up animation-delay-200">
+                            <h3 className="article-title">
                                 {article.libelle || "Sans titre"}
-                            </h4>
-                            <hr />
+                            </h3>
                         </Col>
 
-                        <Col xs={12} className="mb-4">
+                        <Col xs={12} className="mb-4 animate-fade-in-up animation-delay-300">
                             <div className="article-content-container">
-                                <h5 className="mb-3">
-                                    <FaRegFileAlt className="me-2 text-muted" />
+                                <h5 className="section-title mb-3">
+                                    <FaRegFileAlt className="section-icon" />
                                     Contenu de l'article
                                 </h5>
                                 <div className="article-content">
@@ -155,8 +256,20 @@ export default function ArticleContratTravailView() {
                                     }
                                 </div>
                             </div>
-                        </Col>
-                    </Row>
+                            
+                            <Card className="mt-4 border-0 bg-light">
+                                <Card.Body className="d-flex align-items-start">
+                                    <FaRegLightbulb className="text-warning mt-1" size={20} />
+                                    <div className="ms-3">
+                                        <h6 className="mb-1">À propos de cet article</h6>
+                                        <p className="text-muted mb-0">
+                                            Cet article fait partie des termes et conditions qui définissent les relations professionnelles.
+                                            Il sera appliqué dans le cadre du contrat de travail auquel il est rattaché.
+                                        </p>
+                                    </div>
+                                </Card.Body>
+                            </Card>
+                        </Col>                    </Row>
 
                     {/* Modal de confirmation de suppression */}
                     <div className={`delete-confirmation-modal ${showDeleteModal ? 'show' : ''}`}>
@@ -175,8 +288,8 @@ export default function ArticleContratTravailView() {
                                 </Button>
                             </div>
                             <div className="modal-body">
-                                <p>Êtes-vous sûr de vouloir supprimer cet article ?</p>
-                                <p className="text-danger fw-bold">Cette action est irréversible.</p>
+                                <p>Êtes-vous sûr de vouloir supprimer l'article "<strong>{article.libelle}</strong>" ?</p>
+                                <p className="text-danger fw-bold">Cette action est irréversible et supprimera définitivement cet article du contrat de travail associé.</p>
                             </div>
                             <div className="modal-footer">
                                 <Button 
@@ -207,21 +320,37 @@ export default function ArticleContratTravailView() {
                 </Card.Body>
 
                 <Card.Footer className="bg-white py-3">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <Button 
-                            variant="outline-primary" 
-                            onClick={() => navigate(-1)}
-                        >
-                            <FaArrowLeft className="me-2" /> Retour
-                        </Button>
-                        <Button 
-                            as={Link} 
-                            to={`/article-contrat-travail/edit/${article.id}`} 
-                            variant="warning"
-                        >
-                            <FaEdit className="me-2" /> Modifier
-                        </Button>
-                    </div>
+                    <Row>
+                        <Col md={6} className="mb-3 mb-md-0">
+                            <div className="d-flex">
+                                <Button 
+                                    variant="outline-primary" 
+                                    className="action-btn action-btn-back"
+                                    onClick={() => navigate(-1)}
+                                >
+                                    <FaArrowLeft className="me-2" /> Retour
+                                </Button>
+                            </div>
+                        </Col>
+                        <Col md={6}>
+                            <div className="d-flex justify-content-md-end">
+                                <Button 
+                                    as={Link} 
+                                    to={`/article-contrat-travail/edit/${article.id}`} 
+                                    variant="warning"
+                                    className="action-btn action-btn-edit me-2"
+                                >
+                                    <FaEdit className="me-2" /> Modifier
+                                </Button>
+                                <Button
+                                    variant="outline-primary"
+                                    className="action-btn"
+                                >
+                                    <FaShare className="me-2" /> Partager
+                                </Button>
+                            </div>
+                        </Col>
+                    </Row>
                 </Card.Footer>
             </Card>
         </Container>    );
