@@ -1,14 +1,14 @@
 /* src/styles/AgentDetail.css */
 
 .agent-detail {
-    max-width: 800px;
-    margin: 2rem auto;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    color: #333;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 1.5rem;
     background-color: #fff;
     border-radius: 0.5rem;
     box-shadow: 0 2px 8px rgba(0,0,0,0.1);
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    color: #333;
 }
 
 .agent-detail h2 {
@@ -137,4 +137,175 @@
     background-color: #f8f9fa;
     border-color: #eee;
     color: #6c757d;
+}
+
+/* Header de profil */
+.profile-header .card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 1rem 1.5rem;
+}
+
+.profile-header h3 {
+    font-size: 1.4rem;
+    font-weight: 500;
+    margin: 0;
+}
+
+.status-badge {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
+    font-size: 0.9rem;
+    border-radius: 50px;
+}
+
+/* Section d'information personnelle */
+.section-title {
+    color: #0d6efd;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    padding-bottom: 0.5rem;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.personal-info .info-item {
+    margin-bottom: 1.25rem;
+    display: flex;
+    flex-direction: column;
+}
+
+.info-label {
+    display: flex;
+    align-items: center;
+    color: #6c757d;
+    font-size: 0.9rem;
+    margin-bottom: 0.3rem;
+}
+
+.info-label .icon {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+}
+
+.info-value {
+    padding-left: 1.5rem;
+    font-weight: 500;
+}
+
+.address-value {
+    line-height: 1.5;
+}
+
+/* Section des zones */
+.zones-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.zone-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.zone-name {
+    font-weight: 500;
+}
+
+.details-btn {
+    padding: 0.25rem 0.75rem;
+    font-size: 0.875rem;
+}
+
+/* Navigation par onglets */
+.nav-pills-custom {
+    display: flex;
+    overflow-x: auto;
+    border-bottom: 1px solid #dee2e6;
+    padding-bottom: 0;
+    margin-bottom: 1rem;
+}
+
+.nav-pills-custom .nav-link {
+    border-radius: 0;
+    color: #495057;
+    font-weight: 500;
+    padding: 0.75rem 1.25rem;
+    margin-right: 0.25rem;
+    border-bottom: 3px solid transparent;
+    transition: all 0.2s ease;
+}
+
+.nav-pills-custom .nav-link:hover {
+    color: #0d6efd;
+    border-bottom-color: rgba(13, 110, 253, 0.3);
+}
+
+.nav-pills-custom .nav-link.active {
+    color: #0d6efd;
+    background-color: transparent;
+    border-bottom-color: #0d6efd;
+}
+
+.tab-content-card {
+    border-top-left-radius: 0;
+}
+
+/* Contenu des onglets */
+.tab-pane {
+    padding: 0.5rem;
+}
+
+.list-items {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+}
+
+.list-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.75rem 1rem;
+    background-color: #f8f9fa;
+    border-radius: 8px;
+}
+
+.item-name {
+    font-weight: 500;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .personal-info .info-item {
+        margin-bottom: 1rem;
+    }
+    
+    .nav-pills-custom {
+        flex-wrap: nowrap;
+        gap: 0.5rem;
+    }
+    
+    .nav-pills-custom .nav-link {
+        padding: 0.5rem 0.75rem;
+        font-size: 0.9rem;
+        white-space: nowrap;
+    }
+}
+
+/* Section des actions */
+.actions-section {
+    display: flex;
+    margin-top: 1.5rem;
+}
+
+.actions-section .btn {
+    padding: 0.5rem 1rem;
+    font-weight: 500;
 }

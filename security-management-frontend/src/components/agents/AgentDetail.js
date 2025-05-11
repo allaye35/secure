@@ -1,7 +1,7 @@
 // src/components/agents/AgentDetail.js
 import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Container, Row, Col, Card, Alert, Badge, ListGroup, Button, Spinner, Tabs, Tab } from "react-bootstrap";
+import { Container, Row, Col, Card, Alert, Badge, ListGroup, Button, Spinner, Nav } from "react-bootstrap";
 import { 
     BsPersonVcard, BsGeoAlt, BsListTask, BsCalendar3, BsFileEarmarkText,
     BsCreditCard2Front, BsAward, BsBell, BsArrowLeft, BsPerson,
@@ -15,6 +15,7 @@ const AgentDetail = () => {
     const [agent, setAgent] = useState(null);
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
+    const [activeTab, setActiveTab] = useState("contrats"); // Valeur initiale basée sur la capture d'écran
 
     const fetchAgent = useCallback(() => {
         setLoading(true);
@@ -57,224 +58,296 @@ const AgentDetail = () => {
     );
 
     return (
-        <Container className="agent-detail py-4">
-            <Card className="shadow-sm mb-4 border-0">
-                <Card.Header className="bg-primary text-white d-flex justify-content-between align-items-center">
-                    <div className="d-flex align-items-center">
-                        <BsPerson size={24} className="me-2" />
-                        <h3 className="mb-0">Profil de {agent.prenom} {agent.nom}</h3>
-                    </div>
-                    <Badge bg={getStatusBadgeVariant(agent.statut)} pill className="px-3 py-2">
-                        {agent.statut}
-                    </Badge>
-                </Card.Header>
+        <Container fluid className="agent-detail py-4">
+            <div className="profile-header mb-4">
+                <Card className="border-0 shadow-sm">
+                    <Card.Header className="bg-primary text-white py-3">
+                        <div className="d-flex align-items-center">
+                            <BsPerson size={24} className="me-2" />
+                            <h3 className="mb-0">Profil de {agent.prenom} {agent.nom}</h3>
+                        </div>
+                        <Badge 
+                            bg="danger" 
+                            className="ms-auto status-badge"
+                        >
+                            {agent.statut || "HORS_SERVICE"}
+                        </Badge>
+                    </Card.Header>
+                </Card>
+            </div>
+            
+            <Row className="profile-content">
+                <Col lg={6} xl={5} className="mb-4">
+                    <Card className="border-0 shadow-sm h-100">
+                        <Card.Body>
+                            <h4 className="section-title mb-4">
+                                Informations Personnelles
+                            </h4>
+                            <div className="personal-info">
+                                <div className="info-item">
+                                    <div className="info-label">
+                                        <BsEnvelope className="icon" />
+                                        Email:
+                                    </div>
+                                    <div className="info-value">{agent.email || "N/A"}</div>
+                                </div>
+                                
+                                <div className="info-item">
+                                    <div className="info-label">
+                                        <BsTelephone className="icon" />
+                                        Téléphone:
+                                    </div>
+                                    <div className="info-value">{agent.telephone || "N/A"}</div>
+                                </div>
+                                
+                                <div className="info-item">
+                                    <div className="info-label">
+                                        <BsHouseDoor className="icon" />
+                                        Adresse:
+                                    </div>
+                                    <div className="info-value address-value">
+                                        {agent.adresse ? (
+                                            <>
+                                                {agent.adresse}
+                                                <br />
+                                                {agent.codePostal} {agent.ville}
+                                            </>
+                                        ) : "N/A"}
+                                    </div>
+                                </div>
+                                
+                                <div className="info-item">
+                                    <div className="info-label">
+                                        <BsCalendarDate className="icon" />
+                                        Date de naissance:
+                                    </div>
+                                    <div className="info-value">{agent.dateNaissance || "N/A"}</div>
+                                </div>
+                                
+                                <div className="info-item">
+                                    <div className="info-label">
+                                        <BsShield className="icon" />
+                                        Rôle:
+                                    </div>
+                                    <div className="info-value">{agent.role || "N/A"}</div>
+                                </div>
+                            </div>
+                        </Card.Body>
+                    </Card>
+                </Col>
                 
-                <Card.Body>
-                    <Row className="mb-4">
-                        <Col md={6}>
-                            <Card className="border-0 h-100 info-card">
-                                <Card.Body>
-                                    <h4 className="text-primary mb-3">Informations Personnelles</h4>
-                                    <ListGroup variant="flush">
-                                        <ListGroup.Item className="d-flex">
-                                            <BsEnvelope className="me-2 text-secondary" size={18} />
-                                            <div>
-                                                <strong>Email:</strong>
-                                                <div>{agent.email || "N/A"}</div>
-                                            </div>
-                                        </ListGroup.Item>
-                                        <ListGroup.Item className="d-flex">
-                                            <BsTelephone className="me-2 text-secondary" size={18} />
-                                            <div>
-                                                <strong>Téléphone:</strong>
-                                                <div>{agent.telephone || "N/A"}</div>
-                                            </div>
-                                        </ListGroup.Item>
-                                        <ListGroup.Item className="d-flex">
-                                            <BsHouseDoor className="me-2 text-secondary" size={18} />
-                                            <div>
-                                                <strong>Adresse:</strong>
-                                                <div>{agent.adresse || "N/A"}</div>
-                                            </div>
-                                        </ListGroup.Item>
-                                        <ListGroup.Item className="d-flex">
-                                            <BsCalendarDate className="me-2 text-secondary" size={18} />
-                                            <div>
-                                                <strong>Date de naissance:</strong>
-                                                <div>{agent.dateNaissance || "N/A"}</div>
-                                            </div>
-                                        </ListGroup.Item>
-                                        <ListGroup.Item className="d-flex">
-                                            <BsShield className="me-2 text-secondary" size={18} />
-                                            <div>
-                                                <strong>Rôle:</strong>
-                                                <div>{agent.role || "N/A"}</div>
-                                            </div>
-                                        </ListGroup.Item>
-                                    </ListGroup>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                        
-                        <Col md={6}>
-                            <Card className="border-0 h-100 info-card">
-                                <Card.Body>
-                                    <h4 className="text-primary mb-3">
-                                        <BsGeoAlt className="me-2" />
-                                        Zones de travail
-                                    </h4>
-                                    {agent.zonesDeTravailIds?.length > 0 ? (
-                                        <ListGroup variant="flush">
-                                            {agent.zonesDeTravailIds.map(zId => (
-                                                <ListGroup.Item key={zId} className="d-flex justify-content-between align-items-center">
-                                                    <div>Zone #{zId}</div>
-                                                    <Link to={`/zones/${zId}`}>
-                                                        <Button variant="outline-primary" size="sm">Détails</Button>
-                                                    </Link>
-                                                </ListGroup.Item>
-                                            ))}
-                                        </ListGroup>
-                                    ) : (
-                                        <Alert variant="light" className="text-center">
-                                            Aucune zone assignée
-                                        </Alert>
-                                    )}
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-                    
-                    <Tabs defaultActiveKey="missions" id="agent-details-tabs" className="mb-3">
-                        <Tab eventKey="missions" title={<span><BsListTask className="me-2" />Missions</span>}>
-                            {agent.missionsIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.missionsIds.map(mId => (
-                                        <ListGroup.Item key={mId} className="d-flex justify-content-between align-items-center">
-                                            <div>Mission #{mId}</div>
-                                            <Link to={`/missions/${mId}`}>
-                                                <Button variant="primary" size="sm">Détails</Button>
+                <Col lg={6} xl={7} className="mb-4">
+                    <Card className="border-0 shadow-sm h-100">
+                        <Card.Body>
+                            <h4 className="section-title mb-3 d-flex align-items-center">
+                                <BsGeoAlt className="me-2" />
+                                Zones de travail
+                            </h4>
+                            {agent.zonesDeTravailIds?.length > 0 ? (
+                                <div className="zones-list">
+                                    {agent.zonesDeTravailIds.map(zId => (
+                                        <div key={zId} className="zone-item">
+                                            <div className="zone-name">Zone #{zId}</div>
+                                            <Link to={`/zones/${zId}`}>
+                                                <Button variant="outline-primary" size="sm" className="details-btn">Détails</Button>
                                             </Link>
-                                        </ListGroup.Item>
+                                        </div>
                                     ))}
-                                </ListGroup>
+                                </div>
                             ) : (
                                 <Alert variant="light" className="text-center">
-                                    Aucune mission assignée
+                                    Aucune zone assignée
                                 </Alert>
                             )}
-                        </Tab>
-                        
-                        <Tab eventKey="disponibilites" title={<span><BsCalendar3 className="me-2" />Disponibilités</span>}>
-                            {agent.disponibilitesIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.disponibilitesIds.map(dId => (
-                                        <ListGroup.Item key={dId} className="d-flex justify-content-between align-items-center">
-                                            <div>Disponibilité #{dId}</div>
-                                            <Link to={`/disponibilites/${dId}`}>
-                                                <Button variant="outline-primary" size="sm">Détails</Button>
-                                            </Link>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            ) : (
-                                <Alert variant="light" className="text-center">
-                                    Aucune disponibilité enregistrée
-                                </Alert>
-                            )}
-                        </Tab>
-                        
-                        <Tab eventKey="cartespro" title={<span><BsCreditCard2Front className="me-2" />Cartes Pro</span>}>
-                            {agent.cartesProfessionnellesIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.cartesProfessionnellesIds.map(cId => (
-                                        <ListGroup.Item key={cId} className="d-flex justify-content-between align-items-center">
-                                            <div>Carte #{cId}</div>
-                                            <Link to={`/cartes-pro/${cId}`}>
-                                                <Button variant="outline-primary" size="sm">Détails</Button>
-                                            </Link>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            ) : (
-                                <Alert variant="light" className="text-center">
-                                    Aucune carte professionnelle
-                                </Alert>
-                            )}
-                        </Tab>
-                        
-                        <Tab eventKey="diplomes" title={<span><BsAward className="me-2" />Diplômes</span>}>
-                            {agent.diplomesSSIAPIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.diplomesSSIAPIds.map(dId => (
-                                        <ListGroup.Item key={dId} className="d-flex justify-content-between align-items-center">
-                                            <div>Diplôme #{dId}</div>
-                                            <Link to={`/diplomes/${dId}`}>
-                                                <Button variant="outline-primary" size="sm">Détails</Button>
-                                            </Link>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            ) : (
-                                <Alert variant="light" className="text-center">
-                                    Aucun diplôme SSIAP
-                                </Alert>
-                            )}
-                        </Tab>
-                        
-                        <Tab eventKey="contrats" title={<span><BsFileEarmarkText className="me-2" />Contrats</span>}>
-                            {agent.contratsDeTravailIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.contratsDeTravailIds.map(ctId => (
-                                        <ListGroup.Item key={ctId} className="d-flex justify-content-between align-items-center">
-                                            <div>Contrat #{ctId}</div>
-                                            <Link to={`/contrats-de-travail/${ctId}`}>
-                                                <Button variant="outline-primary" size="sm">Détails</Button>
-                                            </Link>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            ) : (
-                                <Alert variant="light" className="text-center">
-                                    Aucun contrat de travail
-                                </Alert>
-                            )}
-                        </Tab>
-                        
-                        <Tab eventKey="notifications" title={<span><BsBell className="me-2" />Notifications</span>}>
-                            {agent.notificationsIds?.length > 0 ? (
-                                <ListGroup>
-                                    {agent.notificationsIds.map(nId => (
-                                        <ListGroup.Item key={nId} className="d-flex justify-content-between align-items-center">
-                                            <div>Notification #{nId}</div>
-                                            <Link to={`/notifications/${nId}`}>
-                                                <Button variant="outline-primary" size="sm">Voir</Button>
-                                            </Link>
-                                        </ListGroup.Item>
-                                    ))}
-                                </ListGroup>
-                            ) : (
-                                <Alert variant="light" className="text-center">
-                                    Aucune notification
-                                </Alert>
-                            )}
-                        </Tab>
-                    </Tabs>
-                </Card.Body>
+                        </Card.Body>
+                    </Card>
+                </Col>
+            </Row>
+            
+            <div className="tabs-section mb-4">
+                <Nav variant="tabs" className="nav-pills-custom" activeKey={activeTab} onSelect={(k) => setActiveTab(k)}>
+                    <Nav.Item>
+                        <Nav.Link eventKey="missions" className="d-flex align-items-center">
+                            <BsListTask className="me-2" />
+                            <span>Missions</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="disponibilites" className="d-flex align-items-center">
+                            <BsCalendar3 className="me-2" />
+                            <span>Disponibilités</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="cartespro" className="d-flex align-items-center">
+                            <BsCreditCard2Front className="me-2" />
+                            <span>Cartes Pro</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="diplomes" className="d-flex align-items-center">
+                            <BsAward className="me-2" />
+                            <span>Diplômes</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="contrats" className="d-flex align-items-center">
+                            <BsFileEarmarkText className="me-2" />
+                            <span>Contrats</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                    <Nav.Item>
+                        <Nav.Link eventKey="notifications" className="d-flex align-items-center">
+                            <BsBell className="me-2" />
+                            <span>Notifications</span>
+                        </Nav.Link>
+                    </Nav.Item>
+                </Nav>
                 
-                <Card.Footer className="bg-white border-0">
-                    <Link to="/agents">
-                        <Button variant="secondary">
-                            <BsArrowLeft className="me-2" />
-                            Retour à la liste
-                        </Button>
-                    </Link>
-                    <Link to={`/agents/edit/${id}`} className="ms-2">
-                        <Button variant="primary">
-                            Modifier
-                        </Button>
-                    </Link>
-                </Card.Footer>
-            </Card>
+                <Card className="border-0 shadow-sm tab-content-card">
+                    <Card.Body>
+                        {activeTab === "missions" && (
+                            <div className="tab-pane">
+                                {agent.missionsIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.missionsIds.map(mId => (
+                                            <div key={mId} className="list-item">
+                                                <div className="item-name">Mission #{mId}</div>
+                                                <Link to={`/missions/${mId}`}>
+                                                    <Button variant="primary" size="sm">Détails</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucune mission assignée
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === "disponibilites" && (
+                            <div className="tab-pane">
+                                {agent.disponibilitesIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.disponibilitesIds.map(dId => (
+                                            <div key={dId} className="list-item">
+                                                <div className="item-name">Disponibilité #{dId}</div>
+                                                <Link to={`/disponibilites/${dId}`}>
+                                                    <Button variant="outline-primary" size="sm">Détails</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucune disponibilité enregistrée
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === "cartespro" && (
+                            <div className="tab-pane">
+                                {agent.cartesProfessionnellesIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.cartesProfessionnellesIds.map(cId => (
+                                            <div key={cId} className="list-item">
+                                                <div className="item-name">Carte #{cId}</div>
+                                                <Link to={`/cartes-pro/${cId}`}>
+                                                    <Button variant="outline-primary" size="sm">Détails</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucune carte professionnelle
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === "diplomes" && (
+                            <div className="tab-pane">
+                                {agent.diplomesSSIAPIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.diplomesSSIAPIds.map(dId => (
+                                            <div key={dId} className="list-item">
+                                                <div className="item-name">Diplôme #{dId}</div>
+                                                <Link to={`/diplomes/${dId}`}>
+                                                    <Button variant="outline-primary" size="sm">Détails</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucun diplôme SSIAP
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === "contrats" && (
+                            <div className="tab-pane">
+                                {agent.contratsDeTravailIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.contratsDeTravailIds.map(ctId => (
+                                            <div key={ctId} className="list-item">
+                                                <div className="item-name">Contrat #{ctId}</div>
+                                                <Link to={`/contrats-de-travail/${ctId}`}>
+                                                    <Button variant="outline-primary" size="sm">Détails</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucun contrat de travail
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                        
+                        {activeTab === "notifications" && (
+                            <div className="tab-pane">
+                                {agent.notificationsIds?.length > 0 ? (
+                                    <div className="list-items">
+                                        {agent.notificationsIds.map(nId => (
+                                            <div key={nId} className="list-item">
+                                                <div className="item-name">Notification #{nId}</div>
+                                                <Link to={`/notifications/${nId}`}>
+                                                    <Button variant="outline-primary" size="sm">Voir</Button>
+                                                </Link>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <Alert variant="light" className="text-center">
+                                        Aucune notification
+                                    </Alert>
+                                )}
+                            </div>
+                        )}
+                    </Card.Body>
+                </Card>
+            </div>
+            
+            <div className="actions-section">
+                <Link to="/agents">
+                    <Button variant="secondary" className="me-2">
+                        <BsArrowLeft className="me-2" />
+                        Retour à la liste
+                    </Button>
+                </Link>
+                <Link to={`/agents/edit/${id}`}>
+                    <Button variant="primary">
+                        Modifier
+                    </Button>
+                </Link>
+            </div>
         </Container>
     );
 };
