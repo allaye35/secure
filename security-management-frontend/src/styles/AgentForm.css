@@ -61,3 +61,77 @@
     padding: 0.6rem;
     border-radius: 0.25rem;
 }
+
+/* Styles complémentaires pour le formulaire Bootstrap */
+.card {
+    border: none;
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.card-header {
+    font-weight: 600;
+}
+
+/* Amélioration des composants react-select pour s'harmoniser avec Bootstrap */
+.select__control {
+    border-color: #ced4da !important;
+}
+
+.select__control:hover {
+    border-color: #86b7fe !important;
+}
+
+.select__control--is-focused {
+    border-color: #86b7fe !important;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25) !important;
+}
+
+/* Ajouts d'animations pour une meilleure UX */
+.form-control:focus,
+.form-select:focus {
+    transition: border-color 0.15s ease-in-out, box-shadow 0.15s ease-in-out;
+}
+
+.btn {
+    transition: all 0.2s ease-in-out;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les sections du formulaire */
+h5 {
+    color: #0d6efd;
+    font-weight: 600;
+}
+
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+/* Pour les écrans mobiles */
+@media (max-width: 767px) {
+    .card-body {
+        padding: 1.25rem;
+    }
+}
+
+/* Animation pour l'alerte d'erreur */
+.alert {
+    animation: fadeIn 0.3s ease-in;
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
