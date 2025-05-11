@@ -35,7 +35,18 @@ export default function ArticleContratTravailForm() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [validated, setValidated] = useState(false);    // Chargement des contrats de travail disponibles
+    const [validated, setValidated] = useState(false);
+
+    // Fonction pour convertir l'ID en nombre ou retourner null
+    const parseContratId = (value) => {
+        if (value === undefined || value === null || value === "") {
+            return "";
+        }
+        const numValue = parseInt(value, 10);
+        return isNaN(numValue) ? "" : numValue;
+    };
+    
+    // Chargement des contrats de travail disponibles
     useEffect(() => {
         setContratsLoading(true);
         ContratDeTravailService.getAll()
@@ -60,7 +71,7 @@ export default function ArticleContratTravailForm() {
                     setForm({
                         libelle: res.data.libelle,
                         contenu: res.data.contenu,
-                        contratDeTravailId: res.data.contratDeTravailId || ""
+                        contratDeTravailId: parseContratId(res.data.contratDeTravailId)
                     });
                 })
                 .catch(err => {
@@ -73,13 +84,25 @@ export default function ArticleContratTravailForm() {
 
     const handleChange = e => {
         const { name, value } = e.target;
-        setForm(f => ({ ...f, [name]: value }));
-    };    const handleSubmit = async e => {
-        const form = e.currentTarget;
+        
+        // Traiter spécifiquement le cas du contratDeTravailId pour s'assurer qu'il est correctement formaté
+        if (name === "contratDeTravailId") {
+            console.log("Changement d'ID de contrat:", value);
+            
+            // Utiliser directement la valeur string pour le state du formulaire
+            // La conversion en nombre se fera uniquement lors de la soumission
+            setForm(f => ({ ...f, [name]: value }));
+        } else {
+            setForm(f => ({ ...f, [name]: value }));
+        }
+    };
+
+    const handleSubmit = async e => {
+        const formElement = e.currentTarget;
         e.preventDefault();
         
         // Validation du formulaire
-        if (form.checkValidity() === false) {
+        if (formElement.checkValidity() === false) {
             e.stopPropagation();
             setValidated(true);
             return;
@@ -93,10 +116,24 @@ export default function ArticleContratTravailForm() {
             // Création d'une copie du formulaire pour éviter des modifications indésirables
             const articleData = { ...form };
             
-            // Convertir l'ID du contrat en nombre si présent
-            if (articleData.contratDeTravailId) {
-                articleData.contratDeTravailId = Number(articleData.contratDeTravailId);
+            // Traitement spécifique pour l'ID du contrat
+            if (articleData.contratDeTravailId !== "") {
+                articleData.contratDeTravailId = parseContratId(articleData.contratDeTravailId);
+                
+                if (articleData.contratDeTravailId === "") {
+                    setError("Erreur de conversion de l'ID du contrat. Veuillez sélectionner un contrat valide.");
+                    setLoading(false);
+                    window.scrollTo(0, 0);
+                    return;
+                }
+            } else {
+                setError("Veuillez sélectionner un contrat de travail");
+                setLoading(false);
+                window.scrollTo(0, 0);
+                return;
             }
+            
+            console.log("Données à envoyer:", articleData);
             
             if (isEdit) {
                 // Force la recréation de l'objet pour s'assurer que toutes les propriétés sont envoyées
@@ -118,14 +155,6 @@ export default function ArticleContratTravailForm() {
                     });
                 }, 1500);
             } else {
-                // Vérifier que contratDeTravailId est bien présent
-                if (!articleData.contratDeTravailId) {
-                    setError("Veuillez sélectionner un contrat de travail");
-                    setLoading(false);
-                    window.scrollTo(0, 0);
-                    return;
-                }
-                
                 console.log("Création avec les données:", articleData);
                 const response = await ArticleContratTravailService.create(articleData);
                 console.log("Réponse après création:", response);
@@ -140,12 +169,18 @@ export default function ArticleContratTravailForm() {
             }
         } catch (err) {
             console.error("Erreur lors de l'enregistrement:", err);
-            setError("Erreur lors de l'enregistrement de l'article. Veuillez vérifier vos informations et réessayer.");
+            if (err.response && err.response.data && err.response.data.message) {
+                setError(`Erreur: ${err.response.data.message}`);
+            } else {
+                setError("Erreur lors de l'enregistrement de l'article. Veuillez vérifier vos informations et réessayer.");
+            }
             window.scrollTo(0, 0); // Scroll vers le message d'erreur
         } finally {
             setLoading(false);
         }
-    };    return (
+    };
+
+    return (
         <Container className="article-form-container py-4">
             <Card className="shadow-sm">                <Card.Header className="bg-white py-3">
                     <div className="d-flex justify-content-between align-items-center">
@@ -282,8 +317,7 @@ export default function ArticleContratTravailForm() {
                                                     className="form-control-lg shadow-sm"
                                                 >
                                                     <option value="">Sélectionnez un contrat de travail</option>
-                                                    {contrats.map(contrat => (
-                                                        <option key={contrat.id} value={contrat.id}>
+                                                    {contrats.map(contrat => (                                                    <option key={contrat.id} value={parseInt(contrat.id, 10)}>
                                                             {contrat.referenceContrat} - {contrat.typeContrat} 
                                                             {contrat.dateDebut ? ` (début: ${contrat.dateDebut.slice(0, 10)})` : ''}
                                                         </option>
