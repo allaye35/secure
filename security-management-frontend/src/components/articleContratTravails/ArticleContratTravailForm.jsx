@@ -2,19 +2,55 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
 import ArticleContratTravailService from "../../services/ArticleContratTravailService";
-import { Container, Row, Col, Card, Form, Button, Spinner, Alert } from "react-bootstrap";
-import { FaSave, FaTimes, FaArrowLeft, FaFileContract, FaPaperPlane, FaSpinner, FaCheckCircle } from "react-icons/fa";
+import ContratDeTravailService from "../../services/ContratDeTravailService";
+import { Container, Row, Col, Card, Form, Button, Spinner, Alert, Badge } from "react-bootstrap";
+import { 
+    FaSave, 
+    FaTimes, 
+    FaArrowLeft, 
+    FaFileContract, 
+    FaPaperPlane, 
+    FaSpinner, 
+    FaCheckCircle, 
+    FaExclamationTriangle,
+    FaFileAlt,
+    FaRegLightbulb,
+    FaLink,
+    FaPlus
+} from "react-icons/fa";
 import "../../styles/ArticleContratTravailForm.css";
 
 export default function ArticleContratTravailForm() {
     const { id } = useParams();
     const navigate = useNavigate();
-    const isEdit = Boolean(id);    const [form, setForm] = useState({ libelle: "", contenu: "" });
+    const isEdit = Boolean(id);
+    
+    const [form, setForm] = useState({ 
+        libelle: "", 
+        contenu: "",
+        contratDeTravailId: "" 
+    });
+    const [contrats, setContrats] = useState([]);
+    const [contratsLoading, setContratsLoading] = useState(false);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [success, setSuccess] = useState(false);
-    const [validated, setValidated] = useState(false);
+    const [validated, setValidated] = useState(false);    // Chargement des contrats de travail disponibles
+    useEffect(() => {
+        setContratsLoading(true);
+        ContratDeTravailService.getAll()
+            .then(response => {
+                console.log("Contrats récupérés:", response.data);
+                setContrats(response.data);
+            })
+            .catch(err => {
+                console.error("Erreur lors du chargement des contrats:", err);
+                // On ne bloque pas le formulaire pour autant
+            })
+            .finally(() => setContratsLoading(false));
+    }, []);
 
+    // Chargement des données de l'article si en mode édition
     useEffect(() => {
         if (isEdit) {
             setLoading(true);
@@ -24,7 +60,7 @@ export default function ArticleContratTravailForm() {
                     setForm({
                         libelle: res.data.libelle,
                         contenu: res.data.contenu,
-                        contratDeTravailId: res.data.contratDeTravailId
+                        contratDeTravailId: res.data.contratDeTravailId || ""
                     });
                 })
                 .catch(err => {
@@ -57,6 +93,11 @@ export default function ArticleContratTravailForm() {
             // Création d'une copie du formulaire pour éviter des modifications indésirables
             const articleData = { ...form };
             
+            // Convertir l'ID du contrat en nombre si présent
+            if (articleData.contratDeTravailId) {
+                articleData.contratDeTravailId = Number(articleData.contratDeTravailId);
+            }
+            
             if (isEdit) {
                 // Force la recréation de l'objet pour s'assurer que toutes les propriétés sont envoyées
                 const updateData = {
@@ -65,7 +106,9 @@ export default function ArticleContratTravailForm() {
                     contratDeTravailId: articleData.contratDeTravailId
                 };
                 
+                console.log("Mise à jour avec les données:", updateData);
                 const response = await ArticleContratTravailService.update(id, updateData);
+                console.log("Réponse après mise à jour:", response);
                 setSuccess(true);
                 
                 // Redirection après un court délai pour montrer le message de succès
@@ -75,7 +118,17 @@ export default function ArticleContratTravailForm() {
                     });
                 }, 1500);
             } else {
-                await ArticleContratTravailService.create(articleData);
+                // Vérifier que contratDeTravailId est bien présent
+                if (!articleData.contratDeTravailId) {
+                    setError("Veuillez sélectionner un contrat de travail");
+                    setLoading(false);
+                    window.scrollTo(0, 0);
+                    return;
+                }
+                
+                console.log("Création avec les données:", articleData);
+                const response = await ArticleContratTravailService.create(articleData);
+                console.log("Réponse après création:", response);
                 setSuccess(true);
                 
                 // Redirection après un court délai pour montrer le message de succès
@@ -154,11 +207,31 @@ export default function ArticleContratTravailForm() {
                             <p className="mt-3 text-muted">Chargement en cours...</p>
                         </div>
                     ) : (
-                        <Form noValidate validated={validated} onSubmit={handleSubmit}>
+                        <Form noValidate validated={validated} onSubmit={handleSubmit}>                            <div className="info-bg mb-4">
+                                <p><FaRegLightbulb className="me-2" /> {isEdit ? "Modifiez les informations ci-dessous pour mettre à jour cet article de contrat." : "Remplissez le formulaire ci-dessous pour créer un nouvel article de contrat de travail. N'oubliez pas de sélectionner un contrat de travail existant."}</p>
+                            </div>
+                            
+                            {!isEdit && (
+                                <Alert variant="info" className="mb-4">
+                                    <div className="d-flex">
+                                        <div className="me-3">
+                                            <FaFileContract size={24} />
+                                        </div>
+                                        <div>
+                                            <h5>Contrat de travail</h5>
+                                            <p className="mb-0">Vous devez sélectionner un contrat de travail existant pour pouvoir y associer cet article. Si aucun contrat n'est disponible, veuillez d'abord <Link to="/contrats-de-travail/create">créer un contrat de travail</Link>.</p>
+                                        </div>
+                                    </div>
+                                </Alert>
+                            )}
+                            
                             <Row>
                                 <Col xs={12}>
                                     <Form.Group className="mb-4" controlId="formLibelle">
-                                        <Form.Label className="fw-bold">Libellé <span className="text-danger">*</span></Form.Label>
+                                        <Form.Label className="fw-bold d-flex align-items-center">
+                                            <Badge bg="primary" className="me-2" pill>1</Badge>
+                                            Libellé <span className="text-danger ms-1">*</span>
+                                        </Form.Label>
                                         <Form.Control
                                             type="text"
                                             name="libelle"
@@ -166,31 +239,86 @@ export default function ArticleContratTravailForm() {
                                             onChange={handleChange}
                                             placeholder="Entrez le libellé de l'article"
                                             required
-                                            className="form-control-lg"
+                                            className="form-control-lg shadow-sm"
                                         />
                                         <Form.Control.Feedback type="invalid">
-                                            Un libellé est requis.
+                                            <FaExclamationTriangle className="me-1" /> Un libellé est requis.
                                         </Form.Control.Feedback>
-                                        <Form.Text className="text-muted">
-                                            Le libellé sera affiché comme titre de l'article dans le contrat.
+                                        <Form.Text className="text-muted mt-2">
+                                            <FaFileAlt className="me-2" /> Le libellé sera affiché comme titre de l'article dans le contrat.
+                                        </Form.Text>
+                                    </Form.Group>
+                                </Col>
+                                  <Col xs={12}>
+                                    <Form.Group className="mb-4" controlId="formContratTravail">
+                                        <Form.Label className="fw-bold d-flex align-items-center">
+                                            <Badge bg="primary" className="me-2" pill>2</Badge>
+                                            Contrat de travail <span className="text-danger ms-1">*</span>
+                                        </Form.Label>                                        <div className="position-relative">
+                                            {contratsLoading ? (
+                                                <div className="p-2">
+                                                    <Spinner animation="border" size="sm" className="me-2" />
+                                                    Chargement des contrats...
+                                                </div>
+                                            ) : contrats.length === 0 ? (
+                                                <div className="border rounded p-3 bg-light">
+                                                    <p className="mb-2 text-danger">Aucun contrat de travail disponible</p>
+                                                    <Button 
+                                                        as={Link} 
+                                                        to="/contrats-de-travail/create" 
+                                                        variant="outline-primary"
+                                                        size="sm"
+                                                    >
+                                                        <FaPlus className="me-2" />Créer un contrat de travail
+                                                    </Button>
+                                                </div>
+                                            ) : (
+                                                <Form.Select
+                                                    name="contratDeTravailId"
+                                                    value={form.contratDeTravailId}
+                                                    onChange={handleChange}
+                                                    required
+                                                    disabled={isEdit}
+                                                    className="form-control-lg shadow-sm"
+                                                >
+                                                    <option value="">Sélectionnez un contrat de travail</option>
+                                                    {contrats.map(contrat => (
+                                                        <option key={contrat.id} value={contrat.id}>
+                                                            {contrat.referenceContrat} - {contrat.typeContrat} 
+                                                            {contrat.dateDebut ? ` (début: ${contrat.dateDebut.slice(0, 10)})` : ''}
+                                                        </option>
+                                                    ))}
+                                                </Form.Select>
+                                            )}
+                                        </div>
+                                        <Form.Control.Feedback type="invalid">
+                                            <FaExclamationTriangle className="me-1" /> Veuillez sélectionner un contrat de travail.
+                                        </Form.Control.Feedback>
+                                        <Form.Text className="text-muted mt-2">
+                                            <FaLink className="me-2" /> L'article sera associé à ce contrat de travail.
                                         </Form.Text>
                                     </Form.Group>
                                 </Col>
                                 
                                 <Col xs={12}>
                                     <Form.Group className="mb-4" controlId="formContenu">
-                                        <Form.Label className="fw-bold">Contenu</Form.Label>
-                                        <Form.Control
-                                            as="textarea"
-                                            name="contenu"
-                                            value={form.contenu}
-                                            onChange={handleChange}
-                                            placeholder="Entrez le contenu détaillé de l'article"
-                                            rows={10}
-                                            className="form-control-lg content-editor"
-                                        />
-                                        <Form.Text className="text-muted">
-                                            Le contenu détaillé de l'article qui apparaîtra dans le contrat de travail.
+                                        <Form.Label className="fw-bold d-flex align-items-center">
+                                            <Badge bg="primary" className="me-2" pill>3</Badge>
+                                            Contenu
+                                        </Form.Label>
+                                        <div className="content-editor-wrapper position-relative">
+                                            <Form.Control
+                                                as="textarea"
+                                                name="contenu"
+                                                value={form.contenu}
+                                                onChange={handleChange}
+                                                placeholder="Entrez le contenu détaillé de l'article"
+                                                rows={10}
+                                                className="form-control-lg content-editor"
+                                            />
+                                        </div>
+                                        <Form.Text className="text-muted mt-2">
+                                            <FaFileContract className="me-2" /> Le contenu détaillé de l'article qui apparaîtra dans le contrat de travail.
                                         </Form.Text>
                                     </Form.Group>
                                 </Col>
