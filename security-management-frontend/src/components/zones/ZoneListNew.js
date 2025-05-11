@@ -1,22 +1,26 @@
+// src/components/zones/ZoneList.js
 import React, { useState, useEffect, useCallback, useMemo, useRef } from "react";
 import { Link, useLocation } from "react-router-dom";
 import ZoneService from "../../services/ZoneService";
 import "../../styles/ZoneList.css";
-import { Container, Row, Col, Form, Button, Table, Card, Badge, Spinner, Alert, Modal, Pagination, Toast, ToastContainer, OverlayTrigger, Tooltip, ProgressBar } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Table, Card, Badge, Spinner, Alert, Pagination, Toast, ToastContainer, OverlayTrigger, Tooltip, ProgressBar } from "react-bootstrap";
 import { 
     FaPlus, FaSearch, FaEye, FaEdit, FaTrashAlt, FaMapMarkedAlt,
     FaFilter, FaSort, FaSortUp, FaSortDown, FaCity, FaMapPin, FaGlobeEurope, FaEnvelope, FaSyncAlt,
-    FaCheckCircle, FaInfoCircle, FaRegTimesCircle, FaTimes, FaRegLightbulb, FaExclamationTriangle,
+    FaCheckCircle, FaInfoCircle, FaRegTimesCircle, FaTimes, FaRegLightbulb, 
     FaUndo, FaTrash
 } from "react-icons/fa";
 
-const ZoneList = () => {    const location = useLocation();
+const ZoneList = () => {
+    const location = useLocation();
     const [zones, setZones] = useState([]);
     const [zoneAgents, setZoneAgents] = useState({});
-    const [error, setError] = useState(null);    const [filter, setFilter] = useState("");
+    const [error, setError] = useState(null);
+    const [filter, setFilter] = useState("");
     const [loading, setLoading] = useState(true);
     const [agentLoadingError, setAgentLoadingError] = useState(false);
     const [sortConfig, setSortConfig] = useState({ key: 'nom', direction: 'ascending' });
+    
     // États pour les fonctionnalités améliorées
     const [currentPage, setCurrentPage] = useState(1);
     const [itemsPerPage, setItemsPerPage] = useState(10);
@@ -24,11 +28,8 @@ const ZoneList = () => {    const location = useLocation();
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
     const [refreshTrigger, setRefreshTrigger] = useState(0);
-    const [isRefreshing, setIsRefreshing] = useState(false);    const [showFilterMobile, setShowFilterMobile] = useState(false);
-    
-    // États pour la sélection et suppression multiple
-    const [selectedZones, setSelectedZones] = useState([]);
-    const [showBulkDeleteModal, setShowBulkDeleteModal] = useState(false);
+    const [isRefreshing, setIsRefreshing] = useState(false);
+    const [showFilterMobile, setShowFilterMobile] = useState(false);
     
     // États pour la suppression progressive
     const [pendingDeleteZone, setPendingDeleteZone] = useState(null);
@@ -47,9 +48,23 @@ const ZoneList = () => {    const location = useLocation();
             // Nettoyer le state pour éviter d'afficher le message à nouveau après un refresh
             window.history.replaceState({}, document.title);
         }
-    }, [location]);    useEffect(() => {
+    }, [location]);
+
+    useEffect(() => {
         loadZones();
     }, [refreshTrigger]);
+
+    // Nettoyage des ressources lors du démontage du composant
+    useEffect(() => {
+        return () => {
+            if (deleteTimer) {
+                clearInterval(deleteTimer);
+            }
+            if (deleteTimeoutRef.current) {
+                clearTimeout(deleteTimeoutRef.current);
+            }
+        };
+    }, [deleteTimer]);
 
     const loadZones = useCallback(() => {
         setLoading(true);
@@ -120,15 +135,9 @@ const ZoneList = () => {    const location = useLocation();
                 setLoading(false);
                 setIsRefreshing(false);
             });
-    };    // Handler pour lancer la suppression d'une zone avec confirmation et délai d'annulation    // Nettoyage des ressources au démontage
-    useEffect(() => {
-        return () => {
-            if (deleteTimer) {
-                clearInterval(deleteTimer);
-            }
-        };
-    }, [deleteTimer]);
-      // Fonction pour démarrer le processus de suppression progressive
+    };
+
+    // Fonction pour démarrer le processus de suppression progressive
     const initiateProgressiveDelete = (zone) => {
         setPendingDeleteZone(zone);
         setDeleteProgress(0);
@@ -164,7 +173,8 @@ const ZoneList = () => {    const location = useLocation();
         setToastMessage("Suppression annulée");
         setShowToast(true);
     };
-      // Fonction pour finaliser la suppression après le délai
+    
+    // Fonction pour finaliser la suppression après le délai
     const finalizeDelete = (id) => {
         // Nettoyer le timer si existant
         if (deleteTimer) {
@@ -189,52 +199,6 @@ const ZoneList = () => {    const location = useLocation();
                 setToastMessage("Erreur lors de la suppression de la zone");
             });
     };
-    
-    // Fonction pour gérer la sélection d'une zone
-    const handleZoneSelection = (zoneId) => {
-        setSelectedZones(prevSelected => {
-            if (prevSelected.includes(zoneId)) {
-                return prevSelected.filter(id => id !== zoneId);
-            } else {
-                return [...prevSelected, zoneId];
-            }
-        });
-    };
-    
-    // Fonction pour gérer la sélection/désélection de toutes les zones
-    const handleSelectAllZones = (checked) => {
-        if (checked) {
-            const allZoneIds = paginatedZones.map(zone => zone.id);
-            setSelectedZones(allZoneIds);
-        } else {
-            setSelectedZones([]);
-        }
-    };
-    
-    // Fonction pour supprimer plusieurs zones à la fois
-    const bulkDeleteZones = () => {
-        setLoading(true);
-        
-        const deletePromises = selectedZones.map(id => ZoneService.remove(id));
-        
-        Promise.all(deletePromises)
-            .then(() => {
-                setZones(zones.filter(zone => !selectedZones.includes(zone.id)));
-                setToastMessage(`${selectedZones.length} zone(s) supprimée(s) avec succès`);
-                setShowToast(true);
-                setSelectedZones([]);
-                setShowBulkDeleteModal(false);
-            })
-            .catch(error => {
-                console.error("Erreur lors de la suppression des zones:", error);
-                setError("Erreur lors de la suppression des zones");
-                setShowToast(true);
-                setToastMessage("Erreur lors de la suppression des zones");
-            })
-            .finally(() => {
-                setLoading(false);
-            });
-    };
 
     // Fonction pour trier les zones
     const requestSort = (key) => {
@@ -251,17 +215,7 @@ const ZoneList = () => {    const location = useLocation();
         return sortConfig.direction === 'ascending' ? 
             <FaSortUp className="ms-1 text-primary" /> : 
             <FaSortDown className="ms-1 text-primary" />;
-    };    // Nettoyage des ressources lors du démontage du composant
-    useEffect(() => {
-        return () => {
-            if (deleteTimer) {
-                clearInterval(deleteTimer);
-            }
-            if (deleteTimeoutRef.current) {
-                clearTimeout(deleteTimeoutRef.current);
-            }
-        };
-    }, [deleteTimer]);
+    };
 
     // Fonction pour effacer les filtres
     const clearFilters = () => {
@@ -555,10 +509,11 @@ const ZoneList = () => {    const location = useLocation();
                     </Toast.Header>
                     <Toast.Body>{toastMessage}</Toast.Body>
                 </Toast>
-                  {/* Toast pour la suppression progressive avec barre de progression */}
+                
+                {/* Toast pour la suppression progressive avec barre de progression */}
                 <Toast 
                     show={deleteToastVisible} 
-                    onClose={cancelDelete} /* Annule la suppression si l'utilisateur ferme le toast */
+                    onClose={cancelDelete}
                     className="delete-progress-toast"
                 >
                     <Toast.Header closeButton>
@@ -580,11 +535,11 @@ const ZoneList = () => {    const location = useLocation();
                                     variant="danger" 
                                     animated 
                                 />
-                                <div className="d-flex justify-content-between mt-2">                                    <Button 
+                                <div className="d-flex justify-content-between mt-2">
+                                    <Button 
                                         variant="outline-secondary" 
                                         size="sm" 
                                         onClick={cancelDelete}
-                                        aria-label={`Annuler la suppression de la zone ${pendingDeleteZone.nom}`}
                                     >
                                         <FaUndo className="me-1" /> Annuler
                                     </Button>
@@ -592,7 +547,6 @@ const ZoneList = () => {    const location = useLocation();
                                         variant="danger" 
                                         size="sm" 
                                         onClick={() => finalizeDelete(pendingDeleteZone.id)}
-                                        aria-label={`Confirmer la suppression immédiate de la zone ${pendingDeleteZone.nom}`}
                                     >
                                         <FaTrashAlt className="me-1" /> Supprimer maintenant
                                     </Button>
@@ -648,26 +602,16 @@ const ZoneList = () => {    const location = useLocation();
                                         aria-label="Rafraîchir la liste"
                                     >
                                         <FaSyncAlt className={isRefreshing ? "fa-spin" : ""} />
-                                    </Button>                                    <Button 
+                                    </Button>
+                                    <Button 
                                         as={Link}
                                         to="/zones/create"
                                         variant="primary"
-                                        className="me-2"
                                         aria-label="Ajouter une nouvelle zone"
                                     >
                                         <FaPlus className="me-1 d-md-inline d-none" /> 
                                         <span className="d-md-inline d-none">Ajouter</span>
                                         <FaPlus className="d-md-none" />
-                                    </Button>
-                                    <Button
-                                        variant="danger"
-                                        aria-label="Supprimer les zones sélectionnées"
-                                        onClick={() => setShowBulkDeleteModal(true)}
-                                        disabled={selectedZones.length === 0}
-                                    >
-                                        <FaTrash className="me-1 d-md-inline d-none" />
-                                        <span className="d-md-inline d-none">Supprimer</span>
-                                        <FaTrash className="d-md-none" />
                                     </Button>
                                 </Col>
                             </Row>
@@ -848,17 +792,10 @@ const ZoneList = () => {    const location = useLocation();
                                 </small>
                             </div>
                             
-                            <div className="table-responsive">                                <Table hover responsive className="align-middle zone-table">
+                            <div className="table-responsive">
+                                <Table hover responsive className="align-middle zone-table">
                                     <thead className="table-light">
                                         <tr>
-                                            <th>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    onChange={(e) => handleSelectAllZones(e.target.checked)}
-                                                    checked={selectedZones.length === paginatedZones.length && paginatedZones.length > 0}
-                                                    aria-label="Sélectionner toutes les zones"
-                                                />
-                                            </th>
                                             <th onClick={() => requestSort('id')} className="sortable-header">
                                                 #
                                                 {getSortDirectionIcon('id')}
@@ -882,17 +819,10 @@ const ZoneList = () => {    const location = useLocation();
                                             <th>Agents rattachés</th>
                                             <th className="text-center">Actions</th>
                                         </tr>
-                                    </thead>                                    <tbody>
+                                    </thead>
+                                    <tbody>
                                         {paginatedZones.map((zone, index) => (
                                             <tr key={zone.id} className="zone-row">
-                                                <td>
-                                                    <Form.Check
-                                                        type="checkbox"
-                                                        onChange={() => handleZoneSelection(zone.id)}
-                                                        checked={selectedZones.includes(zone.id)}
-                                                        aria-label={`Sélectionner la zone ${zone.nom}`}
-                                                    />
-                                                </td>
                                                 <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
                                                 <td className="fw-medium">
                                                     <Link 
@@ -949,7 +879,8 @@ const ZoneList = () => {    const location = useLocation();
                                                             >
                                                                 <FaEdit />
                                                             </Button>
-                                                        </OverlayTrigger>                                                        <OverlayTrigger
+                                                        </OverlayTrigger>
+                                                        <OverlayTrigger
                                                             placement="top"
                                                             overlay={<Tooltip>Supprimer</Tooltip>}
                                                         >
@@ -1010,40 +941,10 @@ const ZoneList = () => {    const location = useLocation();
                             </Form.Select>
                         </div>
                     )}
-                </Card.Footer>            </Card>            
-            
-            {/* Modal de confirmation pour la suppression en lot */}
-            <Modal show={showBulkDeleteModal} onHide={() => setShowBulkDeleteModal(false)}>
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        <FaExclamationTriangle className="text-danger me-2" />
-                        Confirmation de suppression
-                    </Modal.Title>
-                </Modal.Header>
-                <Modal.Body>
-                    <p>Êtes-vous sûr de vouloir supprimer les {selectedZones.length} zones sélectionnées ? </p>
-                    <p className="text-danger fw-bold">Cette action est irréversible.</p>
-                </Modal.Body>
-                <Modal.Footer>
-                    <Button variant="secondary" onClick={() => setShowBulkDeleteModal(false)}>
-                        Annuler
-                    </Button>
-                    <Button variant="danger" onClick={bulkDeleteZones} disabled={loading}>
-                        {loading ? (
-                            <>
-                                <Spinner animation="border" size="sm" className="me-2" />
-                                Suppression...
-                            </>
-                        ) : (
-                            <>
-                                <FaTrash className="me-2" />
-                                Supprimer définitivement
-                            </>
-                        )}
-                    </Button>
-                </Modal.Footer>
-            </Modal>
-        </Container>    );
+                </Card.Footer>
+            </Card>
+        </Container>
+    );
 };
 
 export default ZoneList;

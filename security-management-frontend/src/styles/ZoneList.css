@@ -1,30 +1,63 @@
 .zone-list-container {
-    max-width: 1000px;
-    margin: 2rem auto;
+    max-width: 1200px;
+    margin: 0 auto;
     padding: 0 1rem;
+    transition: all 0.3s ease;
 }
+
 .controls {
     display: flex;
     align-items: center;
     gap: 1rem;
     margin-bottom: 1.5rem;
 }
+
 .controls h2 { color: #004085; margin: 0; }
-.search-input { flex: 1; padding: 0.5rem; }
+
+.search-input {
+    flex: 1;
+    padding: 0.5rem;
+    padding-left: 2.5rem !important;
+    border-radius: 30px;
+    border: 1px solid #ced4da;
+    transition: all 0.2s ease;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #86b7fe;
+}
+
 .add-btn { background: #28a745; color: #fff; }
+
 .table-wrapper { overflow-x: auto; }
+
 .zone-table { width: 100%; border-collapse: collapse; }
+
 .zone-table th, .zone-table td {
-    padding: 0.75rem;
+    padding: 1rem 0.75rem;
+    vertical-align: middle;
     border-bottom: 1px solid #ddd;
 }
+
 .zone-table thead { background: #f8f9fa; }
+
+.zone-table thead tr {
+    background: linear-gradient(to right, #f8f9fa, #e9ecef);
+}
+
 .actions { display: flex; gap: 0.5rem; }
+
 .btn.view { background: #17a2b8; color: #fff; }
+
 .btn.edit { background: #ffc107; color: #212529; }
+
 .btn.delete { background: #dc3545; color: #fff; }
+
 .no-data { text-align: center; padding: 1rem; color: #666; }
+
 .error { margin: 1rem 0; color: #721c24; background: #f8d7da; padding: 0.5rem; }
+
 .warning-message {
     background-color: #fff3cd;
     color: #856404;
@@ -32,4 +65,422 @@
     border-radius: 4px;
     padding: 0.75rem 1.25rem;
     margin-bottom: 1rem;
+}
+
+/* Animation lors du chargement des éléments */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes scaleIn {
+    from { transform: scale(0.98); opacity: 0.8; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* Animation pour les cartes */
+.card {
+    animation: scaleIn 0.3s ease-out forwards;
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    transform: translateY(-2px);
+}
+
+.zone-row {
+    animation: fadeIn 0.4s ease forwards;
+    transition: all 0.2s ease;
+}
+
+.zone-row:hover {
+    background-color: rgba(0, 123, 255, 0.03) !important;
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+/* Style pour les en-têtes de colonnes triables */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s ease;
+    padding-right: 18px !important;
+    white-space: nowrap;
+}
+
+.sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+    color: #007bff;
+}
+
+.sortable-header span {
+    position: absolute;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #007bff;
+    font-weight: bold;
+}
+
+/* Style pour la cellule des agents */
+.agents-cell {
+    max-width: 200px;
+    overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 4px;
+}
+
+/* Animation pour les badges */
+.badge {
+    transition: all 0.2s ease;
+    font-weight: 500; /* Pour une meilleure lisibilité */
+    line-height: 1.2; 
+    display: inline-flex;
+    align-items: center;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    z-index: 2;
+}
+
+/* Styles pour les cards */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Style pour les boutons d'action */
+.btn-action {
+    width: 36px;
+    height: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    transition: all 0.2s;
+    padding: 0;
+}
+
+.btn-action:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 3px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Pagination styles */
+.pagination {
+    margin-top: 1.5rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 0.25rem;
+}
+
+.page-item.active .page-link {
+    background-color: #007bff;
+    border-color: #007bff;
+    font-weight: bold;
+}
+
+.page-link {
+    color: #007bff;
+    min-width: 38px;
+    height: 38px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px !important; /* Coins arrondis pour tous les boutons de pagination */
+}
+
+.page-link:hover {
+    color: #0056b3;
+    background-color: #f0f8ff;
+    z-index: 1;
+}
+
+/* Styles pour la barre de recherche */
+.search-container {
+    position: relative;
+    flex-grow: 1;
+}
+
+.search-icon {
+    position: absolute;
+    left: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+    transition: all 0.3s ease;
+}
+
+.search-input:focus + .search-icon {
+    color: #007bff;
+}
+
+/* Style pour les filtres par type */
+.filter-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-bottom: 1rem;
+    justify-content: center;
+}
+
+.filter-btn {
+    border-radius: 20px;
+    font-size: 0.85rem;
+    padding: 0.25rem 0.75rem;
+    transition: all 0.2s;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+
+.filter-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 3px 5px rgba(0,0,0,0.1);
+}
+
+/* Style pour les états vides */
+.empty-state {
+    padding: 3rem;
+    text-align: center;
+    animation: fadeIn 0.6s ease forwards;
+}
+
+.empty-state img {
+    opacity: 0.6;
+    transition: all 0.3s ease;
+}
+
+.empty-state img:hover {
+    opacity: 0.8;
+    transform: scale(1.05);
+}
+
+/* Responsive design */
+@media (max-width: 992px) {
+    .zone-list-container {
+        padding: 0.5rem;
+    }
+    
+    .card-header h2 {
+        font-size: 1.5rem;
+    }
+    
+    .filter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+        display: grid;
+    }
+    
+    .filter-btn {
+        width: 100%;
+        justify-content: center;
+    }
+}
+
+@media (max-width: 768px) {
+    .zone-row td {
+        padding: 0.75rem 0.5rem;
+    }
+    
+    .badge {
+        font-size: 0.7rem;
+    }
+    
+    .btn-action {
+        width: 32px;
+        height: 32px;
+    }
+    
+    .filter-buttons {
+        grid-template-columns: repeat(3, 1fr);
+        gap: 5px;
+    }
+    
+    .filter-btn {
+        font-size: 0.7rem;
+        padding: 0.2rem 0.4rem;
+    }
+    
+    /* Ajustement pour les petits écrans */
+    .zone-table th:nth-child(4), 
+    .zone-table td:nth-child(4) {
+        display: none;
+    }
+}
+
+@media (max-width: 576px) {
+    .card-header h2 {
+        font-size: 1.25rem;
+    }
+    
+    .filter-buttons {
+        grid-template-columns: repeat(2, 1fr);
+    }
+    
+    /* Cache certaines colonnes sur mobile */
+    .zone-table th:nth-child(5), 
+    .zone-table td:nth-child(5) {
+        display: none;
+    }
+    
+    /* Réduit l'espace entre les boutons d'action */
+    .zone-table .d-flex.gap-2 {
+        gap: 0.25rem !important;
+    }
+    
+    /* Style pour les cellules sur mobile */
+    .zone-table td {
+        padding: 0.5rem 0.25rem;
+        font-size: 0.85rem;
+    }
+}
+
+/* Amélioration de l'accessibilité */
+.btn:focus, .form-control:focus, .page-link:focus {
+    outline: none;
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+}
+
+/* Animation pour le bouton de rafraîchissement */
+.fa-spin {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    from { transform: rotate(0deg); }
+    to { transform: rotate(360deg); }
+}
+
+/* Amélioration pour les tables responsive */
+.table-responsive {
+    border-radius: 8px;
+    overflow: hidden; /* Pour conserver le border-radius */
+}
+
+/* Amélioration des toasts */
+.toast {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border: none;
+    opacity: 1 !important;
+    animation: slideInRight 0.3s forwards;
+}
+
+@keyframes slideInRight {
+    from { transform: translateX(100%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+
+/* Toast pour la suppression progressive */
+.delete-progress-toast {
+    min-width: 350px;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+    border-left: 4px solid #dc3545;
+    animation: slide-in-right 0.3s forwards;
+}
+
+@keyframes slide-in-right {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.delete-progress-toast .progress {
+    height: 8px;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.delete-progress-toast .progress-bar {
+    transition: width 0.05s linear;
+}
+
+/* Animation pour le bouton de suppression */
+.btn-action.delete-animation {
+    animation: delete-shake 0.5s;
+}
+
+/* Styles pour la suppression progressive */
+.delete-progress-toast {
+    min-width: 350px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    border-left: 4px solid #dc3545;
+}
+
+.delete-progress-toast .toast-header {
+    background-color: #fff;
+    color: #dc3545;
+    font-weight: 600;
+    border-bottom: 1px solid #f8d7da;
+}
+
+.delete-progress-toast .toast-body {
+    padding: 1rem;
+    background-color: #fff;
+}
+
+.delete-progress-toast .progress {
+    height: 8px;
+    margin-top: 8px;
+}
+
+.delete-progress-toast .progress-bar {
+    transition: width 0.05s linear;
+    animation: pulseWarning 2s infinite;
+}
+
+/* Animation pour le toast de suppression */
+@keyframes slideInRight {
+    from { transform: translateX(100%); }
+    to { transform: translateX(0); }
+}
+
+.delete-progress-toast.show {
+    animation: slideInRight 0.3s ease forwards;
+}
+
+/* Styles pour les boutons dans le toast */
+.delete-progress-toast .btn-outline-secondary:hover {
+    background-color: #6c757d;
+    color: white;
+}
+
+.delete-progress-toast .btn-danger:hover {
+    background-color: #bd2130;
+}
+
+/* Animation pour la barre de progression */
+@keyframes pulseWarning {
+    0% { opacity: 0.6; }
+    50% { opacity: 1; }
+    100% { opacity: 0.6; }
+}
+
+/* Style pour l'info de suppression en cours */
+.delete-progress-toast p {
+    margin-bottom: 0.5rem;
+    font-size: 0.95rem;
+}
+
+.delete-progress-toast p strong {
+    color: #dc3545;
 }

@@ -4,3 +4,91 @@
 .zone-detail ul { list-style: disc inside; margin:1rem 0; }
 .back-btn { display:inline-block; margin-top:1rem; color:#0056b3; }
 .error { color:#721c24; background:#f8d7da; padding:0.5rem; }
+
+/* Styles pour la vue détaillée des zones */
+.zone-detail-container {
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+.zone-detail-container h2 {
+    color: #333;
+    font-weight: 600;
+}
+
+/* Style pour la liste des agents */
+.transparent-list .list-group-item {
+    background: transparent;
+    border-bottom: 1px solid rgba(0,0,0,0.05);
+    transition: all 0.2s ease;
+}
+
+.transparent-list .list-group-item:last-child {
+    border-bottom: none;
+}
+
+/* Style pour les avatars d'agents */
+.agent-avatar {
+    width: 40px;
+    height: 40px;
+    background-color: #f8f9fa;
+    border-radius: 50%;
+    font-size: 1.2rem;
+}
+
+/* Style pour les éléments d'agent dans la liste */
+.agent-item {
+    text-decoration: none !important;
+    color: #333 !important;
+    transition: all 0.2s ease;
+}
+
+.agent-item:hover {
+    background-color: rgba(0, 123, 255, 0.05);
+    transform: translateY(-2px);
+}
+
+/* Style pour les en-têtes de section */
+.card-title {
+    font-size: 1.1rem;
+    color: #333;
+    font-weight: 500;
+}
+
+/* Animation pour les badges */
+.badge {
+    transition: all 0.2s ease;
+}
+
+.badge:hover {
+    transform: scale(1.05);
+}
+
+/* Style pour les headers de colonne triables */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+}
+
+.sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Animation pour les cartes */
+.card {
+    transition: all 0.3s ease;
+    border: none;
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Responsive design pour les petits écrans */
+@media (max-width: 768px) {
+    .zone-detail-container {
+        padding: 0.5rem;
+    }
+}
