@@ -29,6 +29,8 @@ const ContratDeTravailDetail = () => {
     const [creatingArticle, setCreatingArticle] = useState(false);
 
     useEffect(() => {
+
+        console.log("Chargement des détails du contrat avec ID:", id);
         setLoading(true);
 
         // Charger le contrat principal - en s'assurant d'utiliser getById avec B majuscule
@@ -93,6 +95,17 @@ const ContratDeTravailDetail = () => {
             .finally(() => {
                 setLoading(false);
             });
+
+
+        ArticleContratTravailService.getByContratTravail(id)
+            .then(refreshResponse => {
+                console.log("Articles rafraîchis:", refreshResponse.data);
+                setArticles(refreshResponse.data || []);
+            })
+            .catch(refreshError => {
+                console.error("Erreur lors du rafraîchissement des articles:", refreshError);
+            });
+
     }, [id]);
 
     if (error) return <p className="error">{error}</p>;

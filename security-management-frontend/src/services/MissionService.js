@@ -24,6 +24,11 @@ const MissionService = {
     getByDevis: (devisId) => api.get(`${PATH}/devis/${devisId}`),
     
     /**
+     * Récupérer les missions associées à un contrat
+     */
+    getByContratId: (contratId) => api.get(`${PATH}/contrat/${contratId}`),
+    
+    /**
      * Récupérer les missions associées à un client
      */
     getMissionsByClient: (clientId) => api.get(`${PATH}/client/${clientId}`),
@@ -34,14 +39,31 @@ const MissionService = {
     getActivesByClient: (clientId) => api.get(`${PATH}/client/${clientId}/actives`),
     
     /**
+     * Créer une nouvelle mission
+     */
+    createMission: (missionData) => api.post(PATH, missionData),
+    
+    /**
      * Mettre à jour une mission
      */
     update: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
     
     /**
+     * Mettre à jour une mission (alias pour update)
+     */
+    updateMission: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
+    
+    /**
      * Associer une mission à une facture
      */
-    associerFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`)
+    associerFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`),
+
+    /**
+     * Simuler un calcul de montants sans créer une mission
+     * Cette fonction permet d'obtenir les montants calculés par le backend
+     * en fonction des paramètres de la mission (tarif, quantité, etc.)
+     */
+    simulateCalculation: (missionData) => api.post(`${PATH}/simuler-calcul`, missionData)
 };
 
 export default MissionService;

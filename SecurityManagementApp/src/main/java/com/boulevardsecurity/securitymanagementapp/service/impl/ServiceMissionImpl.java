@@ -204,6 +204,24 @@ public class ServiceMissionImpl implements IMissionService {
                 .toList();
     }
 
+    @Override
+    public MissionDto simulerCalcul(MissionCreateDto dto) {
+        // Créer une mission temporaire pour simulation sans la persister
+        Mission mission = mappeur.toEntity(dto);
+        
+        // Récupérer le tarif
+        TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
+                .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
+        
+        mission.setTarif(tarif);
+        
+        // Appliquer les calculs via le service de tarification
+        appliquerChiffrage(mission, tarif);
+        
+        // Retourner le DTO sans sauvegarder la mission
+        return mappeur.toDto(mission);
+    }
+
     /* ─────────────── Outils privés ─────────────── */
     private Mission trouverMission(Long id){
         return repMission.findById(id)

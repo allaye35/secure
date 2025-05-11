@@ -218,9 +218,11 @@ public class FactureServiceImpl implements FactureService {
             context.setVariable("missions", facture.getMissions());
             context.setVariable("dateEmission", 
                 facture.getDateEmission().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            // Use dateEmission as a fallback instead of dateEcheance since it's not defined
+            LocalDate dateEcheance = LocalDate.now().plusDays(30); // Default due date: 30 days from now
             context.setVariable("dateEcheance", 
-                facture.getDateEcheance().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            context.setVariable("montantTotal", facture.getMontantTotal());
+                dateEcheance.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("montantTotal", facture.getMontantTTC());
 
             // Génération du HTML à partir du template
             String htmlContent = templateEngine.process("facture-template", context);

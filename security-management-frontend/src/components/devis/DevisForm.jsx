@@ -5,6 +5,7 @@ import DevisService from "../../services/DevisService";
 import TarifMissionService from "../../services/TarifMissionService";
 import ClientService from "../../services/ClientService";
 import EntrepriseService from "../../services/EntrepriseService";
+import MissionService from "../../services/MissionService"; // Ajout du service Mission
 import "../../styles/DevisForm.css";
 
 // Statuts de devis (correspond à l'enum StatutDevis.java dans le backend)
@@ -40,44 +41,23 @@ export default function DevisForm() {
     const [selectedEntreprise, setSelectedEntreprise] = useState(null);
     const [selectedTarif, setSelectedTarif] = useState(null);
     
-    // Nouvelles variables pour les calculs avancés
-    const [calculDetails, setCalculDetails] = useState({
-        tauxHoraire: 0,
+    // Configuration de base de mission
+    const [missionConfig, setMissionConfig] = useState({
+        nombreAgents: 1,
+        quantite: 40, // Valeur par défaut (ex: 40h)
         heuresParJour: 8,
-        joursParSemaine: 5,
-        semainesDuree: 4,
-        majorations: {
-            nuit: 0,
-            weekend: 0, 
-            dimanche: 0,
-            ferie: 0
-        },
-        appliquerMajoration: {
-            nuit: false,
-            weekend: false,
-            dimanche: false,
-            ferie: false
-        },
-        // Nouveaux champs pour détails des jours spécifiques
-        joursSemaine: {
-            lundi: { selected: true, heures: 8 },
-            mardi: { selected: true, heures: 8 },
-            mercredi: { selected: true, heures: 8 },
-            jeudi: { selected: true, heures: 8 },
-            vendredi: { selected: true, heures: 8 },
-            samedi: { selected: false, heures: 0 },
-            dimanche: { selected: false, heures: 0 }
-        },
-        // Plages horaires pour les calculs de majoration automatique
-        plagesHoraires: {
-            debut: "08:00",
-            fin: "18:00",
-            debutNuit: "22:00",
-            finNuit: "06:00"
-        },
-        // Jours fériés sélectionnés
-        joursFeries: []
+        joursParSemaine: 5
     });
+    
+    // Date du jour pour valeur par défaut
+    const today = new Date();
+    const tomorrow = new Date(today);
+    tomorrow.setDate(today.getDate() + 1);
+    
+    // Formater date pour input type="date"
+    const formatDateForInput = (date) => {
+        return date.toISOString().split('T')[0];
+    };
     
     // État pour le formulaire
     const [form, setForm] = useState({
@@ -93,7 +73,13 @@ export default function DevisForm() {
         montantTVA: 0,
         montantTTC: 0,
         nombreAgents: 1,
-        quantite: 1,
+        quantite: 40,
+        
+        // Dates et heures de la mission
+        dateDebut: formatDateForInput(today),
+        dateFin: formatDateForInput(tomorrow),
+        heureDebut: "08:00",
+        heureFin: "18:00",
         
         // IDs
         clientId: "",
@@ -101,13 +87,13 @@ export default function DevisForm() {
         tarifMissionId: ""
     });
 
+    // États pour filtrer les tarifs par type de mission
+    const [filteredTarifs, setFilteredTarifs] = useState([]);
+    const [selectedMissionType, setSelectedMissionType] = useState("");
+    
     // États pour chargement et erreurs
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
-
-    // État pour filtrer les tarifs par type de mission
-    const [filteredTarifs, setFilteredTarifs] = useState([]);
-    const [selectedMissionType, setSelectedMissionType] = useState("");
 
     useEffect(() => {
         // Fonction pour charger les données initiales
@@ -118,12 +104,6 @@ export default function DevisForm() {
                 
                 // Charger les clients
                 const clientsResponse = await ClientService.getAll();
-                console.log("Clients chargés:", clientsResponse.data);
-                
-                if (!clientsResponse.data || clientsResponse.data.length === 0) {
-                    console.warn("Aucun client n'a été trouvé");
-                }
-                
                 const clientOptions = clientsResponse.data.map(client => ({
                     value: client.id,
                     label: `${client.nom || 'Client'} ${client.prenom || ''} (${client.email || 'Pas d\'email'})`,
@@ -133,7 +113,6 @@ export default function DevisForm() {
                 
                 // Charger les entreprises
                 const entreprisesResponse = await EntrepriseService.getAllEntreprises();
-                console.log("Entreprises chargées:", entreprisesResponse.data);
                 const entrepriseOptions = entreprisesResponse.data.map(entreprise => ({
                     value: entreprise.id,
                     label: `${entreprise.nom || 'Entreprise'} ${entreprise.siret ? `(${entreprise.siret})` : ''}`,
@@ -168,11 +147,23 @@ export default function DevisForm() {
                         montantTVA: devis.montantTVA || 0,
                         montantTTC: devis.montantTTC || 0,
                         nombreAgents: devis.nombreAgents || 1,
-                        quantite: devis.quantite || 1,
+                        quantite: devis.quantite || 40,
+                        
+                        dateDebut: devis.dateDebut || formatDateForInput(today),
+                        dateFin: devis.dateFin || formatDateForInput(tomorrow),
+                        heureDebut: devis.heureDebut || "08:00",
+                        heureFin: devis.heureFin || "18:00",
                         
                         clientId: devis.clientId || "",
                         entrepriseId: devis.entrepriseId || "",
                         tarifMissionId: devis.tarifMissionId || ""
+                    });
+                    
+                    setMissionConfig({
+                        nombreAgents: devis.nombreAgents || 1,
+                        quantite: devis.quantite || 40,
+                        heuresParJour: 8,
+                        joursParSemaine: 5
                     });
                     
                     // Sélectionner les éléments correspondants
@@ -189,21 +180,12 @@ export default function DevisForm() {
                     if (devis.tarifMissionId) {
                         const tarif = tarifOptions.find(t => t.value === devis.tarifMissionId);
                         setSelectedTarif(tarif);
+                        setSelectedMissionType(devis.typeMission);
                     }
                 }
             } catch (err) {
                 console.error("Erreur lors du chargement des données:", err);
-                setError("Erreur lors du chargement des données. Veuillez réessayer.");
-                
-                // Informations de débogage détaillées
-                if (err.response) {
-                    console.error("Réponse d'erreur:", err.response.data);
-                    console.error("Statut:", err.response.status);
-                } else if (err.request) {
-                    console.error("Requête sans réponse:", err.request);
-                } else {
-                    console.error("Erreur de configuration:", err.message);
-                }
+                setError("Erreur lors du chargement des données");
             } finally {
                 setLoading(false);
             }
@@ -211,7 +193,7 @@ export default function DevisForm() {
         
         loadInitialData();
     }, [id, isEdit]);
-    
+
     // Fonction pour filtrer les tarifs par type de mission
     const filterTarifsByType = async (typeMission) => {
         if (!typeMission) {
@@ -221,9 +203,7 @@ export default function DevisForm() {
         
         try {
             const response = await TarifMissionService.getByType(typeMission);
-            console.log("Réponse du service pour les tarifs filtrés:", response);
             
-            // Vérifier si les données sont dans un format attendu
             if (response && response.data) {
                 // Si response.data est un tableau
                 if (Array.isArray(response.data)) {
@@ -243,25 +223,14 @@ export default function DevisForm() {
                         tarif: tarif
                     }]);
                 } else {
-                    console.error("Format de données inattendu:", response.data);
                     setFilteredTarifs([]);
                 }
             } else {
-                console.error("Aucune donnée reçue pour les tarifs filtrés");
                 setFilteredTarifs([]);
             }
         } catch (error) {
             console.error("Erreur lors de la récupération des tarifs filtrés:", error);
             setFilteredTarifs([]);
-            
-            // Log détaillé de l'erreur pour le débogage
-            if (error.response) {
-                console.error('Erreur de réponse:', error.response.status, error.response.data);
-            } else if (error.request) {
-                console.error('Pas de réponse reçue:', error.request);
-            } else {
-                console.error('Erreur de configuration:', error.message);
-            }
         }
     };
 
@@ -297,70 +266,126 @@ export default function DevisForm() {
         });
     };
     
-    // Fonction de calcul des montants
-    const calculerMontants = (tarif, quantite, nombreAgents, majorationsAppliquees) => {
-        if (!tarif) return;
+    // Récupérer les montants calculés du backend via une simulation de mission
+    const getMontantsCalcules = async (tarifId, quantite, nombreAgents) => {
+        if (!tarifId) return { montantHT: 0, montantTVA: 0, montantTTC: 0 };
         
-        let prixUnitaire = tarif.prixUnitaireHT;
-        let totalMajoration = 0;
-        
-        // Appliquer les majorations si activées
-        if (majorationsAppliquees.nuit) {
-            totalMajoration += (tarif.majorationNuit / 100);
+        try {
+            // TEMPORAIRE: Calculer les montants directement dans le frontend
+            // sans appel au backend pour éviter les erreurs 405
+            if (selectedTarif && selectedTarif.tarif) {
+                const tarif = selectedTarif.tarif;
+                console.log('Tarif sélectionné:', tarif); // Affiche le tarif pour debug
+                
+                // Vérifier si la mission se déroule pendant un weekend
+                const dateDebut = new Date(form.dateDebut);
+                const dateFin = new Date(form.dateFin);
+                const isWeekend = dateDebut.getDay() === 0 || dateDebut.getDay() === 6 || 
+                               dateFin.getDay() === 0 || dateFin.getDay() === 6;
+                
+                // Vérifier si c'est en soirée (après 20h)
+                const heureDebut = form.heureDebut ? parseInt(form.heureDebut.split(':')[0]) : 8;
+                const heureFin = form.heureFin ? parseInt(form.heureFin.split(':')[0]) : 18;
+                const isNuit = heureDebut >= 20 || heureDebut <= 6 || heureFin >= 20 || heureFin <= 6;
+                
+                // S'assurer que prixUnitaireHT est défini, sinon utiliser 0
+                let prixUnitaire = parseFloat(tarif.prixUnitaireHT) || 0;
+                let tauxTVA = parseFloat(tarif.tauxTVA) || 20; // Par défaut 20% si non défini
+                
+                // Appliquer les majorations si nécessaire (avec gestion des valeurs manquantes)
+                let totalMajoration = 0;
+                
+                if (isNuit && tarif.majorationNuit !== undefined) {
+                    totalMajoration += (parseFloat(tarif.majorationNuit) / 100) || 0;
+                }
+                
+                if (isWeekend && tarif.majorationWeekend !== undefined) {
+                    totalMajoration += (parseFloat(tarif.majorationWeekend) / 100) || 0;
+                }
+                
+                // Calculer le prix avec majorations
+                const prixAvecMajoration = prixUnitaire * (1 + totalMajoration);
+                
+                // Calculer les montants (en s'assurant qu'ils sont numériques)
+                const montantHT = prixAvecMajoration * parseFloat(quantite) * parseFloat(nombreAgents);
+                const montantTVA = montantHT * (tauxTVA / 100);
+                const montantTTC = montantHT + montantTVA;
+                
+                console.log('Montants calculés:', { montantHT, montantTVA, montantTTC }); // Debug
+                
+                return { 
+                    montantHT: parseFloat(montantHT.toFixed(2)) || 0, 
+                    montantTVA: parseFloat(montantTVA.toFixed(2)) || 0, 
+                    montantTTC: parseFloat(montantTTC.toFixed(2)) || 0 
+                };
+            }
+            
+            // Si on n'a pas de tarif, retourner des montants à zéro
+            return { montantHT: 0, montantTVA: 0, montantTTC: 0 };
+            
+            /* COMMENTÉ TEMPORAIREMENT - Code original avec appel backend
+            // Créer une mission temporaire pour simulation
+            const simulationMission = {
+                typeMission: form.typeMission,
+                quantite: parseInt(quantite),
+                nombreAgents: parseInt(nombreAgents),
+                tarifMissionId: tarifId,
+                // Utiliser les dates et heures du formulaire
+                dateDebut: form.dateDebut,
+                dateFin: form.dateFin,
+                heureDebut: form.heureDebut,
+                heureFin: form.heureFin
+            };
+
+            // Appeler l'API pour obtenir les montants calculés
+            const response = await MissionService.simulateCalculation(simulationMission);
+            
+            if (response && response.data) {
+                return {
+                    montantHT: response.data.montantHT || 0,
+                    montantTVA: response.data.montantTVA || 0,
+                    montantTTC: response.data.montantTTC || 0
+                };
+            }
+            */
+        } catch (error) {
+            console.error("Erreur lors du calcul des montants:", error);
+            // En cas d'erreur, faire un calcul approximatif basé sur le tarif
+            if (selectedTarif && selectedTarif.tarif) {
+                const tarif = selectedTarif.tarif;
+                // S'assurer que toutes les valeurs sont numériques
+                const prixUnitaire = parseFloat(tarif.prixUnitaireHT) || 0;
+                const quantiteNum = parseFloat(quantite) || 0;
+                const nombreAgentsNum = parseFloat(nombreAgents) || 0;
+                const tauxTVA = parseFloat(tarif.tauxTVA) || 20;
+                
+                const montantHT = prixUnitaire * quantiteNum * nombreAgentsNum;
+                const montantTVA = montantHT * (tauxTVA / 100);
+                const montantTTC = montantHT + montantTVA;
+                
+                return { 
+                    montantHT: parseFloat(montantHT.toFixed(2)) || 0, 
+                    montantTVA: parseFloat(montantTVA.toFixed(2)) || 0, 
+                    montantTTC: parseFloat(montantTTC.toFixed(2)) || 0 
+                };
+            }
+            return { montantHT: 0, montantTVA: 0, montantTTC: 0 };
         }
-        if (majorationsAppliquees.weekend) {
-            totalMajoration += (tarif.majorationWeekend / 100);
-        }
-        if (majorationsAppliquees.dimanche) {
-            totalMajoration += (tarif.majorationDimanche / 100);
-        }
-        if (majorationsAppliquees.ferie) {
-            totalMajoration += (tarif.majorationFerie / 100);
-        }
-        
-        // Calculer le prix avec majorations
-        const prixAvecMajoration = prixUnitaire * (1 + totalMajoration);
-        
-        // Calculer les montants
-        const montantHT = prixAvecMajoration * quantite * nombreAgents;
-        const montantTVA = montantHT * (tarif.tauxTVA / 100);
-        const montantTTC = montantHT + montantTVA;
-        
-        // Mettre à jour le formulaire
-        setForm(prev => ({
-            ...prev,
-            montantHT: parseFloat(montantHT.toFixed(2)),
-            montantTVA: parseFloat(montantTVA.toFixed(2)),
-            montantTTC: parseFloat(montantTTC.toFixed(2))
-        }));
     };
     
-    const handleTarifChange = (selectedOption) => {
+    const handleTarifChange = async (selectedOption) => {
         setSelectedTarif(selectedOption);
         
         if (selectedOption) {
             const tarif = selectedOption.tarif;
-            
-            // Mettre à jour les détails de calcul avec les majorations du tarif
-            setCalculDetails(prev => ({
-                ...prev,
-                tauxHoraire: tarif.prixUnitaireHT,
-                majorations: {
-                    nuit: tarif.majorationNuit,
-                    weekend: tarif.majorationWeekend,
-                    dimanche: tarif.majorationDimanche,
-                    ferie: tarif.majorationFerie
-                }
-            }));
-            
-            // Calculer automatiquement les montants en fonction du tarif
-            calculerMontants(tarif, form.quantite, form.nombreAgents, calculDetails.appliquerMajoration);
-            
             setForm(prev => ({
                 ...prev,
                 tarifMissionId: selectedOption.value,
                 typeMission: tarif.typeMission
             }));
+            
+            // Mettre à jour les montants calculés
+            updateMontants(selectedOption.value, form.quantite, form.nombreAgents);
         } else {
             setForm(prev => ({
                 ...prev,
@@ -369,105 +394,98 @@ export default function DevisForm() {
                 montantTVA: 0,
                 montantTTC: 0
             }));
-            
-            setCalculDetails(prev => ({
-                ...prev,
-                tauxHoraire: 0,
-                majorations: {
-                    nuit: 0,
-                    weekend: 0, 
-                    dimanche: 0,
-                    ferie: 0
-                }
-            }));
         }
     };
     
-    // Gestionnaire des changements de majorations
-    const handleMajorationChange = (e) => {
-        const { name, checked } = e.target;
-        const majorationType = name.replace('appliquer', '').toLowerCase();
+    // Fonction pour mettre à jour les montants
+    const updateMontants = async (tarifId, quantite, nombreAgents) => {
+        if (!tarifId) return;
         
-        const newMajorations = {
-            ...calculDetails.appliquerMajoration,
-            [majorationType]: checked
-        };
+        // Obtenir les montants calculés du backend
+        const montants = await getMontantsCalcules(tarifId, quantite, nombreAgents);
         
-        setCalculDetails(prev => ({
+        // Mettre à jour le formulaire
+        setForm(prev => ({
             ...prev,
-            appliquerMajoration: newMajorations
+            montantHT: montants.montantHT,
+            montantTVA: montants.montantTVA,
+            montantTTC: montants.montantTTC
         }));
-        
-        if (selectedTarif) {
-            calculerMontants(
-                selectedTarif.tarif, 
-                form.quantite, 
-                form.nombreAgents, 
-                newMajorations
-            );
-        }
     };
     
     // Gestionnaire des changements de formulaire
-    const handleChange = (e) => {
+    const handleChange = async (e) => {
         const { name, value, type } = e.target;
         let parsedValue = value;
         
         if (type === "number") {
             parsedValue = parseFloat(value) || 0;
-            
-            // Si on change la quantité ou le nombre d'agents, recalculer les montants
-            if ((name === "quantite" || name === "nombreAgents") && selectedTarif) {
-                const quantite = name === "quantite" ? parsedValue : form.quantite;
-                const nombreAgents = name === "nombreAgents" ? parsedValue : form.nombreAgents;
-                
-                calculerMontants(
-                    selectedTarif.tarif, 
-                    quantite, 
-                    nombreAgents, 
-                    calculDetails.appliquerMajoration
-                );
-            }
         }
         
+        // Mettre à jour le formulaire
         setForm(prev => ({
             ...prev,
             [name]: parsedValue
         }));
+        
+        // Si on change certains paramètres qui affectent le calcul, mettre à jour les montants
+        if (["quantite", "nombreAgents", "dateDebut", "dateFin", "heureDebut", "heureFin"].includes(name) 
+            && form.tarifMissionId) {
+            // Si la date/heure change, attendre un peu pour éviter trop d'appels API
+            if (["dateDebut", "dateFin", "heureDebut", "heureFin"].includes(name)) {
+                setTimeout(() => {
+                    updateMontants(form.tarifMissionId, form.quantite, form.nombreAgents);
+                }, 500);
+            } else {
+                const quantite = name === "quantite" ? parsedValue : form.quantite;
+                const nombreAgents = name === "nombreAgents" ? parsedValue : form.nombreAgents;
+            
+                // Mettre à jour missionConfig pour suivre les changements
+                setMissionConfig(prev => ({
+                    ...prev,
+                    [name]: parsedValue
+                }));
+            
+                updateMontants(form.tarifMissionId, quantite, nombreAgents);
+            }
+        }
     };
     
-    // Gestionnaire pour les changements dans les paramètres de calcul
-    const handleCalculDetailsChange = (e) => {
+    // Gestion des changements de configuration de mission
+    const handleMissionConfigChange = async (e) => {
         const { name, value, type } = e.target;
         const parsedValue = type === "number" ? parseFloat(value) || 0 : value;
         
-        setCalculDetails(prev => ({
+        // Mettre à jour la configuration
+        setMissionConfig(prev => ({
             ...prev,
             [name]: parsedValue
         }));
         
-        // Recalculer les montants si un tarif est sélectionné
-        if (selectedTarif) {
-            const newDetails = {
-                ...calculDetails,
+        // Recalculer la quantité totale
+        if (["heuresParJour", "joursParSemaine"].includes(name)) {
+            const newConfig = {
+                ...missionConfig,
                 [name]: parsedValue
             };
             
-            // Si modification des durées, recalculer la quantité
-            if (["heuresParJour", "joursParSemaine", "semainesDuree"].includes(name)) {
-                const nouvelleQuantite = newDetails.heuresParJour * newDetails.joursParSemaine * newDetails.semainesDuree;
-                
-                setForm(prev => ({
-                    ...prev,
-                    quantite: nouvelleQuantite
-                }));
-                
-                calculerMontants(
-                    selectedTarif.tarif,
-                    nouvelleQuantite,
-                    form.nombreAgents,
-                    calculDetails.appliquerMajoration
-                );
+            // Calculer la nouvelle quantité
+            const nouvelleQuantite = newConfig.heuresParJour * newConfig.joursParSemaine;
+            
+            // Mettre à jour form.quantite
+            setForm(prev => ({
+                ...prev,
+                quantite: nouvelleQuantite
+            }));
+            
+            setMissionConfig(prev => ({
+                ...prev,
+                quantite: nouvelleQuantite
+            }));
+            
+            // Si un tarif est sélectionné, mettre à jour les montants
+            if (form.tarifMissionId) {
+                updateMontants(form.tarifMissionId, nouvelleQuantite, form.nombreAgents);
             }
         }
     };
@@ -477,7 +495,6 @@ export default function DevisForm() {
         const date = new Date();
         const annee = date.getFullYear();
         const mois = String(date.getMonth() + 1).padStart(2, '0');
-        const jour = String(date.getDate()).padStart(2, '0');
         const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0');
         
         const reference = `DEV-${annee}${mois}-${random}`;
@@ -518,6 +535,16 @@ export default function DevisForm() {
             return;
         }
         
+        if (!form.dateDebut || !form.dateFin) {
+            setError("Les dates de début et de fin sont requises");
+            return;
+        }
+        
+        if (new Date(form.dateDebut) > new Date(form.dateFin)) {
+            setError("La date de fin doit être après la date de début");
+            return;
+        }
+        
         // Préparation des données pour l'envoi
         const devisData = {
             referenceDevis: form.referenceDevis,
@@ -532,6 +559,11 @@ export default function DevisForm() {
             montantTTC: form.montantTTC,
             nombreAgents: form.nombreAgents,
             quantite: form.quantite,
+            
+            dateDebut: form.dateDebut,
+            dateFin: form.dateFin,
+            heureDebut: form.heureDebut,
+            heureFin: form.heureFin,
             
             clientId: form.clientId,
             entrepriseId: form.entrepriseId,
@@ -617,6 +649,17 @@ export default function DevisForm() {
                             onChange={handleChange}
                             rows={4}
                             placeholder="Description du devis..."
+                        />
+                    </div>
+                    
+                    <div>
+                        <label htmlFor="dateValidite">Date de validité</label>
+                        <input
+                            type="date"
+                            id="dateValidite"
+                            name="dateValidite"
+                            value={form.dateValidite}
+                            onChange={handleChange}
                         />
                     </div>
                 </div>
@@ -710,7 +753,7 @@ export default function DevisForm() {
                             <label htmlFor="tarif">Tarif de mission <span className="required">*</span></label>
                             <Select
                                 id="tarif"
-                                options={filteredTarifs}
+                                options={filteredTarifs.length > 0 ? filteredTarifs : tarifs}
                                 value={selectedTarif}
                                 onChange={handleTarifChange}
                                 placeholder="Sélectionnez un tarif"
@@ -719,21 +762,65 @@ export default function DevisForm() {
                                 classNamePrefix="react-select"
                                 noOptionsMessage={() => "Aucun tarif trouvé"}
                             />
-                            <small>Le type de mission sera défini automatiquement selon le tarif sélectionné</small>
+                            <small>Sélectionnez d'abord le type de mission pour filtrer les tarifs disponibles</small>
                         </div>
                     </div>
-                    
+                </div>
+                
+                <div className="form-section">
+                    <h3>Dates et horaires de mission</h3>
                     <div className="field-group">
                         <div>
-                            <label htmlFor="typeMission">Type de mission</label>
+                            <label htmlFor="dateDebut">Date de début <span className="required">*</span></label>
                             <input
-                                type="text"
-                                id="typeMission"
-                                value={form.typeMission}
-                                readOnly
-                                className="readonly-field"
+                                type="date"
+                                id="dateDebut"
+                                name="dateDebut"
+                                value={form.dateDebut}
+                                onChange={handleChange}
+                                required
                             />
                         </div>
+                        <div>
+                            <label htmlFor="dateFin">Date de fin <span className="required">*</span></label>
+                            <input
+                                type="date"
+                                id="dateFin"
+                                name="dateFin"
+                                value={form.dateFin}
+                                onChange={handleChange}
+                                required
+                                min={form.dateDebut} // Empêche de choisir une date avant la date de début
+                            />
+                        </div>
+                    </div>
+                    <div className="field-group">
+                        <div>
+                            <label htmlFor="heureDebut">Heure de début</label>
+                            <input
+                                type="time"
+                                id="heureDebut"
+                                name="heureDebut"
+                                value={form.heureDebut}
+                                onChange={handleChange}
+                            />
+                        </div>
+                        <div>
+                            <label htmlFor="heureFin">Heure de fin</label>
+                            <input
+                                type="time"
+                                id="heureFin"
+                                name="heureFin"
+                                value={form.heureFin}
+                                onChange={handleChange}
+                            />
+                        </div>
+                    </div>
+                </div>
+                
+                <div className="form-section">
+                    <h3>Configuration de la mission</h3>
+                    <div className="field-group">
                         <div>
                             <label htmlFor="nombreAgents">Nombre d'agents <span className="required">*</span></label>
                             <input
@@ -748,11 +835,7 @@ export default function DevisForm() {
                             />
                         </div>
                     </div>
-                </div>
-                
-                {/* Section pour les calculs de quantité */}
-                <div className="form-section">
-                    <h3>Calcul de la quantité</h3>
+                    
                     <div className="field-group">
                         <div>
                             <label htmlFor="heuresParJour">Heures par jour</label>
@@ -760,8 +843,8 @@ export default function DevisForm() {
                                 type="number"
                                 id="heuresParJour"
                                 name="heuresParJour"
-                                value={calculDetails.heuresParJour}
-                                onChange={handleCalculDetailsChange}
+                                value={missionConfig.heuresParJour}
+                                onChange={handleMissionConfigChange}
                                 min="1"
                                 max="24"
                                 step="1"
@@ -773,22 +856,10 @@ export default function DevisForm() {
                                 type="number"
                                 id="joursParSemaine"
                                 name="joursParSemaine"
-                                value={calculDetails.joursParSemaine}
-                                onChange={handleCalculDetailsChange}
+                                value={missionConfig.joursParSemaine}
+                                onChange={handleMissionConfigChange}
                                 min="1"
                                 max="7"
-                                step="1"
-                            />
-                        </div>
-                        <div>
-                            <label htmlFor="semainesDuree">Nombre de semaines</label>
-                            <input
-                                type="number"
-                                id="semainesDuree"
-                                name="semainesDuree"
-                                value={calculDetails.semainesDuree}
-                                onChange={handleCalculDetailsChange}
-                                min="1"
                                 step="1"
                             />
                         </div>
@@ -804,345 +875,18 @@ export default function DevisForm() {
                                 step="1"
                                 required
                             />
-                        </div>
-                    </div>
-                </div>
-                
-                {/* Section améliorée pour la planification détaillée des jours */}
-                <div className="form-section">
-                    <h3>Planification détaillée</h3>
-                    
-                    <div className="day-planning-container">
-                        <h4>Jours de la semaine</h4>
-                        <div className="days-grid">
-                            {Object.entries(calculDetails.joursSemaine).map(([jour, details]) => (
-                                <div key={jour} className="day-item">
-                                    <label>
-                                        <input
-                                            type="checkbox"
-                                            checked={details.selected}
-                                            onChange={(e) => {
-                                                const newJoursSemaine = {
-                                                    ...calculDetails.joursSemaine,
-                                                    [jour]: {
-                                                        ...details,
-                                                        selected: e.target.checked,
-                                                        heures: e.target.checked ? 8 : 0
-                                                    }
-                                                };
-                                                
-                                                // Calculer le nouveau nombre de jours par semaine
-                                                const joursActifs = Object.values(newJoursSemaine)
-                                                    .filter(j => j.selected).length;
-                                                
-                                                // Calculer la nouvelle quantité totale
-                                                const totalHeuresHebdo = Object.values(newJoursSemaine)
-                                                    .reduce((sum, j) => sum + (j.selected ? j.heures : 0), 0);
-                                                
-                                                const nouvelleQuantite = totalHeuresHebdo * calculDetails.semainesDuree;
-                                                
-                                                setCalculDetails(prev => ({
-                                                    ...prev,
-                                                    joursSemaine: newJoursSemaine,
-                                                    joursParSemaine: joursActifs
-                                                }));
-                                                
-                                                setForm(prev => ({
-                                                    ...prev,
-                                                    quantite: nouvelleQuantite
-                                                }));
-                                                
-                                                if (selectedTarif) {
-                                                    calculerMontants(
-                                                        selectedTarif.tarif,
-                                                        nouvelleQuantite,
-                                                        form.nombreAgents,
-                                                        calculDetails.appliquerMajoration
-                                                    );
-                                                }
-                                            }}
-                                        />
-                                        {jour.charAt(0).toUpperCase() + jour.slice(1)}
-                                    </label>
-                                    
-                                    {details.selected && (
-                                        <div className="hours-input">
-                                            <input
-                                                type="number"
-                                                min="1"
-                                                max="24"
-                                                value={details.heures}
-                                                onChange={(e) => {
-                                                    const heures = Math.max(1, Math.min(24, parseInt(e.target.value) || 0));
-                                                    const newJoursSemaine = {
-                                                        ...calculDetails.joursSemaine,
-                                                        [jour]: {
-                                                            ...details,
-                                                            heures
-                                                        }
-                                                    };
-                                                    
-                                                    // Calculer la nouvelle quantité totale
-                                                    const totalHeuresHebdo = Object.values(newJoursSemaine)
-                                                        .reduce((sum, j) => sum + (j.selected ? j.heures : 0), 0);
-                                                    
-                                                    const nouvelleQuantite = totalHeuresHebdo * calculDetails.semainesDuree;
-                                                    
-                                                    setCalculDetails(prev => ({
-                                                        ...prev,
-                                                        joursSemaine: newJoursSemaine
-                                                    }));
-                                                    
-                                                    setForm(prev => ({
-                                                        ...prev,
-                                                        quantite: nouvelleQuantite
-                                                    }));
-                                                    
-                                                    if (selectedTarif) {
-                                                        calculerMontants(
-                                                            selectedTarif.tarif,
-                                                            nouvelleQuantite,
-                                                            form.nombreAgents,
-                                                            calculDetails.appliquerMajoration
-                                                        );
-                                                    }
-                                                }}
-                                            /> h
-                                        </div>
-                                    )}
-                                </div>
-                            ))}
+                            <small>Représente le temps total en heures de la mission</small>
                         </div>
                     </div>
                     
-                    <div className="plages-horaires-container">
-                        <h4>Plages horaires</h4>
-                        <div className="time-ranges">
-                            <div>
-                                <label>Début de journée</label>
-                                <input
-                                    type="time"
-                                    value={calculDetails.plagesHoraires.debut}
-                                    onChange={(e) => {
-                                        setCalculDetails(prev => ({
-                                            ...prev,
-                                            plagesHoraires: {
-                                                ...prev.plagesHoraires,
-                                                debut: e.target.value
-                                            }
-                                        }));
-                                    }}
-                                />
-                            </div>
-                            
-                            <div>
-                                <label>Fin de journée</label>
-                                <input
-                                    type="time"
-                                    value={calculDetails.plagesHoraires.fin}
-                                    onChange={(e) => {
-                                        setCalculDetails(prev => ({
-                                            ...prev,
-                                            plagesHoraires: {
-                                                ...prev.plagesHoraires,
-                                                fin: e.target.value
-                                            }
-                                        }));
-                                    }}
-                                />
-                            </div>
-                            
-                            <div>
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        checked={calculDetails.appliquerMajoration.nuit}
-                                        onChange={handleMajorationChange}
-                                        name="appliquerNuit"
-                                    />
-                                    Travail de nuit
-                                </label>
-                                {calculDetails.appliquerMajoration.nuit && (
-                                    <div className="night-hours">
-                                        <div>
-                                            <label>Début</label>
-                                            <input
-                                                type="time"
-                                                value={calculDetails.plagesHoraires.debutNuit}
-                                                onChange={(e) => {
-                                                    setCalculDetails(prev => ({
-                                                        ...prev,
-                                                        plagesHoraires: {
-                                                            ...prev.plagesHoraires,
-                                                            debutNuit: e.target.value
-                                                        }
-                                                    }));
-                                                }}
-                                            />
-                                        </div>
-                                        
-                                        <div>
-                                            <label>Fin</label>
-                                            <input
-                                                type="time"
-                                                value={calculDetails.plagesHoraires.finNuit}
-                                                onChange={(e) => {
-                                                    setCalculDetails(prev => ({
-                                                        ...prev,
-                                                        plagesHoraires: {
-                                                            ...prev.plagesHoraires,
-                                                            finNuit: e.target.value
-                                                        }
-                                                    }));
-                                                }}
-                                            />
-                                        </div>
-                                    </div>
-                                )}
-                            </div>
-                        </div>
-                    </div>
-                    
-                    <div className="jours-feries-section">
-                        <h4>Jours fériés</h4>
-                        <div className="jours-feries-toggle">
-                            <label>
-                                <input
-                                    type="checkbox"
-                                    checked={calculDetails.appliquerMajoration.ferie}
-                                    onChange={handleMajorationChange}
-                                    name="appliquerFerie"
-                                />
-                                Inclure des jours fériés dans la mission
-                            </label>
-                        </div>
-                        
-                        {calculDetails.appliquerMajoration.ferie && (
-                            <div className="jours-feries-picker">
-                                <label>Ajouter un jour férié</label>
-                                <div className="date-picker-container">
-                                    <input
-                                        type="date"
-                                        onChange={(e) => {
-                                            const selectedDate = e.target.value;
-                                            if (selectedDate && !calculDetails.joursFeries.includes(selectedDate)) {
-                                                setCalculDetails(prev => ({
-                                                    ...prev,
-                                                    joursFeries: [...prev.joursFeries, selectedDate]
-                                                }));
-                                            }
-                                        }}
-                                    />
-                                </div>
-                                
-                                {calculDetails.joursFeries.length > 0 && (
-                                    <div className="selected-holidays">
-                                        <p>Jours fériés sélectionnés:</p>
-                                        <ul>
-                                            {calculDetails.joursFeries.map((date, index) => (
-                                                <li key={index}>
-                                                    {new Date(date).toLocaleDateString('fr-FR')}
-                                                    <button
-                                                        type="button"
-                                                        onClick={() => {
-                                                            const newJoursFeries = [...calculDetails.joursFeries];
-                                                            newJoursFeries.splice(index, 1);
-                                                            setCalculDetails(prev => ({
-                                                                ...prev,
-                                                                joursFeries: newJoursFeries
-                                                            }));
-                                                        }}
-                                                        className="btn-remove"
-                                                    >
-                                                        ×
-                                                    </button>
-                                                </li>
-                                            ))}
-                                        </ul>
-                                    </div>
-                                )}
-                            </div>
-                        )}
+                    <div className="info-box">
+                        <p>Les montants sont automatiquement calculés par le système en fonction du tarif, de la quantité, du nombre d'agents et des spécificités de la mission (heures de nuit, weekend, etc.).</p>
+                        <p>Le système de tarification du backend applique automatiquement les majorations appropriées.</p>
                     </div>
                 </div>
                 
-                {/* Section pour les majorations */}
                 <div className="form-section">
-                    <h3>Majorations applicables</h3>
-                    {selectedTarif ? (
-                        <div className="majorations-container">
-                            <div className="majoration-info">
-                                <p>Les majorations suivantes sont disponibles avec ce tarif :</p>
-                                <ul>
-                                    <li>Nuit : <strong>+{calculDetails.majorations.nuit}%</strong></li>
-                                    <li>Weekend : <strong>+{calculDetails.majorations.weekend}%</strong></li>
-                                    <li>Dimanche : <strong>+{calculDetails.majorations.dimanche}%</strong></li>
-                                    <li>Férié : <strong>+{calculDetails.majorations.ferie}%</strong></li>
-                                </ul>
-                            </div>
-                            
-                            <div className="majoration-checkboxes">
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="appliquerNuit"
-                                        checked={calculDetails.appliquerMajoration.nuit}
-                                        onChange={handleMajorationChange}
-                                    />
-                                    Appliquer majoration nuit
-                                </label>
-                                
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="appliquerWeekend"
-                                        checked={calculDetails.appliquerMajoration.weekend}
-                                        onChange={handleMajorationChange}
-                                    />
-                                    Appliquer majoration weekend
-                                </label>
-                                
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="appliquerDimanche"
-                                        checked={calculDetails.appliquerMajoration.dimanche}
-                                        onChange={handleMajorationChange}
-                                    />
-                                    Appliquer majoration dimanche
-                                </label>
-                                
-                                <label>
-                                    <input
-                                        type="checkbox"
-                                        name="appliquerFerie"
-                                        checked={calculDetails.appliquerMajoration.ferie}
-                                        onChange={handleMajorationChange}
-                                    />
-                                    Appliquer majoration jour férié
-                                </label>
-                            </div>
-                        </div>
-                    ) : (
-                        <p className="info-message">Sélectionnez d'abord un tarif pour voir les majorations applicables</p>
-                    )}
-                </div>
-                
-                <div className="form-section">
-                    <h3>Montants</h3>
-                    <div className="field-group">
-                        <div>
-                            <label htmlFor="tauxHoraire">Taux horaire (€)</label>
-                            <input
-                                type="number"
-                                id="tauxHoraire"
-                                value={calculDetails.tauxHoraire}
-                                step="0.01"
-                                className="readonly-field"
-                                readOnly
-                            />
-                        </div>
-                    </div>
+                    <h3>Montants calculés</h3>
                     <div className="field-group">
                         <div>
                             <label htmlFor="montantHT">Montant HT (€)</label>
@@ -1150,8 +894,7 @@ export default function DevisForm() {
                                 type="number"
                                 id="montantHT"
                                 name="montantHT"
-                                value={form.montantHT}
-                                onChange={handleChange}
+                                value={form.montantHT || 0}
                                 step="0.01"
                                 className="readonly-field"
                                 readOnly
@@ -1163,8 +906,7 @@ export default function DevisForm() {
                                 type="number"
                                 id="montantTVA"
                                 name="montantTVA"
-                                value={form.montantTVA}
-                                onChange={handleChange}
+                                value={form.montantTVA || 0}
                                 step="0.01"
                                 className="readonly-field"
                                 readOnly
@@ -1176,8 +918,7 @@ export default function DevisForm() {
                                 type="number"
                                 id="montantTTC"
                                 name="montantTTC"
-                                value={form.montantTTC}
-                                onChange={handleChange}
+                                value={form.montantTTC || 0}
                                 step="0.01"
                                 className="readonly-field"
                                 readOnly

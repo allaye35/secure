@@ -18,8 +18,7 @@ export default function PointageDetail() {
     if (error) return <p className="error">{error}</p>;
     if (!pt) return <p>Chargement…</p>;
 
-    return (
-        <div className="pointage-form">
+    return (        <div className="pointage-form">
             <h2>Détail du pointage #{pt.id}</h2>
             <p><strong>Date & Heure :</strong> {new Date(pt.datePointage).toLocaleString()}</p>
             <p><strong>Présent :</strong> {pt.estPresent ? "Oui" : "Non"}</p>
@@ -29,4 +28,5 @@ export default function PointageDetail() {
             <Link to={`/pointages/edit/${id}`} className="btn-submit">✏️ Modifier</Link>
             <button onClick={() => navigate("/pointages")} className="btn-add">← Retour</button>
         </div>
+    );
 }

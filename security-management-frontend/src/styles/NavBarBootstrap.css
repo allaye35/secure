@@ -1,0 +1,130 @@
+/* src/styles/NavBarBootstrap.css */
+/* Styles personnalisés pour la barre de navigation Bootstrap */
+
+/* Couleur et style de base */
+.navbar-custom {
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+/* Style pour les menus dropdown */
+.dropdown-menu {
+    border: none;
+    border-radius: 0.35rem;
+    box-shadow: 0 3px 10px rgba(0, 0, 0, 0.15);
+    padding: 0.5rem 0;
+    min-width: 250px;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+/* Headers des sections dans les dropdowns */
+.dropdown-header {
+    font-weight: 600;
+    color: #0d47a1;
+    padding: 0.5rem 1rem;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    background-color: #f8f9fa;
+}
+
+/* Items dans les dropdowns */
+.dropdown-item {
+    padding: 0.6rem 1.5rem;
+    font-size: 0.9rem;
+}
+
+.dropdown-item:hover, .dropdown-item:focus {
+    background-color: rgba(13, 71, 161, 0.08);
+}
+
+/* Séparateurs */
+.dropdown-divider {
+    margin: 0.25rem 0;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+
+/* Style pour le titre du dropdown */
+.nav-link.dropdown-toggle {
+    display: flex;
+    align-items: center;
+}
+
+/* Style pour les icônes dans les dropdowns */
+.dropdown-item svg {
+    margin-right: 0.5rem;
+    font-size: 0.9rem;
+}
+
+/* Animation d'ouverture du menu dropdown */
+.dropdown-menu.show {
+    animation: dropdown-animation 0.2s ease-out;
+}
+
+@keyframes dropdown-animation {
+    from {
+        opacity: 0;
+        transform: translateY(-10px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+/* Personnalisation du toggle button sur mobile */
+.navbar-toggler {
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 0.25rem 0.5rem;
+}
+
+.navbar-toggler:focus {
+    box-shadow: 0 0 0 0.2rem rgba(255, 255, 255, 0.25);
+}
+
+/* Styles responsives */
+@media (max-width: 991.98px) {
+    .dropdown-menu {
+        border: none;
+        box-shadow: none;
+        padding-left: 1rem;
+        max-height: none;
+    }
+    
+    .navbar-collapse {
+        max-height: 80vh;
+        overflow-y: auto;
+    }
+    
+    .dropdown-header {
+        padding: 0.5rem 1rem;
+        margin-top: 0.5rem;
+    }
+    
+    .dropdown-divider {
+        margin: 0.5rem 1rem;
+    }
+    
+    .navbar-nav .nav-link {
+        padding: 0.7rem 1rem;
+    }
+}
+
+/* Scrollbar personnalisée pour les menus dropdown */
+.dropdown-menu::-webkit-scrollbar {
+    width: 6px;
+}
+
+.dropdown-menu::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.dropdown-menu::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

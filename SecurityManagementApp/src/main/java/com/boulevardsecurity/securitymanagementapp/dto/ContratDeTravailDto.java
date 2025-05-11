@@ -10,6 +10,8 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
+
+
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ContratDeTravailDto {
     private Long id;

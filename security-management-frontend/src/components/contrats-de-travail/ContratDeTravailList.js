@@ -8,6 +8,7 @@ const ContratDeTravailList = () => {
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        console.log("Loading contracts...");
         ContratDeTravailService.getAll()
             .then(res => setList(res.data))
             .catch(() => setError("Impossible de charger les contrats de travail."));

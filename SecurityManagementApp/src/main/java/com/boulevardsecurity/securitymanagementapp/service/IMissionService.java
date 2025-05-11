@@ -27,6 +27,9 @@ public interface IMissionService {
 
     /** Crée une mission sans géocodage. */
     MissionDto creerMission(MissionCreateDto dto);
+    
+    /** Calcule les montants pour une mission sans la créer (pour simulation) */
+    MissionDto simulerCalcul(MissionCreateDto dto);
 
 
     /* ─────────── Mise à jour ───────── */

@@ -26,10 +26,9 @@ export default function LigneCotisationList() {
     if (loading) return <p>Chargement…</p>;
     if (error)   return <p className="error">{error}</p>;
 
-    return (
-        <div className="ligne-list">
+    return (        <div className="ligne-list">
             <h2>Lignes de cotisation</h2>
-            <button className="btn-add" onClick={() => navigate("/lignes/create")}>
+            <button className="btn-add" onClick={() => navigate("/lignes-cotisation/create")}>
                 ➕ Nouvelle ligne
             </button>
             <table className="tbl-lignes">
@@ -58,10 +57,9 @@ export default function LigneCotisationList() {
                         <td>{item.montantSalarial.toFixed(2)} €</td>
                         <td>{item.tauxEmployeur}%</td>
                         <td>{item.montantEmployeur.toFixed(2)} €</td>
-                        <td>{item.ficheDePaieId}</td>
-                        <td className="actions">
-                            <button onClick={() => navigate(`/lignes/${item.id}`)}>👁️</button>
-                            <button onClick={() => navigate(`/lignes/edit/${item.id}`)}>✏️</button>
+                        <td>{item.ficheDePaieId}</td>                        <td className="actions">
+                            <button onClick={() => navigate(`/lignes-cotisation/${item.id}`)}>👁️</button>
+                            <button onClick={() => navigate(`/lignes-cotisation/edit/${item.id}`)}>✏️</button>
                             <button onClick={() => handleDelete(item.id)}>🗑️</button>
                         </td>
                     </tr>

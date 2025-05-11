@@ -1,36 +1,15 @@
 /* src/styles/NavBar.css */
 .navbar {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 0.75rem 1rem;
-    background: #0d0d1a;
-    color: #fff;
-}
-
-.navbar-left a,
-.navbar-right a,
-.navbar-logout-btn {
-    margin-left: 1rem;
-    color: #fff;
-    text-decoration: none;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font: inherit;
-}
-
-.navbar-user {
-    margin-right: 0.5rem;
-}
-/* src/styles/NavBar.css */
-.navbar {
-    display: flex;
     align-items: center;
     background-color: #0d47a1;
     padding: 0 1rem;
     height: 4rem;
     color: white;
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.2);
 }
 
 .navbar-left {
@@ -47,6 +26,13 @@
     cursor: pointer;
     text-decoration: none;
     padding: 0.5rem;
+    transition: background-color 0.2s;
+}
+
+.navbar-left a:hover,
+.dropdown-btn:hover {
+    background-color: rgba(255,255,255,0.1);
+    border-radius: 4px;
 }
 
 .dropdown-btn:focus {
@@ -64,8 +50,11 @@
     padding: 0.25rem 0;
     box-shadow: 0 2px 8px rgba(0,0,0,0.2);
     border-radius: 0.25rem;
-    min-width: 10rem;
+    min-width: 14rem;
     z-index: 100;
+    max-height: 80vh;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .dropdown-menu li {
@@ -77,6 +66,7 @@
     padding: 0.5rem 1rem;
     color: #333;
     text-decoration: none;
+    transition: background-color 0.1s;
 }
 
 .dropdown-menu li a:hover {
@@ -93,48 +83,60 @@
     color: white;
     text-decoration: none;
     margin-left: 1rem;
+    transition: opacity 0.2s;
+}
+
+.navbar-right a:hover {
+    opacity: 0.8;
 }
 
 .navbar-user {
     margin-right: 1rem;
+    font-weight: 500;
 }
 
 .navbar-logout-btn {
-    background: #ff5252;
-    border: none;
     color: white;
+    background: rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.3);
+    border-radius: 4px;
     padding: 0.4rem 0.8rem;
-    border-radius: 0.25rem;
     cursor: pointer;
+    transition: background-color 0.2s;
 }
 
 .navbar-logout-btn:hover {
-    background: #e04848;
+    background-color: rgba(255,255,255,0.2);
 }
 
-/* src/styles/NavBar.css */
-.navbar {
-    display: flex;
-    align-items: center;
-    background: #0052cc;
+/* Grouping des éléments de menu pour une meilleure organisation */
+.menu-group-title {
+    font-weight: bold;
     padding: 0.5rem 1rem;
+    background-color: #f8f9fa;
+    margin-top: 0.5rem;
+    border-bottom: 1px solid #eee;
 }
 
-.navbar-left {
-    position: relative;
-    margin-right: 1rem;
+/* Style responsive pour les petits écrans */
+@media (max-width: 768px) {
+    .navbar {
+        flex-wrap: wrap;
+        height: auto;
+        padding: 0.5rem;
+    }
+    
+    .navbar-left {
+        margin: 0.3rem;
+    }
+    
+    .dropdown-menu {
+        font: inherit;
+        padding: 0.25rem 0.5rem;
+    }
 }
 
-.navbar-left a,
-.dropdown-btn {
-    color: white;
-    background: none;
-    border: none;
-    cursor: pointer;
-    font: inherit;
-    padding: 0.25rem 0.5rem;
-}
-
+/* Propriétés du menu déroulant */
 .dropdown-menu {
     list-style: none;
     margin: 0;

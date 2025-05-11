@@ -2,12 +2,25 @@
 import React from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
+// Bootstrap CSS
+import 'bootstrap/dist/css/bootstrap.min.css';
+
+// Custom Styles
+import "./styles/Layout.css";
+
+// Layout Components
+import MainLayout from "./components/layout/MainLayout";
+
 /* ─── Pages publiques (auth & home) ─────────────────────────── */
 import Home          from "./pages/Home";
 import LoginPage     from "./pages/LoginPage";
 import RegisterPage  from "./pages/RegisterPage";
 
 
+/* ─── Pointages ─────────────────────────────────────────────── */
+import PointageList    from "./components/pointages/PointageList";
+import PointageForm    from "./components/pointages/PointageForm";
+import PointageDetail  from "./components/pointages/PointageDetail";
 
 /* ─── Agents ─────────────────────────────────────────────────── */
 import AgentList     from "./components/agents/AgentList";
@@ -133,42 +146,54 @@ import ContratDetail  from "./components/contrats/ContratDetail";
 import CreateContrat  from "./components/contrats/CreateContrat";
 import EditContrat    from "./components/contrats/EditContrat";
 
+/* ─── Lignes de cotisation ─────────────────────────────────── */
+import LigneCotisationList   from "./components/lignesCotisation/LigneCotisationList";
+import LigneCotisationForm   from "./components/lignesCotisation/LigneCotisationForm";
+import LigneCotisationDetail from "./components/lignesCotisation/LigneCotisationDetail";
+
+import TarifMissionList    from "./components/tarifs/TarifMissionList";
+import TarifMissionForm    from "./components/tarifs/TarifMissionForm";   // create / edit
+import TarifMissionDetail  from "./components/tarifs/TarifMissionDetail"; // show
+
 
 import "leaflet/dist/leaflet.css";
 
-import NavBar from "./components/Navbar";
+// Importation du composant NavBar Bootstrap
+import NavBarBootstrap from "./components/layout/NavBarBootstrap";
+import './styles/NavBarBootstrap.css';
+
+// Import du layout
+import AppLayout from "./components/layout/AppLayout";
 
 export default function App() {
     return (
         <BrowserRouter>
-            <NavBar />
-
             <Routes>
-                {/* Auth / Public */}
-                <Route path="/"                element={<Home />} />
-                <Route path="/login"           element={<LoginPage />} />
-                <Route path="/register"        element={<RegisterPage />} />
+                {/* Routes publiques (sans NavBar) */}
+                <Route path="/login" element={<LoginPage />} />
+                <Route path="/register" element={<RegisterPage />} />
+                  {/* Routes protégées avec AppLayout */}
+                <Route element={<AppLayout />}>
+                    <Route path="/" element={<Home />} />
 
-                {/* Agents */}
-                <Route path="/agents"            element={<AgentList />} />
-                <Route path="/agents/create"     element={<AgentCreate />} />
-                <Route path="/agents/edit/:id"   element={<AgentEdit />} />
-                <Route path="/agents/delete/:id" element={<DeleteAgent />} />
-                <Route path="/agents/:id"        element={<AgentDetail />} />
+                    {/* Agents */}
+                    <Route path="/agents"            element={<AgentList />} />
+                    <Route path="/agents/create"     element={<AgentCreate />} />
+                    <Route path="/agents/edit/:id"   element={<AgentEdit />} />
+                    <Route path="/agents/delete/:id" element={<DeleteAgent />} />
+                    <Route path="/agents/:id"        element={<AgentDetail />} />                    {/* Entreprises */}
+                    <Route path="/entreprises"            element={<EntrepriseList />} />
+                    <Route path="/entreprises/create"     element={<CreateEntreprise />} />
+                    <Route path="/entreprises/edit/:id"   element={<EditEntreprise />} />
+                    <Route path="/entreprises/delete/:id" element={<DeleteEntreprise />} />
+                    <Route path="/entreprises/:id"        element={<EntrepriseDetail />} />
 
-                {/* Entreprises */}
-                <Route path="/entreprises"            element={<EntrepriseList />} />
-                <Route path="/entreprises/create"     element={<CreateEntreprise />} />
-                <Route path="/entreprises/edit/:id"   element={<EditEntreprise />} />
-                <Route path="/entreprises/delete/:id" element={<DeleteEntreprise />} />
-                <Route path="/entreprises/:id"        element={<EntrepriseDetail />} />
-
-                {/* Géolocalisations */}
-                <Route path="/geolocalisations"            element={<GeolocalisationList />} />
-                <Route path="/geolocalisations/create"     element={<CreateGeolocalisation />} />
-                <Route path="/geolocalisations/edit/:id"   element={<EditGeolocalisation />} />
-                <Route path="/geolocalisations/delete/:id" element={<DeleteGeolocalisation />} />
-                <Route path="/geolocalisations/:id"        element={<GeolocalisationDetail />} />
+                    {/* Géolocalisations */}
+                    <Route path="/geolocalisations"            element={<GeolocalisationList />} />
+                    <Route path="/geolocalisations/create"     element={<CreateGeolocalisation />} />
+                    <Route path="/geolocalisations/edit/:id"   element={<EditGeolocalisation />} />
+                    <Route path="/geolocalisations/delete/:id" element={<DeleteGeolocalisation />} />
+                    <Route path="/geolocalisations/:id"        element={<GeolocalisationDetail />} />
 
                 {/* Missions */}
                 <Route path="/missions"            element={<MissionList />} />
@@ -191,6 +216,12 @@ export default function App() {
                 <Route path="/sites/edit/:id"   element={<EditSite />} />
                 <Route path="/sites/delete/:id" element={<DeleteSite />} />
                 <Route path="/sites/:id"        element={<SiteDetail />} />
+
+                {/* Pointages */}
+                <Route path="/pointages"          element={<PointageList />} />
+                <Route path="/pointages/create"   element={<PointageForm />} />
+                <Route path="/pointages/edit/:id" element={<PointageForm />} />
+                <Route path="/pointages/:id"      element={<PointageDetail />} />
 
                 {/* Rapports */}
                 <Route path="/rapports"            element={<RapportList />} />
@@ -270,13 +301,23 @@ export default function App() {
                 <Route path="/article-contrat-travail"          element={<ArticleContratTravailList />} />
                 <Route path="/article-contrat-travail/create"   element={<ArticleContratTravailForm />} />
                 <Route path="/article-contrat-travail/edit/:id" element={<ArticleContratTravailForm />} />
-                <Route path="/article-contrat-travail/:id"      element={<ArticleContratTravailView />} />
-
-                {/* Contrats */}
-                <Route path="/contrats/create"  element={<CreateContrat />} />
+                <Route path="/article-contrat-travail/:id"      element={<ArticleContratTravailView />} />                {/* Contrats */}                <Route path="/contrats/create"  element={<CreateContrat />} />
                 <Route path="/contrats/edit/:id" element={<EditContrat />} />
                 <Route path="/contrats/:id"     element={<ContratDetail />} />
                 <Route path="/contrats"         element={<ContratList />} />
+
+                {/* Lignes de cotisation */}
+                <Route path="/lignes-cotisation"          element={<LigneCotisationList />} />
+                <Route path="/lignes-cotisation/create"   element={<LigneCotisationForm />} />
+                <Route path="/lignes-cotisation/edit/:id" element={<LigneCotisationForm />} />
+                <Route path="/lignes-cotisation/:id"      element={<LigneCotisationDetail />} />
+
+                {/* Tarifs missions */}
+                <Route path="/tarifs"            element={<TarifMissionList />} />
+                <Route path="/tarifs/create"     element={<TarifMissionForm />} />
+                <Route path="/tarifs/edit/:id"   element={<TarifMissionForm />} />
+                <Route path="/tarifs/:id"        element={<TarifMissionDetail />} />
+                </Route>
             </Routes>
         </BrowserRouter>
     );

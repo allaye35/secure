@@ -1,27 +1,69 @@
-import React from "react";
-import MissionService from "../../services/MissionService"; // Import du service des missions
-import { useNavigate } from "react-router-dom";
+import React, { useState } from "react";
+import MissionService from "../../services/MissionService";
+import { Button, Modal, Spinner } from 'react-bootstrap';
 
 const DeleteMission = ({ missionId, onDeleteSuccess }) => {
-  const navigate = useNavigate();
+  const [showModal, setShowModal] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleShow = () => setShowModal(true);
+  const handleClose = () => setShowModal(false);
 
   const handleDelete = () => {
-    if (window.confirm("Voulez-vous vraiment supprimer cette mission ?")) {
-      MissionService.deleteMission(missionId)
-        .then(() => {
-          alert("Mission supprimée avec succès !");
-          onDeleteSuccess(); // Rafraîchir la liste des missions
-        })
-        .catch((error) => {
-          console.error("Erreur lors de la suppression de la mission", error);
-        });
-    }
+    setIsDeleting(true);
+    MissionService.deleteMission(missionId)
+      .then(() => {
+        onDeleteSuccess && onDeleteSuccess(); // Rafraîchir la liste des missions
+        setShowModal(false);
+      })
+      .catch((error) => {
+        console.error("Erreur lors de la suppression de la mission", error);
+        alert("Erreur lors de la suppression de la mission");
+      })
+      .finally(() => {
+        setIsDeleting(false);
+      });
   };
 
   return (
-    <button onClick={handleDelete} style={{ backgroundColor: "red", color: "white" }}>
-      Supprimer
-    </button>
+    <>
+      <Button 
+        variant="danger" 
+        size="sm" 
+        onClick={handleShow} 
+        className="w-100"
+      >
+        <i className="bi bi-trash"></i> Supprimer
+      </Button>
+
+      <Modal show={showModal} onHide={handleClose} centered>
+        <Modal.Header closeButton>
+          <Modal.Title>Confirmation de suppression</Modal.Title>
+        </Modal.Header>
+        <Modal.Body>
+          Voulez-vous vraiment supprimer cette mission ? Cette action est irréversible.
+        </Modal.Body>
+        <Modal.Footer>
+          <Button variant="secondary" onClick={handleClose}>
+            Annuler
+          </Button>
+          <Button 
+            variant="danger" 
+            onClick={handleDelete} 
+            disabled={isDeleting}
+          >
+            {isDeleting ? (
+              <>
+                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                Suppression...
+              </>
+            ) : (
+              <>Supprimer</>
+            )}
+          </Button>
+        </Modal.Footer>
+      </Modal>
+    </>
   );
 };
 

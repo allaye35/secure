@@ -19,6 +19,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ContratDeTravailServiceImpl implements ContratDeTravailService {
 
+  
     private final ContratDeTravailRepository repo;
     private final ContratDeTravailMapper mapper;
 

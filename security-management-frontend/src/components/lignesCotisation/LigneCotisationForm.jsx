@@ -51,10 +51,8 @@ export default function LigneCotisationForm() {
         };
         const call = isEdit
             ? LigneCotisationService.update(id, payload)
-            : LigneCotisationService.create(payload);
-
-        call
-            .then(() => navigate("/lignes"))
+            : LigneCotisationService.create(payload);        call
+            .then(() => navigate("/lignes-cotisation"))
             .catch(err => setError(err.response?.data?.message || "Erreur serveur"));
     };
 

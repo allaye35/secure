@@ -49,7 +49,7 @@ const AgentList = () => {
                 <table className="agent-table">
                     <thead>
                     <tr>
-                        <th>#</th>
+                        <th>ID</th>
                         <th>Nom / Prénom</th>
                         <th>Email</th>
                         <th>Tél.</th>

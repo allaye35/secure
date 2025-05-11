@@ -26,10 +26,8 @@ export default function LigneCotisationDetail() {
             <p><strong>Montant salarié :</strong> {item.montantSalarial} €</p>
             <p><strong>Taux employeur :</strong> {item.tauxEmployeur}%</p>
             <p><strong>Montant employeur :</strong> {item.montantEmployeur} €</p>
-            <p><strong>Fiche de paie ID :</strong> {item.ficheDePaieId}</p>
-
-            <Link to={`/lignes/edit/${id}`} className="btn-submit">✏️ Modifier</Link>
-            <button onClick={() => navigate("/lignes")} className="btn-add">
+            <p><strong>Fiche de paie ID :</strong> {item.ficheDePaieId}</p>            <Link to={`/lignes-cotisation/edit/${id}`} className="btn-submit">✏️ Modifier</Link>
+            <button onClick={() => navigate("/lignes-cotisation")} className="btn-add">
                 ← Retour à la liste
             </button>
         </div>

@@ -11,6 +11,8 @@ import RapportRoutes from "./RapportRoutes";
 import DevisRoutes from "./DevisRoutes";
 import DisponibiliteRoutes from "./DisponibiliteRoutes";
 import FactureRoutes from "./FactureRoutes";
+import LigneCotisationRoutes from "./LigneCotisationRoutes";
+import ClientRoutes from "./ClientRoutes";
 
 const AppRoutes = () => {
   return (
@@ -23,12 +25,12 @@ const AppRoutes = () => {
       {MissionRoutes()}
       {PlanningRoutes()}
       {SiteRoutes()}
-      {EntrepriseRoutes()}
-      {GeolocalisationRoutes()}
-      {RapportRoutes && RapportRoutes()}
+      {EntrepriseRoutes()}      {GeolocalisationRoutes()}      {RapportRoutes && RapportRoutes()}
       {DevisRoutes()}
       {DisponibiliteRoutes()}
       {FactureRoutes()}
+      {LigneCotisationRoutes()}
+      {ClientRoutes()}
     </Routes>
   );
 };

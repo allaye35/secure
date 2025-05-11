@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import FactureService from '../../services/FactureService';
 import ClientService from '../../services/ClientService';
 import EntrepriseService from '../../services/EntrepriseService';
@@ -8,12 +8,18 @@ import '../../styles/FacturePrint.css';
 
 export default function FacturePrint() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const [facture, setFacture] = useState(null);
   const [client, setClient] = useState(null);
   const [entreprise, setEntreprise] = useState(null);
   const [missions, setMissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
+
+  // Fonction pour revenir à la liste des factures
+  const handleRetour = () => {
+    navigate('/factures');
+  };
 
   useEffect(() => {
     setLoading(true);
@@ -102,13 +108,13 @@ export default function FacturePrint() {
   useEffect(() => {
     window.onafterprint = () => {
       console.log("Impression terminée, retour à la page précédente");
-      window.history.back();
+      navigate('/factures');
     };
     
     return () => {
       window.onafterprint = undefined;
     };
-  }, []);
+  }, [navigate]);
 
   // Fonction pour télécharger la facture en PDF
   const handleDownloadPDF = () => {
@@ -144,7 +150,7 @@ export default function FacturePrint() {
     <div className="facture-print-error">
       <h2>Une erreur est survenue</h2>
       <p className="error-message">{error}</p>
-      <button onClick={() => window.history.back()} className="btn-back">
+      <button onClick={handleRetour} className="btn-back">
         Retour
       </button>
     </div>
@@ -154,7 +160,7 @@ export default function FacturePrint() {
     <div className="facture-print-error">
       <h2>Données incomplètes</h2>
       <p>Impossible d'afficher la facture : informations manquantes</p>
-      <button onClick={() => window.history.back()} className="btn-back">
+      <button onClick={handleRetour} className="btn-back">
         Retour
       </button>
     </div>
@@ -169,7 +175,7 @@ export default function FacturePrint() {
         <button onClick={handleDownloadPDF} className="btn-download">
           Télécharger PDF
         </button>
-        <button onClick={() => window.history.back()} className="btn-back">
+        <button onClick={handleRetour} className="btn-back">
           Retour
         </button>
       </div>

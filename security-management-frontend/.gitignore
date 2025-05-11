@@ -96,9 +96,54 @@ public/
 
 # MacOS files
 .DS_Store
+.AppleDouble
+.LSOverride
+Icon
+._*
 
 # Windows files
 Thumbs.db
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# IDE files
+.idea/
+*.iml
+*.iws
+*.ipr
+.project
+.classpath
+*.launch
+.settings/
+
+# Temporary files
+*.swp
+*.swo
+*~
+*.bak
+*.tmp
+*.temp
+
+# Local development
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Debug logs
+debug.log
+debug/
+
+# Production build
+build/
+
+# Tests
+/coverage/
+/.jest-cache/
 
 # IDE files
 .idea/
