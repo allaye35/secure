@@ -9,21 +9,26 @@ const DiplomeEdit = () => {
     const navigate = useNavigate();
     const [data, setData] = useState({
         agentId: "",
-        niveau: "SSIAP_1", // Valeur mise à jour avec underscore
+        niveau: "SSIAP_1",
         dateObtention: "",
         dateExpiration: ""
     });
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     useEffect(() => {
-        // Charger le diplôme et la liste des agents en parallèle
-        Promise.all([
-            DiplomeService.getById(id),
-            AgentService.getAllAgents()
-        ])
-            .then(([diplomeRes, agentsRes]) => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                // Charger le diplôme et la liste des agents en parallèle
+                const [diplomeRes, agentsRes] = await Promise.all([
+                    DiplomeService.getById(id),
+                    AgentService.getAllAgents()
+                ]);
+                
+                // Préparer les données du diplôme
                 const dto = diplomeRes.data;
                 setData({
                     agentId: dto.agentId,
@@ -32,41 +37,63 @@ const DiplomeEdit = () => {
                     dateExpiration: dto.dateExpiration?.slice(0,10) || ""
                 });
                 
-                setAgents(agentsRes.data);
+                // Trier les agents par nom pour une meilleure lisibilité
+                const sortedAgents = [...agentsRes.data].sort((a, b) => 
+                    `${a.nom} ${a.prenom}`.localeCompare(`${b.nom} ${b.prenom}`)
+                );
+                setAgents(sortedAgents);
+                
                 setLoading(false);
-            })
-            .catch((err) => {
+            } catch (err) {
                 console.error("Erreur lors du chargement des données:", err);
-                setError("Impossible de charger le diplôme ou la liste des agents.");
+                
+                if (err.response && err.response.status === 404) {
+                    setError(`Diplôme introuvable (ID: ${id})`);
+                } else {
+                    setError("Impossible de charger le diplôme ou la liste des agents.");
+                }
+                
                 setLoading(false);
-            });
+            }
+        };
+        
+        fetchData();
     }, [id]);
 
     const handleSubmit = async e => {
         e.preventDefault();
         setError(null);
+        setIsSubmitting(true);
+        
         try {
             // Convertir agentId en nombre avant l'envoi
             const payload = {
                 ...data,
-                agentId: parseInt(data.agentId, 10), // Conversion en nombre entier
+                agentId: parseInt(data.agentId, 10),
                 dateObtention: data.dateObtention || null,
                 dateExpiration: data.dateExpiration || null
             };
             
-            console.log("Envoi des données de mise à jour:", payload); // Pour déboguer
+            // Appel à l'API
             await DiplomeService.update(id, payload);
+            
+            // Redirection après mise à jour réussie
             navigate("/diplomes-ssiap");
         } catch (err) {
             console.error("Erreur lors de la mise à jour:", err);
-            setError("Échec de la mise à jour.");
+            
+            // Afficher un message d'erreur plus détaillé
+            if (err.response) {
+                setError(`Échec de la mise à jour: ${err.response.data?.message || `Erreur ${err.response.status}`}`);
+            } else if (err.request) {
+                setError("Aucune réponse du serveur. Vérifiez votre connexion internet.");
+            } else {
+                setError(`Erreur: ${err.message || "Une erreur inconnue s'est produite"}`);
+            }
+            
+            setIsSubmitting(false);
         }
     };
-
-    // Afficher un message de chargement si nécessaire
-    if (loading) {
-        return <div className="loading">Chargement des données...</div>;
-    }
 
     return (
         <DiplomeForm
@@ -76,6 +103,7 @@ const DiplomeEdit = () => {
             onSubmit={handleSubmit}
             error={error}
             agents={agents}
+            isSubmitting={isSubmitting}
         />
     );
 };

@@ -8,20 +8,25 @@ const DiplomeCreate = () => {
     const navigate = useNavigate();
     const [data, setData] = useState({
         agentId: "",
-        niveau: "SSIAP_1", // Valeur mise à jour avec underscore
+        niveau: "SSIAP_1",
         dateObtention: "",
         dateExpiration: ""
     });
     const [agents, setAgents] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [isSubmitting, setIsSubmitting] = useState(false);
 
     // Chargement des agents au montage du composant
     useEffect(() => {
         setLoading(true);
         AgentService.getAllAgents()
             .then(response => {
-                setAgents(response.data);
+                // Trier les agents par nom pour une meilleure lisibilité
+                const sortedAgents = [...response.data].sort((a, b) => 
+                    `${a.nom} ${a.prenom}`.localeCompare(`${b.nom} ${b.prenom}`)
+                );
+                setAgents(sortedAgents);
                 setLoading(false);
             })
             .catch(err => {
@@ -34,45 +39,43 @@ const DiplomeCreate = () => {
     const handleSubmit = async e => {
         e.preventDefault();
         setError(null);
+        setIsSubmitting(true);
         
         // Vérifier que agentId est bien défini
         if (!data.agentId) {
             setError("Veuillez sélectionner un agent");
+            setIsSubmitting(false);
             return;
         }
         
         try {
             // Préparer le payload en s'assurant que tous les champs sont dans le bon format
             const payload = {
-                agentId: Number(data.agentId), // Assure que c'est bien un nombre
+                agentId: Number(data.agentId),
                 niveau: data.niveau,
                 dateObtention: data.dateObtention || null,
                 dateExpiration: data.dateExpiration || null
             };
             
-            console.log("Envoi des données:", payload);
+            // Appel à l'API
+            await DiplomeService.create(payload);
             
-            // Appel à l'API avec un meilleur traitement des erreurs
-            const response = await DiplomeService.create(payload);
-            console.log("Réponse du serveur:", response);
+            // Redirection après création réussie
             navigate("/diplomes-ssiap");
         } catch (err) {
             console.error("Erreur lors de la création:", err);
             
             // Afficher un message d'erreur plus détaillé
             if (err.response) {
-                console.error("Réponse d'erreur:", err.response);
-                setError(`Échec de la création: ${err.response.data?.message || `Statut ${err.response.status}`}`);
+                setError(`Échec de la création: ${err.response.data?.message || `Erreur ${err.response.status}`}`);
+            } else if (err.request) {
+                setError("Aucune réponse du serveur. Vérifiez votre connexion internet.");
             } else {
-                setError("Échec de la création. Vérifiez votre connexion réseau.");
+                setError(`Erreur: ${err.message || "Une erreur inconnue s'est produite"}`);
             }
+            setIsSubmitting(false);
         }
     };
-
-    // Afficher un message de chargement si nécessaire
-    if (loading) {
-        return <div className="loading">Chargement des données...</div>;
-    }
 
     return (
         <DiplomeForm
@@ -82,6 +85,7 @@ const DiplomeCreate = () => {
             onSubmit={handleSubmit}
             error={error}
             agents={agents}
+            isSubmitting={isSubmitting}
         />
     );
 };

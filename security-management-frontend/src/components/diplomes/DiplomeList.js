@@ -1,8 +1,17 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
+import { 
+    Container, Row, Col, Card, Table, Form, InputGroup,
+    Button, Badge, Spinner, Alert, OverlayTrigger,
+    Tooltip, Dropdown
+} from "react-bootstrap";
+import {
+    FaGraduationCap, FaSearch, FaFilter, FaUser,
+    FaCalendarAlt, FaEye, FaPencilAlt, FaTrashAlt,
+    FaPlus, FaExclamationTriangle, FaCheck, FaClock
+} from "react-icons/fa";
 import DiplomeService from "../../services/DiplomeService";
 import AgentService from "../../services/AgentService";
-import "../../styles/AgentList.css"; // réutilise le style de tableau
 
 const DiplomeList = () => {
     const [list, setList] = useState([]);
@@ -57,11 +66,100 @@ const DiplomeList = () => {
         if (!agent) return `Agent #${agentId}`;
         
         return (
-            <div className="agent-info">
-                <div><strong>{agent.nom} {agent.prenom}</strong></div>
-                <div className="agent-email">{agent.email}</div>
+            <div className="d-flex align-items-center">
+                <div className="avatar-circle bg-primary me-2">
+                    {agent.prenom?.charAt(0) || ""}{agent.nom?.charAt(0) || ""}
+                </div>
+                <div>
+                    <div className="fw-bold">{agent.nom} {agent.prenom}</div>
+                    <div className="text-muted small">{agent.email}</div>
+                </div>
             </div>
         );
+    };
+
+    // Fonction pour afficher le badge de niveau SSIAP
+    const renderNiveauBadge = (niveau) => {
+        let variant = "secondary";
+        
+        switch(niveau) {
+            case "SSIAP_1":
+                variant = "info";
+                break;
+            case "SSIAP_2":
+                variant = "primary";
+                break;
+            case "SSIAP_3":
+                variant = "success";
+                break;
+            default:
+                variant = "secondary";
+        }
+        
+        return (
+            <Badge bg={variant} className="px-3 py-2">
+                {niveau?.replace('_', ' ')}
+            </Badge>
+        );
+    };
+
+    // Fonction pour afficher le statut d'expiration
+    const renderExpirationStatus = (dateExpiration) => {
+        if (!dateExpiration) return null;
+        
+        const expirationDate = new Date(dateExpiration);
+        const currentDate = new Date();
+        const threeMonthsLater = new Date(currentDate);
+        threeMonthsLater.setMonth(currentDate.getMonth() + 3);
+        
+        if (expirationDate < currentDate) {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip id="expired-tooltip">Diplôme expiré</Tooltip>}
+                >
+                    <Badge bg="danger" className="ms-2">
+                        <FaExclamationTriangle className="me-1" /> Expiré
+                    </Badge>
+                </OverlayTrigger>
+            );
+        } else if (expirationDate <= threeMonthsLater) {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip id="expiring-tooltip">Expire prochainement</Tooltip>}
+                >
+                    <Badge bg="warning" text="dark" className="ms-2">
+                        <FaClock className="me-1" /> Expire bientôt
+                    </Badge>
+                </OverlayTrigger>
+            );
+        } else {
+            return (
+                <OverlayTrigger
+                    placement="top"
+                    overlay={<Tooltip id="valid-tooltip">Diplôme valide</Tooltip>}
+                >
+                    <Badge bg="success" className="ms-2">
+                        <FaCheck className="me-1" /> Valide
+                    </Badge>
+                </OverlayTrigger>
+            );
+        }
+    };
+
+    // Fonction de suppression avec confirmation
+    const handleDelete = (diplome) => {
+        if (window.confirm(`Êtes-vous sûr de vouloir supprimer le diplôme ${diplome.niveau} de ${agents[diplome.agentId]?.nom || 'cet agent'} ?`)) {
+            DiplomeService.delete(diplome.id)
+                .then(() => {
+                    setList(list.filter(x => x.id !== diplome.id));
+                })
+                .catch(err => {
+                    console.error("Erreur lors de la suppression du diplôme:", err);
+                    alert("Erreur lors de la suppression du diplôme.");
+                });
+        }
     };
 
     // Fonction de filtrage des diplômes
@@ -106,115 +204,226 @@ const DiplomeList = () => {
         return matchesSearch && matchesNiveau && matchesDateType;
     });
 
-    if (loading) return <div className="loading">Chargement des données...</div>;
-    if (error) return <p className="error">{error}</p>;
+    // Fonction pour formater la date en format français
+    const formatDate = (dateString) => {
+        if (!dateString) return "–";
+        const date = new Date(dateString);
+        return new Intl.DateTimeFormat('fr-FR', {
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric'
+        }).format(date);
+    };
 
     return (
-        <div className="agent-list-container">
-            <div className="controls">
-                <h2>Diplômes SSIAP</h2>
-                <Link to="/diplomes-ssiap/create" className="btn add-btn">
-                    ➕ Nouveau diplôme
-                </Link>
-            </div>
-            
-            {/* Filtres de recherche */}
-            <div className="search-filters">
-                <div className="search-box">
-                    <input
-                        type="text"
-                        placeholder="Rechercher par nom, prénom ou email..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="search-input"
-                    />
-                </div>
-                
-                <div className="filter-group">
-                    <label>Niveau SSIAP:</label>
-                    <select 
-                        value={filterNiveau} 
-                        onChange={(e) => setFilterNiveau(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="">Tous</option>
-                        <option value="SSIAP_1">SSIAP 1</option>
-                        <option value="SSIAP_2">SSIAP 2</option>
-                        <option value="SSIAP_3">SSIAP 3</option>
-                    </select>
-                </div>
-                
-                <div className="filter-group">
-                    <label>Date d'expiration:</label>
-                    <select 
-                        value={filterDateType} 
-                        onChange={(e) => setFilterDateType(e.target.value)}
-                        className="filter-select"
-                    >
-                        <option value="all">Tous</option>
-                        <option value="valid">Valides</option>
-                        <option value="expiringSoon">Expirent bientôt (3 mois)</option>
-                        <option value="expired">Expirés</option>
-                    </select>
-                </div>
-            </div>
-            
-            <div className="filter-info">
-                {filteredDiplomes.length} diplôme(s) trouvé(s)
-            </div>
+        <Container fluid className="py-4">
+            <Card className="shadow-sm border-0 rounded-lg overflow-hidden">
+                <Card.Header className="bg-gradient bg-primary text-white py-3">
+                    <Row className="align-items-center">
+                        <Col>
+                            <h4 className="mb-0 fw-bold">
+                                <FaGraduationCap className="me-2" /> Diplômes SSIAP
+                            </h4>
+                            <p className="text-white-50 mb-0 mt-1 small">
+                                Gestion des certifications Service de Sécurité Incendie et d'Assistance à Personnes
+                            </p>
+                        </Col>
+                        <Col xs="auto">
+                            <Link 
+                                to="/diplomes-ssiap/create" 
+                                className="btn btn-light d-flex align-items-center fw-semibold shadow-sm"
+                            >
+                                <FaPlus className="me-2" /> Nouveau diplôme
+                            </Link>
+                        </Col>
+                    </Row>
+                </Card.Header>
 
-            <div className="table-wrapper">
-                <table className="agent-table">
-                    <thead>
-                    <tr>
-                        <th>#</th>
-                        <th>Agent</th>
-                        <th>Niveau</th>
-                        <th>Obtention</th>
-                        <th>Expiration</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {filteredDiplomes.map((d,i) => (
-                        <tr key={d.id}>
-                            <td>{i+1}</td>
-                            <td>{renderAgentInfo(d.agentId)}</td>
-                            <td>{d.niveau}</td>
-                            <td>{d.dateObtention?.slice(0,10) || "–"}</td>
-                            <td>{d.dateExpiration?.slice(0,10) || "–"}</td>
-                            <td className="actions">
-                                <Link to={`/diplomes-ssiap/${d.id}`} className="btn view">
-                                    👁️ Détails
-                                </Link>
-                                <Link to={`/diplomes-ssiap/edit/${d.id}`} className="btn edit">
-                                    ✏️ Modifier
-                                </Link>
-                                <button
-                                    className="btn delete"
-                                    onClick={() => {
-                                        if (window.confirm("Supprimer ce diplôme ?"))
-                                            DiplomeService.delete(d.id).then(() =>
-                                                setList(list.filter(x=>x.id!==d.id))
-                                            );
-                                    }}
-                                >
-                                    🗑️ Supprimer
-                                </button>
-                            </td>
-                        </tr>
-                    ))}
-                    {filteredDiplomes.length===0 && (
-                        <tr>
-                            <td colSpan="6" className="no-data">
-                                Aucun diplôme trouvé avec les critères de recherche actuels.
-                            </td>
-                        </tr>
+                <Card.Body className="p-0 pb-2">
+                    {/* Filtres de recherche */}
+                    <div className="p-3 border-bottom bg-light">
+                        <Row className="g-3">
+                            <Col lg={5} md={5}>
+                                <InputGroup>
+                                    <InputGroup.Text className="bg-white border-end-0">
+                                        <FaSearch className="text-muted" />
+                                    </InputGroup.Text>
+                                    <Form.Control
+                                        type="text"
+                                        placeholder="Rechercher par nom, prénom ou email..."
+                                        value={searchTerm}
+                                        onChange={(e) => setSearchTerm(e.target.value)}
+                                        className="border-start-0 shadow-none ps-0"
+                                    />
+                                </InputGroup>
+                            </Col>
+                            
+                            <Col lg={3} md={3} sm={6}>
+                                <InputGroup>
+                                    <InputGroup.Text className="bg-white border-end-0">
+                                        <FaGraduationCap className="text-muted" />
+                                    </InputGroup.Text>
+                                    <Form.Select 
+                                        value={filterNiveau} 
+                                        onChange={(e) => setFilterNiveau(e.target.value)}
+                                        className="border-start-0 shadow-none"
+                                    >
+                                        <option value="">Tous les niveaux</option>
+                                        <option value="SSIAP_1">SSIAP 1</option>
+                                        <option value="SSIAP_2">SSIAP 2</option>
+                                        <option value="SSIAP_3">SSIAP 3</option>
+                                    </Form.Select>
+                                </InputGroup>
+                            </Col>
+                            
+                            <Col lg={4} md={4} sm={6}>
+                                <InputGroup>
+                                    <InputGroup.Text className="bg-white border-end-0">
+                                        <FaCalendarAlt className="text-muted" />
+                                    </InputGroup.Text>
+                                    <Form.Select 
+                                        value={filterDateType} 
+                                        onChange={(e) => setFilterDateType(e.target.value)}
+                                        className="border-start-0 shadow-none"
+                                    >
+                                        <option value="all">Toutes les dates</option>
+                                        <option value="valid">Diplômes valides</option>
+                                        <option value="expiringSoon">Expirent bientôt (3 mois)</option>
+                                        <option value="expired">Diplômes expirés</option>
+                                    </Form.Select>
+                                </InputGroup>
+                            </Col>
+                        </Row>
+                    </div>
+                    
+                    {error && (
+                        <Alert variant="danger" className="m-3">
+                            <FaExclamationTriangle className="me-2" />
+                            {error}
+                        </Alert>
                     )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="text-muted mt-3">Chargement des diplômes...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="p-3 small text-muted">
+                                <FaFilter className="me-2" />
+                                {filteredDiplomes.length} diplôme(s) trouvé(s)
+                            </div>
+                            
+                            <Table responsive hover className="align-middle mb-0">
+                                <thead className="bg-light">
+                                    <tr>
+                                        <th className="text-center" style={{width: '50px'}}>#</th>
+                                        <th style={{minWidth: '250px'}}>Agent</th>
+                                        <th style={{width: '150px'}}>Niveau</th>
+                                        <th style={{width: '140px'}}>Date d'obtention</th>
+                                        <th style={{width: '200px'}}>Date d'expiration</th>
+                                        <th className="text-center" style={{width: '160px'}}>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {filteredDiplomes.length > 0 ? (
+                                        filteredDiplomes.map((diplome, index) => (
+                                            <tr key={diplome.id}>
+                                                <td className="text-center">{index + 1}</td>
+                                                <td>{renderAgentInfo(diplome.agentId)}</td>
+                                                <td>{renderNiveauBadge(diplome.niveau)}</td>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <FaCalendarAlt className="text-success me-2" />
+                                                        {formatDate(diplome.dateObtention)}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="d-flex align-items-center">
+                                                        <FaCalendarAlt className="text-danger me-2" />
+                                                        {formatDate(diplome.dateExpiration)}
+                                                        {renderExpirationStatus(diplome.dateExpiration)}
+                                                    </div>
+                                                </td>
+                                                <td>
+                                                    <div className="d-flex justify-content-center gap-2">
+                                                        <Link to={`/diplomes-ssiap/${diplome.id}`}>
+                                                            <Button variant="outline-info" size="sm" className="d-flex align-items-center">
+                                                                <FaEye />
+                                                            </Button>
+                                                        </Link>
+                                                        <Link to={`/diplomes-ssiap/edit/${diplome.id}`}>
+                                                            <Button variant="outline-primary" size="sm" className="d-flex align-items-center">
+                                                                <FaPencilAlt />
+                                                            </Button>
+                                                        </Link>
+                                                        <Button 
+                                                            variant="outline-danger" 
+                                                            size="sm" 
+                                                            className="d-flex align-items-center"
+                                                            onClick={() => handleDelete(diplome)}
+                                                        >
+                                                            <FaTrashAlt />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))
+                                    ) : (
+                                        <tr>
+                                            <td colSpan="6" className="text-center py-4 text-muted">
+                                                <FaExclamationTriangle className="me-2" size={20} />
+                                                Aucun diplôme trouvé avec les critères de recherche actuels.
+                                            </td>
+                                        </tr>
+                                    )}
+                                </tbody>
+                            </Table>
+                        </>
+                    )}
+                </Card.Body>
+                
+                <Card.Footer className="bg-white border-top d-flex justify-content-end py-3">
+                    <Link to="/" className="btn btn-light me-2">
+                        Retour à l'accueil
+                    </Link>
+                </Card.Footer>
+            </Card>
+            
+            {/* CSS personnalisé */}
+            <style>{`
+                .avatar-circle {
+                    width: 36px;
+                    height: 36px;
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    color: white;
+                    font-weight: bold;
+                    font-size: 0.8rem;
+                }
+                
+                .table th {
+                    font-weight: 600;
+                    white-space: nowrap;
+                    border-bottom-width: 1px;
+                }
+                
+                .table td {
+                    vertical-align: middle;
+                }
+                
+                .table-hover tbody tr:hover {
+                    background-color: rgba(0, 123, 255, 0.05);
+                }
+                
+                .btn-outline-info:hover, .btn-outline-primary:hover, .btn-outline-danger:hover {
+                    color: #fff;
+                }
+            `}</style>
+        </Container>
     );
 };
 
