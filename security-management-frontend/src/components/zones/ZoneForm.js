@@ -47,10 +47,15 @@ const ZoneForm = ({ title, data, setData, onSubmit, error, agents, selectedAgent
                         {title} une zone
                     </h2>
                 </Card.Header>
-                <Card.Body>
-                    {error && (
+                <Card.Body>                    {error && (
                         <Alert variant="danger" className="mb-4">
-                            {error}
+                            <div className="d-flex align-items-center">
+                                <div className="me-3 fs-4">⚠️</div>
+                                <div>
+                                    <strong>Erreur de création:</strong>
+                                    <p className="mb-0 mt-1">{error}</p>
+                                </div>
+                            </div>
                         </Alert>
                     )}
                     

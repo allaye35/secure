@@ -24,21 +24,34 @@ const ZoneService = {
     getAll : ()          => api.get('/zones'),
     getById: (id)        => api.get(`/zones/${id}`),
     create : (dto)       => {
-        // S'assurer que les données sont au bon format même pour la méthode create standard
-        // Au cas où des agentIds seraient fournis
-        if (dto.agentIds) {
-            if (!Array.isArray(dto.agentIds)) {
-                dto.agentIds = [dto.agentIds];
+        // Copier l'objet pour éviter de modifier l'original
+        const data = { ...dto };
+        
+        // S'assurer que les données sont au bon format
+        if (data.agentIds) {
+            if (!Array.isArray(data.agentIds)) {
+                data.agentIds = [data.agentIds];
             }
+        } else {
+            data.agentIds = []; // Assurer qu'il y a toujours un tableau vide
         }
-        return api.post('/zones', dto);
+        
+        console.log("API CREATE - Données envoyées:", JSON.stringify(data, null, 2));
+        return api.post('/zones', data);
     },
     createWithAgents: (dto) => {
-        // S'assurer que dto.agentIds est un tableau même s'il n'y a qu'un seul agent
-        if (dto.agentIds && !Array.isArray(dto.agentIds)) {
-            dto.agentIds = [dto.agentIds];
+        // Copier l'objet pour éviter de modifier l'original
+        const data = { ...dto };
+        
+        // S'assurer que dto.agentIds est un tableau
+        if (data.agentIds && !Array.isArray(data.agentIds)) {
+            data.agentIds = [data.agentIds];
+        } else if (!data.agentIds) {
+            data.agentIds = []; // Assurer qu'il y a toujours un tableau vide
         }
-        return api.post('/zones', dto);
+        
+        console.log("API CREATE WITH AGENTS - Données envoyées:", JSON.stringify(data, null, 2));
+        return api.post('/zones', data);
     },
     update : (id, dto)   => api.put(`/zones/${id}`, dto),
     remove : (id)        => api.delete(`/zones/${id}`),

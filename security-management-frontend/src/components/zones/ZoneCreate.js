@@ -5,10 +5,9 @@ import AgentService from "../../services/AgentService";
 import ZoneForm from "./ZoneForm";
 
 const ZoneCreate = () => {
-    const navigate = useNavigate();
-    const [data, setData] = useState({
+    const navigate = useNavigate();    const [data, setData] = useState({
         nom: "",
-        typeZone: "VILLE",
+        typeZone: "",
         codePostal: "",
         ville: "",
         departement: "",
@@ -35,25 +34,51 @@ const ZoneCreate = () => {
         };
 
         fetchAgents();
-    }, []);
-
-    const handleSubmit = async e => {
+    }, []);    const handleSubmit = async e => {
         e.preventDefault();
         setError(null);
+        
+        // Validation des données obligatoires
+        if (!data.nom) {
+            setError("Le nom de la zone est obligatoire.");
+            return;
+        }
+        
+        if (!data.typeZone) {
+            setError("Le type de zone doit être sélectionné.");
+            return;
+        }
+        
         try {
-            // Inclure les agents sélectionnés dans les données envoyées au serveur
+            // Préparation des données à envoyer
             const dataToSend = {
-                ...data,
+                nom: data.nom,
+                typeZone: data.typeZone,
+                // Ne pas envoyer les champs vides 
+                ...(data.ville && { ville: data.ville }),
+                ...(data.codePostal && { codePostal: data.codePostal }),
+                ...(data.departement && { departement: data.departement }),
+                ...(data.region && { region: data.region }),
+                ...(data.pays && { pays: data.pays }),
+                // Ajouter les agentIds si présents
                 agentIds: selectedAgents.length > 0 ? selectedAgents : []
             };
             
-            // Utiliser simplement la méthode create puisque les deux méthodes font la même chose
-            const zoneResponse = await ZoneService.create(dataToSend);
+            console.log("Données envoyées au serveur:", JSON.stringify(dataToSend, null, 2));
             
-            navigate("/zones");
+            // Utiliser createWithAgents qui est spécifiquement conçu pour inclure des agents
+            const zoneResponse = await ZoneService.createWithAgents(dataToSend);
+            console.log("Réponse du serveur:", zoneResponse);
+            
+            navigate("/zones", { 
+                state: { message: "Zone créée avec succès!" }
+            });
         } catch (err) {
             console.error("Erreur lors de la création de la zone:", err);
-            setError("Échec de la création. Vérifiez la console pour plus de détails.");
+            const errorMessage = err.response?.data?.message || 
+                                 err.response?.data?.error || 
+                                 "Échec de la création. Vérifiez les données et réessayez.";
+            setError(`Échec de la création: ${errorMessage}`);
         }
     };
 
