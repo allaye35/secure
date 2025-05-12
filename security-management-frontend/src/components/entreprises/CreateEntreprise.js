@@ -6,6 +6,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
+import DevisService from "../../services/DevisService";
 import Select from 'react-select';
 
 const CreateEntreprise = () => {
@@ -26,12 +27,15 @@ const CreateEntreprise = () => {
   
   const [validated, setValidated] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [contratsDeTravail, setContratsDeTravail] = useState([]);
+  const [error, setError] = useState(null);  const [contratsDeTravail, setContratsDeTravail] = useState([]);
   const [selectedContrats, setSelectedContrats] = useState([]);
   const [contratsLoading, setContratsLoading] = useState(false);
-  const navigate = useNavigate();
-  // Chargement des contrats de travail disponibles
+  
+  const [devis, setDevis] = useState([]);
+  const [selectedDevis, setSelectedDevis] = useState([]);
+  const [devisLoading, setDevisLoading] = useState(false);
+  
+  const navigate = useNavigate();  // Chargement des contrats de travail disponibles
   useEffect(() => {
     setContratsLoading(true);
     ContratDeTravailService.getAll()
@@ -44,6 +48,20 @@ const CreateEntreprise = () => {
         setContratsLoading(false);
       });
   }, []);
+  
+  // Chargement des devis disponibles
+  useEffect(() => {
+    setDevisLoading(true);
+    DevisService.getAll()
+      .then(response => {
+        setDevis(response.data);
+        setDevisLoading(false);
+      })
+      .catch(error => {
+        console.error("Erreur de chargement des devis", error);
+        setDevisLoading(false);
+      });
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
@@ -52,8 +70,7 @@ const CreateEntreprise = () => {
       [name]: value
     });
   };
-  
-  // Gérer la sélection des contrats
+    // Gérer la sélection des contrats
   const handleContratsChange = (selectedOptions) => {
     const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setSelectedContrats(selectedIds);
@@ -61,6 +78,17 @@ const CreateEntreprise = () => {
     setEntreprise({
       ...entreprise,
       contratsDeTravailIds: selectedIds
+    });
+  };
+  
+  // Gérer la sélection des devis
+  const handleDevisChange = (selectedOptions) => {
+    const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+    setSelectedDevis(selectedIds);
+    
+    setEntreprise({
+      ...entreprise,
+      devisIds: selectedIds
     });
   };
 
@@ -119,13 +147,17 @@ const CreateEntreprise = () => {
     // Convertir les valeurs en nombre si nécessaire et s'assurer qu'il n'y a pas de valeurs nulles
     const contratIds = selectedContrats.filter(id => id !== null).map(id => Number(id) || id);
     
+    // S'assurer que les devisIds sont inclus dans les données envoyées
+    const devisIds = selectedDevis.filter(id => id !== null).map(id => Number(id) || id);
+    
     // Enlever les espaces du numéro de téléphone car il semble y avoir une contrainte d'unicité
     const formattedTelephone = entreprise.telephone ? entreprise.telephone.replace(/\s+/g, '') : '';
     
     const entrepriseToCreate = {
       ...entreprise,
       telephone: formattedTelephone,
-      contratsDeTravailIds: contratIds
+      contratsDeTravailIds: contratIds,
+      devisIds: devisIds
     };
     
     // Vérifier que l'objet est correctement formaté avant envoi

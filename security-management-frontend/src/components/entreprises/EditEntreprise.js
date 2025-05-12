@@ -5,6 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
+import DevisService from "../../services/DevisService";
 import Select from 'react-select';
 
 const EditEntreprise = () => {
@@ -27,11 +28,16 @@ const EditEntreprise = () => {
   const [validated, setValidated] = useState(false);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [contratsDeTravail, setContratsDeTravail] = useState([]);
+  const [error, setError] = useState(null);  const [contratsDeTravail, setContratsDeTravail] = useState([]);
   const [selectedContrats, setSelectedContrats] = useState([]);
   const [contratsLoading, setContratsLoading] = useState(false);
-  const navigate = useNavigate();  const [originalEntreprise, setOriginalEntreprise] = useState(null);
+  
+  const [devis, setDevis] = useState([]);
+  const [selectedDevis, setSelectedDevis] = useState([]);
+  const [devisLoading, setDevisLoading] = useState(false);
+  
+  const navigate = useNavigate();
+  const [originalEntreprise, setOriginalEntreprise] = useState(null);
   
   useEffect(() => {
     setInitialLoading(true);
@@ -40,10 +46,14 @@ const EditEntreprise = () => {
         const entrepriseData = response.data;
         setEntreprise(entrepriseData);
         setOriginalEntreprise(entrepriseData); // Sauvegarder l'état initial
-        
-        // Si l'entreprise a des contrats de travail associés, les sélectionner
+          // Si l'entreprise a des contrats de travail associés, les sélectionner
         if (entrepriseData.contratsDeTravailIds && entrepriseData.contratsDeTravailIds.length > 0) {
           setSelectedContrats(entrepriseData.contratsDeTravailIds);
+        }
+        
+        // Si l'entreprise a des devis associés, les sélectionner
+        if (entrepriseData.devisIds && entrepriseData.devisIds.length > 0) {
+          setSelectedDevis(entrepriseData.devisIds);
         }
         
         setInitialLoading(false);
@@ -54,8 +64,7 @@ const EditEntreprise = () => {
         setInitialLoading(false);
       });
   }, [id]);
-  
-  // Chargement des contrats de travail disponibles
+    // Chargement des contrats de travail disponibles
   useEffect(() => {
     setContratsLoading(true);
     ContratDeTravailService.getAll()
@@ -66,6 +75,20 @@ const EditEntreprise = () => {
       .catch(error => {
         console.error("Erreur de chargement des contrats de travail", error);
         setContratsLoading(false);
+      });
+  }, []);
+  
+  // Chargement des devis disponibles
+  useEffect(() => {
+    setDevisLoading(true);
+    DevisService.getAll()
+      .then(response => {
+        setDevis(response.data);
+        setDevisLoading(false);
+      })
+      .catch(error => {
+        console.error("Erreur de chargement des devis", error);
+        setDevisLoading(false);
       });
   }, []);
 
@@ -117,8 +140,7 @@ const EditEntreprise = () => {
       ...entreprise,
       telephone: value
     });
-  };
-  // Gérer la sélection des contrats
+  };  // Gérer la sélection des contrats
   const handleContratsChange = (selectedOptions) => {
     const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setSelectedContrats(selectedIds);
@@ -126,6 +148,17 @@ const EditEntreprise = () => {
     setEntreprise({
       ...entreprise,
       contratsDeTravailIds: selectedIds
+    });
+  };
+  
+  // Gérer la sélection des devis
+  const handleDevisChange = (selectedOptions) => {
+    const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
+    setSelectedDevis(selectedIds);
+    
+    setEntreprise({
+      ...entreprise,
+      devisIds: selectedIds
     });
   };
   
@@ -139,10 +172,12 @@ const EditEntreprise = () => {
       return;
     }    setLoading(true);
     setError(null);
-    
-    // S'assurer que les contratsDeTravailIds sont inclus dans les données envoyées
+      // S'assurer que les contratsDeTravailIds sont inclus dans les données envoyées
     // Convertir les valeurs en nombre si nécessaire et s'assurer qu'il n'y a pas de valeurs nulles
     const contratIds = selectedContrats.filter(id => id !== null).map(id => Number(id) || id);
+    
+    // S'assurer que les devisIds sont inclus dans les données envoyées
+    const devisIds = selectedDevis.filter(id => id !== null).map(id => Number(id) || id);
     
     // Préparer les données pour la mise à jour
     let entrepriseToUpdate = {
@@ -156,7 +191,8 @@ const EditEntreprise = () => {
       ville: entreprise.ville,
       pays: entreprise.pays,
       email: entreprise.email,
-      contratsDeTravailIds: contratIds
+      contratsDeTravailIds: contratIds,
+      devisIds: devisIds
     };
     
     // Vérifier si le numéro de téléphone a été modifié
@@ -317,8 +353,7 @@ const EditEntreprise = () => {
                         Veuillez saisir une adresse email valide.
                       </Form.Control.Feedback>
                     </Form.Group>
-                    
-                    <Form.Group className="mb-3">
+                      <Form.Group className="mb-3">
                       <Form.Label>
                         <FontAwesomeIcon icon={faFileContract} className="me-2" />
                         Contrats de travail associés
@@ -346,6 +381,37 @@ const EditEntreprise = () => {
                       />
                       <Form.Text className="text-muted">
                         Associez cette entreprise à des contrats de travail
+                      </Form.Text>
+                    </Form.Group>
+                    
+                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                        Devis associés
+                      </Form.Label>
+                      <Select
+                        isMulti
+                        name="devisIds"
+                        options={devis.map(devis => ({
+                          value: devis.id,
+                          label: `${devis.reference || 'Devis'} - ${devis.montantHT ? `${devis.montantHT}€ HT` : 'Montant non défini'} ${devis.dateCreation ? `(${new Date(devis.dateCreation).toLocaleDateString('fr-FR')})` : ''}`
+                        }))}
+                        value={devis
+                          .filter(d => selectedDevis.includes(d.id))
+                          .map(d => ({
+                            value: d.id,
+                            label: `${d.reference || 'Devis'} - ${d.montantHT ? `${d.montantHT}€ HT` : 'Montant non défini'} ${d.dateCreation ? `(${new Date(d.dateCreation).toLocaleDateString('fr-FR')})` : ''}`
+                          }))
+                        }
+                        onChange={handleDevisChange}
+                        isLoading={devisLoading}
+                        placeholder="Sélectionnez les devis à associer..."
+                        noOptionsMessage={() => "Aucun devis disponible"}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                      />
+                      <Form.Text className="text-muted">
+                        Associez cette entreprise à des devis
                       </Form.Text>
                     </Form.Group>
                   </Card.Body>
