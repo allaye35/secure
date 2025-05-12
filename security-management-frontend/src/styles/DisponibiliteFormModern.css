@@ -1,0 +1,273 @@
+/* Variables de couleur */
+:root {
+  --primary-color: #007bff;
+  --primary-dark: #0056b3;
+  --primary-light: #e6f2ff;
+  --secondary-color: #6c757d;
+  --success-color: #28a745;
+  --danger-color: #dc3545;
+  --warning-color: #ffc107;
+  --info-color: #17a2b8;
+  --light-color: #f8f9fa;
+  --dark-color: #343a40;
+  --transition: all 0.3s ease;
+  --box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+  --box-shadow-hover: 0 0.75rem 1.5rem rgba(0, 0, 0, 0.2);
+  --radius: 0.5rem;
+  --radius-lg: 0.75rem;
+  --input-height: 48px;
+  --header-height: 60px;
+  --card-spacing: 1.5rem;
+  --btn-padding: 0.625rem 1.25rem;
+}
+
+/* Style du conteneur principal */
+.disponibilite-page {
+  margin: 2rem auto;
+  animation: fadeIn 0.5s;
+  max-width: 1200px;
+  padding: 0 1rem;
+}
+
+/* Animations */
+.fade-in {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes pulse {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.05); }
+  100% { transform: scale(1); }
+}
+
+/* Style de la carte principale du formulaire */
+.disponibilite-form-card {
+  border: none !important;
+  box-shadow: var(--box-shadow);
+  border-radius: var(--radius-lg) !important;
+  overflow: hidden;
+  transition: var(--transition);
+  margin-bottom: 2rem;
+  max-width: 100%;
+}
+
+.disponibilite-form-card:hover {
+  box-shadow: var(--box-shadow-hover);
+}
+
+.disponibilite-form-card .card-header {
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  padding: 1.25rem 1.5rem;
+  font-weight: 600;
+  border: none;
+  min-height: var(--header-height);
+  display: flex;
+  align-items: center;
+}
+
+.disponibilite-form-card .card-body {
+  padding: 1.75rem;
+}
+
+/* Style pour le select d'agent */
+.large-select .react-select__control {
+  min-height: var(--input-height) !important;
+  border-radius: var(--radius);
+  font-size: 1rem;
+  border: 1px solid #ced4da;
+  box-shadow: none;
+}
+
+.large-select .react-select__control:hover {
+  border-color: var(--primary-color);
+}
+
+.large-select .react-select__control--is-focused {
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 0.25rem rgba(0, 123, 255, 0.25);
+}
+
+/* Style pour l'agent option dans le select */
+.agent-option {
+  display: flex;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.agent-initials {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background-color: var(--primary-color);
+  color: white;
+  font-weight: bold;
+  margin-right: 1rem;
+  font-size: 1rem;
+}
+
+.agent-initials-large {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 4rem;
+  height: 4rem;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+  color: white;
+  font-weight: bold;
+  font-size: 1.5rem;
+  margin: 0 auto 1rem;
+}
+
+/* Style pour les cartes de date */
+.date-section {
+  margin: 1.5rem 0;
+}
+
+.date-card {
+  border: 1px solid #e9ecef;
+  border-radius: var(--radius);
+  transition: var(--transition);
+  background-color: white;
+}
+
+.date-card:hover {
+  border-color: var(--primary-color);
+  box-shadow: 0 0.25rem 0.75rem rgba(0, 123, 255, 0.15);
+}
+
+/* Labels des formulaires */
+.form-label-lg {
+  font-size: 1.125rem;
+  margin-bottom: 0.75rem;
+}
+
+/* Style pour la durée */
+.duration-badge {
+  display: inline-flex;
+  align-items: center;
+  background-color: #e9f2ff;
+  color: var(--primary-color);
+  padding: 0.5rem 1rem;
+  border-radius: 2rem;
+  font-weight: 500;
+}
+
+.duration-badge-lg {
+  color: var(--dark-color);
+  border-radius: var(--radius);
+  font-weight: 500;
+  transition: var(--transition);
+}
+
+/* Style de prévisualisation */
+.preview-card {
+  margin-top: 1.5rem;
+}
+
+.agent-preview-card, .period-preview-card {
+  height: 100%;
+}
+
+.agent-preview-content {
+  text-align: center;
+}
+
+/* Style pour la visualisation des périodes */
+.period-details {
+  position: relative;
+  padding-left: 1rem;
+}
+
+.date-entry {
+  position: relative;
+  z-index: 2;
+}
+
+.date-connector {
+  position: absolute;
+  left: 16px;
+  top: 40px;
+  bottom: 10px;
+  width: 2px;
+  background-color: #e9ecef;
+  z-index: 1;
+}
+
+.circle-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+}
+
+.circle-icon.start {
+  background-color: var(--primary-color);
+}
+
+.circle-icon.end {
+  background-color: var(--success-color);
+}
+
+.status-badge {
+  font-size: 0.875rem;
+}
+
+/* Style des boutons */
+.btn-lg {
+  padding: 0.7rem 1.5rem;
+  font-size: 1.1rem;
+}
+
+/* Inputs avec taille augmentée */
+.form-control-lg {
+  height: var(--input-height);
+  font-size: 1rem;
+}
+
+.input-group-lg .input-group-text {
+  padding: 0 1rem;
+}
+
+/* Toast de notification */
+.toast {
+  min-width: 300px;
+}
+
+/* Responsive */
+@media (max-width: 991px) {
+  .disponibilite-form-card .card-body {
+    padding: 1.25rem;
+  }
+}
+
+@media (max-width: 767px) {
+  .disponibilite-page {
+    margin: 1rem auto;
+  }
+  
+  .disponibilite-form-card .card-header {
+    padding: 1rem;
+    min-height: auto;
+  }
+  
+  .disponibilite-form-card .card-body {
+    padding: 1rem;
+  }
+  
+  .date-card {
+    margin-bottom: 1rem;
+  }
+}
