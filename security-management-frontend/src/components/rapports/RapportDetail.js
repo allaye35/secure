@@ -14,13 +14,11 @@ export default function RapportDetail() {
         RapportService.getRapportById(id)
             .then(({ data }) => setReport(data))
             .catch(console.error);
-    }, [id]);
-
-    // 2️⃣ Dès que report est chargé, on va chercher la mission
+    }, [id]);    // 2️⃣ Dès que report est chargé, on va chercher la mission
     useEffect(() => {
         if (!report?.missionId) return;
 
-        MissionService.getMissionById(report.missionId)
+        MissionService.getById(report.missionId)
             .then(({ data }) => setMission(data))
             .catch(console.error);
     }, [report]);
