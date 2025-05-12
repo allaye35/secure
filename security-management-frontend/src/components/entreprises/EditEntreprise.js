@@ -38,12 +38,23 @@ const EditEntreprise = () => {
   
   const navigate = useNavigate();
   const [originalEntreprise, setOriginalEntreprise] = useState(null);
-  
-  useEffect(() => {
+    useEffect(() => {
     setInitialLoading(true);
     EntrepriseService.getEntrepriseById(id)
       .then(response => {
         const entrepriseData = response.data;
+        
+        // Formater correctement le numéro de téléphone avec des espaces entre les paires de chiffres
+        if (entrepriseData.telephone) {
+          // D'abord, on retire tous les espaces existants
+          const telSansEspaces = entrepriseData.telephone.replace(/\s+/g, '');
+          
+          // Ensuite, on reformate avec des espaces entre les paires de chiffres (XX XX XX XX XX)
+          if (telSansEspaces.length === 10) {
+            entrepriseData.telephone = telSansEspaces.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5");
+          }
+        }
+        
         setEntreprise(entrepriseData);
         setOriginalEntreprise(entrepriseData); // Sauvegarder l'état initial
           // Si l'entreprise a des contrats de travail associés, les sélectionner
@@ -64,11 +75,12 @@ const EditEntreprise = () => {
         setInitialLoading(false);
       });
   }, [id]);
-    // Chargement des contrats de travail disponibles
+  // Chargement des contrats de travail disponibles
   useEffect(() => {
     setContratsLoading(true);
     ContratDeTravailService.getAll()
       .then(response => {
+        // Tous les contrats doivent être disponibles pour l'édition
         setContratsDeTravail(response.data);
         setContratsLoading(false);
       })
@@ -77,12 +89,12 @@ const EditEntreprise = () => {
         setContratsLoading(false);
       });
   }, []);
-  
   // Chargement des devis disponibles
   useEffect(() => {
     setDevisLoading(true);
     DevisService.getAll()
       .then(response => {
+        // Tous les devis doivent être disponibles pour l'édition
         setDevis(response.data);
         setDevisLoading(false);
       })
@@ -119,28 +131,26 @@ const EditEntreprise = () => {
       siretPrestataire: value
     });
   };
-
   // Formatage automatique du téléphone
   const handlePhoneChange = (e) => {
     let value = e.target.value.replace(/\D/g, ''); // Enlever tous les caractères non numériques
     if (value.length > 10) value = value.slice(0, 10); // Limiter à 10 chiffres
     
-    // Formater avec des espaces
-    if (value.length > 8) {
-      value = value.slice(0, 2) + ' ' + value.slice(2, 4) + ' ' + value.slice(4, 6) + ' ' + value.slice(6, 8) + ' ' + value.slice(8);
-    } else if (value.length > 6) {
-      value = value.slice(0, 2) + ' ' + value.slice(2, 4) + ' ' + value.slice(4, 6) + ' ' + value.slice(6);
-    } else if (value.length > 4) {
-      value = value.slice(0, 2) + ' ' + value.slice(2, 4) + ' ' + value.slice(4);
-    } else if (value.length > 2) {
-      value = value.slice(0, 2) + ' ' + value.slice(2);
+    // Toujours appliquer un formatage cohérent (XX XX XX XX XX)
+    if (value.length > 0) {
+      let formattedValue = '';
+      for (let i = 0; i < value.length; i += 2) {
+        formattedValue += value.slice(i, Math.min(i + 2, value.length));
+        if (i + 2 < value.length) formattedValue += ' ';
+      }
+      value = formattedValue;
     }
 
     setEntreprise({
       ...entreprise,
       telephone: value
     });
-  };  // Gérer la sélection des contrats
+  };// Gérer la sélection des contrats
   const handleContratsChange = (selectedOptions) => {
     const selectedIds = selectedOptions ? selectedOptions.map(option => option.value) : [];
     setSelectedContrats(selectedIds);
@@ -193,17 +203,19 @@ const EditEntreprise = () => {
       email: entreprise.email,
       contratsDeTravailIds: contratIds,
       devisIds: devisIds
-    };
+    };    // Toujours inclure le numéro de téléphone dans la mise à jour, qu'il ait été modifié ou non
+    // Mais s'assurer qu'il est sans espaces pour respecter le format attendu par l'API
+    // Vérifier d'abord que le numéro de téléphone est au format correct (10 chiffres sans les espaces)
+    const phoneWithoutSpaces = entreprise.telephone ? entreprise.telephone.replace(/\s+/g, '') : '';
     
-    // Vérifier si le numéro de téléphone a été modifié
-    // Si oui, l'inclure dans la mise à jour; si non, ne pas l'inclure pour éviter l'erreur d'unicité
-    const currentPhoneWithoutSpaces = entreprise.telephone ? entreprise.telephone.replace(/\s+/g, '') : '';
-    const originalPhoneWithoutSpaces = originalEntreprise.telephone ? originalEntreprise.telephone.replace(/\s+/g, '') : '';
-    
-    if (currentPhoneWithoutSpaces !== originalPhoneWithoutSpaces) {
-      // Le numéro a été modifié, on l'inclut dans la mise à jour
-      entrepriseToUpdate.telephone = currentPhoneWithoutSpaces;
+    // S'il y a une erreur de validation sur le numéro (longueur différente de 10), ne pas soumettre le formulaire
+    if (phoneWithoutSpaces.length !== 10) {
+      setError("Le numéro de téléphone doit comporter exactement 10 chiffres. Veuillez vérifier le format.");
+      setLoading(false);
+      return;
     }
+    
+    entrepriseToUpdate.telephone = phoneWithoutSpaces;
     
     // Vérifier que l'objet est correctement formaté avant envoi
     console.log("Données entreprise envoyées:", entrepriseToUpdate);
@@ -318,15 +330,24 @@ const EditEntreprise = () => {
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faPhone} />
-                        </InputGroup.Text>
-                        <Form.Control
+                        </InputGroup.Text>                        <Form.Control
                           type="tel"
                           name="telephone"
                           value={entreprise.telephone}
                           onChange={handlePhoneChange}
                           required
                           placeholder="XX XX XX XX XX"
-                          pattern="[0-9 ]{14}"
+                          pattern="[0-9]{2}(\s[0-9]{2}){4}|[0-9]{2}(\s[0-9]{2}){0,3}(\s[0-9]{1,2})?"
+                          onClick={(e) => {
+                            // Si le champ est rempli mais pas correctement formaté, reformater lors du clic
+                            if (entreprise.telephone && !/^[0-9]{2}(\s[0-9]{2}){4}$/.test(entreprise.telephone)) {
+                              const telSansEspaces = entreprise.telephone.replace(/\s+/g, '');
+                              if (telSansEspaces.length === 10) {
+                                const formatted = telSansEspaces.replace(/(\d{2})(\d{2})(\d{2})(\d{2})(\d{2})/, "$1 $2 $3 $4 $5");
+                                setEntreprise({...entreprise, telephone: formatted});
+                              }
+                            }
+                          }}
                         />
                       </InputGroup>
                       <Form.Text className="text-muted">
@@ -357,19 +378,18 @@ const EditEntreprise = () => {
                       <Form.Label>
                         <FontAwesomeIcon icon={faFileContract} className="me-2" />
                         Contrats de travail associés
-                      </Form.Label>
-                      <Select
+                      </Form.Label>                      <Select
                         isMulti
                         name="contratsDeTravailIds"
                         options={contratsDeTravail.map(contrat => ({
                           value: contrat.id,
-                          label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} ${contrat.dateDebut ? `(${new Date(contrat.dateDebut).toLocaleDateString('fr-FR')})` : ''}`
+                          label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} - Agent: ${contrat.agentDeSecuriteId || 'Non défini'} (${contrat.dateDebut ? new Date(contrat.dateDebut).toLocaleDateString('fr-FR') : 'Date inconnue'})`
                         }))}
                         value={contratsDeTravail
                           .filter(contrat => selectedContrats.includes(contrat.id))
                           .map(contrat => ({
                             value: contrat.id,
-                            label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} ${contrat.dateDebut ? `(${new Date(contrat.dateDebut).toLocaleDateString('fr-FR')})` : ''}`
+                            label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} - Agent: ${contrat.agentDeSecuriteId || 'Non défini'} (${contrat.dateDebut ? new Date(contrat.dateDebut).toLocaleDateString('fr-FR') : 'Date inconnue'})`
                           }))
                         }
                         onChange={handleContratsChange}
@@ -378,9 +398,8 @@ const EditEntreprise = () => {
                         noOptionsMessage={() => "Aucun contrat disponible"}
                         className="basic-multi-select"
                         classNamePrefix="select"
-                      />
-                      <Form.Text className="text-muted">
-                        Associez cette entreprise à des contrats de travail
+                      />                      <Form.Text className="text-muted">
+                        Associez cette entreprise à des contrats de travail. <strong>Attention:</strong> Si un contrat est déjà associé à une autre entreprise, il sera automatiquement dissocié de celle-ci pour être associé à l'entreprise actuelle.
                       </Form.Text>
                     </Form.Group>
                     
@@ -388,19 +407,18 @@ const EditEntreprise = () => {
                       <Form.Label>
                         <FontAwesomeIcon icon={faFileContract} className="me-2" />
                         Devis associés
-                      </Form.Label>
-                      <Select
+                      </Form.Label>                      <Select
                         isMulti
                         name="devisIds"
                         options={devis.map(devis => ({
                           value: devis.id,
-                          label: `${devis.reference || 'Devis'} - ${devis.montantHT ? `${devis.montantHT}€ HT` : 'Montant non défini'} ${devis.dateCreation ? `(${new Date(devis.dateCreation).toLocaleDateString('fr-FR')})` : ''}`
+                          label: `${devis.referenceDevis || 'Devis'} - ${devis.description || 'Sans description'} (${devis.dateCreation ? new Date(devis.dateCreation).toLocaleDateString('fr-FR') : 'Date inconnue'})`
                         }))}
                         value={devis
                           .filter(d => selectedDevis.includes(d.id))
                           .map(d => ({
                             value: d.id,
-                            label: `${d.reference || 'Devis'} - ${d.montantHT ? `${d.montantHT}€ HT` : 'Montant non défini'} ${d.dateCreation ? `(${new Date(d.dateCreation).toLocaleDateString('fr-FR')})` : ''}`
+                            label: `${d.referenceDevis || 'Devis'} - ${d.description || 'Sans description'} (${d.dateCreation ? new Date(d.dateCreation).toLocaleDateString('fr-FR') : 'Date inconnue'})`
                           }))
                         }
                         onChange={handleDevisChange}
@@ -409,9 +427,8 @@ const EditEntreprise = () => {
                         noOptionsMessage={() => "Aucun devis disponible"}
                         className="basic-multi-select"
                         classNamePrefix="select"
-                      />
-                      <Form.Text className="text-muted">
-                        Associez cette entreprise à des devis
+                      />                      <Form.Text className="text-muted">
+                        Associez cette entreprise à des devis. <strong>Attention:</strong> Si un devis est déjà associé à une autre entreprise, il sera automatiquement dissocié de celle-ci pour être associé à l'entreprise actuelle.
                       </Form.Text>
                     </Form.Group>
                   </Card.Body>

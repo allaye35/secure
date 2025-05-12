@@ -126,10 +126,9 @@ export default function EntrepriseList() {
                                                     {e.codePostal} {e.ville}, {e.pays}
                                                 </small>
                                             </td>
-                                            <td>{e.telephone}</td>
-                                            <td>
-                                                {e.devisList?.length ? (
-                                                    <Badge bg="info" pill>{e.devisList.length}</Badge>
+                                            <td>{e.telephone}</td>                                            <td>
+                                                {e.devisIds?.length ? (
+                                                    <Badge bg="info" pill>{e.devisIds.length}</Badge>
                                                 ) : (
                                                     <Badge bg="secondary" pill>0</Badge>
                                                 )}

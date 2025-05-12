@@ -3,7 +3,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { Container, Row, Col, Form, Button, Card, InputGroup } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract, faFileInvoice } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
 import DevisService from "../../services/DevisService";
@@ -40,6 +40,7 @@ const CreateEntreprise = () => {
     setContratsLoading(true);
     ContratDeTravailService.getAll()
       .then(response => {
+        // Tous les contrats doivent être disponibles pour la création
         setContratsDeTravail(response.data);
         setContratsLoading(false);
       })
@@ -48,13 +49,14 @@ const CreateEntreprise = () => {
         setContratsLoading(false);
       });
   }, []);
-  
-  // Chargement des devis disponibles
+    // Chargement des devis disponibles
   useEffect(() => {
     setDevisLoading(true);
     DevisService.getAll()
       .then(response => {
-        setDevis(response.data);
+        // Filtrer pour n'inclure que les devis qui ne sont pas déjà associés à une entreprise
+        const filteredDevis = response.data.filter(devis => !devis.entrepriseId);
+        setDevis(filteredDevis);
         setDevisLoading(false);
       })
       .catch(error => {
@@ -132,9 +134,7 @@ const CreateEntreprise = () => {
       ...entreprise,
       telephone: value
     });
-  };
-
-  const handleSubmit = (e) => {
+  };  const handleSubmit = (e) => {
     e.preventDefault();
     const form = e.currentTarget;
     
@@ -143,7 +143,9 @@ const CreateEntreprise = () => {
       setValidated(true);
       return;
     }    setLoading(true);
-    setError(null);    // S'assurer que les contratsDeTravailIds sont inclus dans les données envoyées
+    setError(null);    
+    
+    // S'assurer que les contratsDeTravailIds sont inclus dans les données envoyées
     // Convertir les valeurs en nombre si nécessaire et s'assurer qu'il n'y a pas de valeurs nulles
     const contratIds = selectedContrats.filter(id => id !== null).map(id => Number(id) || id);
     
@@ -156,8 +158,8 @@ const CreateEntreprise = () => {
     const entrepriseToCreate = {
       ...entreprise,
       telephone: formattedTelephone,
-      contratsDeTravailIds: contratIds,
-      devisIds: devisIds
+      contratsDeTravailIds: contratIds, // Inclure les contrats sélectionnés
+      devisIds: devisIds                // Inclure les devis sélectionnés
     };
     
     // Vérifier que l'objet est correctement formaté avant envoi
@@ -294,10 +296,67 @@ const CreateEntreprise = () => {
                           onChange={handleChange}
                           placeholder="exemple@domaine.com"
                         />
-                      </InputGroup>
-                      <Form.Control.Feedback type="invalid">
+                      </InputGroup>                      <Form.Control.Feedback type="invalid">
                         Veuillez saisir une adresse email valide.
                       </Form.Control.Feedback>
+                    </Form.Group>                    <Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                        Contrats de travail associés
+                      </Form.Label>
+                      <Select
+                        isMulti
+                        name="contratsDeTravailIds"
+                        options={contratsDeTravail.map(contrat => ({
+                          value: contrat.id,
+                          label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} - Agent: ${contrat.agentDeSecuriteId || 'Non défini'} (${contrat.dateDebut ? new Date(contrat.dateDebut).toLocaleDateString('fr-FR') : 'Date inconnue'})`
+                        }))}
+                        value={contratsDeTravail
+                          .filter(contrat => selectedContrats.includes(contrat.id))
+                          .map(contrat => ({
+                            value: contrat.id,
+                            label: `${contrat.referenceContrat || 'Contrat'} - ${contrat.typeContrat || 'Type inconnu'} - Agent: ${contrat.agentDeSecuriteId || 'Non défini'} (${contrat.dateDebut ? new Date(contrat.dateDebut).toLocaleDateString('fr-FR') : 'Date inconnue'})`
+                          }))
+                        }
+                        onChange={handleContratsChange}
+                        isLoading={contratsLoading}
+                        placeholder="Sélectionnez les contrats de travail à associer..."
+                        noOptionsMessage={() => "Aucun contrat disponible"}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                      />
+                      <Form.Text className="text-muted">
+                        Associez cette entreprise à des contrats de travail. <strong>Attention:</strong> Si un contrat est déjà associé à une autre entreprise, il sera automatiquement dissocié de celle-ci.
+                      </Form.Text>
+                    </Form.Group><Form.Group className="mb-3">
+                      <Form.Label>
+                        <FontAwesomeIcon icon={faFileInvoice} className="me-2" />
+                        Devis associés
+                      </Form.Label>
+                      <Select
+                        isMulti
+                        name="devisIds"
+                        options={devis.map(devis => ({
+                          value: devis.id,
+                          label: `${devis.referenceDevis || 'Devis'} - ${devis.description || 'Sans description'} (${devis.dateCreation ? new Date(devis.dateCreation).toLocaleDateString('fr-FR') : 'Date inconnue'})`
+                        }))}
+                        value={devis
+                          .filter(d => selectedDevis.includes(d.id))
+                          .map(d => ({
+                            value: d.id,
+                            label: `${d.referenceDevis || 'Devis'} - ${d.description || 'Sans description'} (${d.dateCreation ? new Date(d.dateCreation).toLocaleDateString('fr-FR') : 'Date inconnue'})`
+                          }))
+                        }
+                        onChange={handleDevisChange}
+                        isLoading={devisLoading}
+                        placeholder="Sélectionnez les devis à associer..."
+                        noOptionsMessage={() => "Aucun devis disponible sans entreprise"}
+                        className="basic-multi-select"
+                        classNamePrefix="select"
+                      />
+                      <Form.Text className="text-muted">
+                        Associez cette entreprise à des devis disponibles (sans entreprise). Vous pourrez associer d'autres devis après création.
+                      </Form.Text>
                     </Form.Group>
                   </Card.Body>
                 </Card>
