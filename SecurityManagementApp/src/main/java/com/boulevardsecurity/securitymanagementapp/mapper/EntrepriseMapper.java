@@ -16,19 +16,23 @@ public class EntrepriseMapper {
     private final DevisRepository devisRepo;
     private final ContratDeTravailRepository contratTravailRepo;
 
-    /** ENTITÉ → DTO */
+    /* -------- ENTITÉ → DTO -------- */
     public EntrepriseDto toDto(Entreprise e) {
         return EntrepriseDto.builder()
                 .id(e.getId())
                 .nom(e.getNom())
                 .siretPrestataire(e.getSiretPrestataire())
                 .representantPrestataire(e.getRepresentantPrestataire())
+
                 .numeroRue(e.getNumeroRue())
                 .rue(e.getRue())
                 .codePostal(e.getCodePostal())
                 .ville(e.getVille())
                 .pays(e.getPays())
+
                 .telephone(e.getTelephone())
+                .email(e.getEmail())
+
                 .devisIds(e.getDevisList().stream()
                         .map(d -> d.getId())
                         .collect(Collectors.toList()))
@@ -38,22 +42,44 @@ public class EntrepriseMapper {
                 .build();
     }
 
-    /** DTO création → ENTITÉ */
+    /* -------- DTO création → ENTITÉ -------- */
     public Entreprise toEntity(EntrepriseCreateDto dto) {
-        return Entreprise.builder()
+        Entreprise ent = Entreprise.builder()
                 .nom(dto.getNom())
                 .siretPrestataire(dto.getSiretPrestataire())
                 .representantPrestataire(dto.getRepresentantPrestataire())
+
                 .numeroRue(dto.getNumeroRue())
                 .rue(dto.getRue())
                 .codePostal(dto.getCodePostal())
                 .ville(dto.getVille())
                 .pays(dto.getPays())
+
                 .telephone(dto.getTelephone())
+                .email(dto.getEmail())
                 .build();
+
+        /* Attach relations si fournies */
+        if (dto.getDevisIds() != null) {
+            ent.setDevisList(dto.getDevisIds().stream()
+                    .map(id -> devisRepo.findById(id)
+                            .orElseThrow(() -> new IllegalArgumentException("Devis id=" + id + " introuvable")))
+                    .peek(d -> d.setEntreprise(ent))
+                    .collect(Collectors.toList()));
+        }
+
+        if (dto.getContratsDeTravailIds() != null) {
+            ent.setContratsDeTravail(dto.getContratsDeTravailIds().stream()
+                    .map(id -> contratTravailRepo.findById(id)
+                            .orElseThrow(() -> new IllegalArgumentException("ContratDeTravail id=" + id + " introuvable")))
+                    .peek(ct -> ct.setEntreprise(ent))
+                    .collect(Collectors.toList()));
+        }
+
+        return ent;
     }
 
-    /** Mise à jour partielle (DTO → ENTITÉ existante) */
+    /* -------- Mise à jour partielle DTO → ENT -------- */
     public void updateEntityFromDto(EntrepriseDto dto, Entreprise ent) {
         if (dto.getNom() != null) ent.setNom(dto.getNom());
         if (dto.getSiretPrestataire() != null) ent.setSiretPrestataire(dto.getSiretPrestataire());
@@ -67,8 +93,8 @@ public class EntrepriseMapper {
         if (dto.getPays() != null)      ent.setPays(dto.getPays());
 
         if (dto.getTelephone() != null) ent.setTelephone(dto.getTelephone());
+        if (dto.getEmail() != null)     ent.setEmail(dto.getEmail());
 
-        /* gestion des relations existantes */
         if (dto.getDevisIds() != null) {
             ent.setDevisList(dto.getDevisIds().stream()
                     .map(id -> devisRepo.findById(id)

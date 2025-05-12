@@ -41,14 +41,14 @@ public class Entreprise {
     @Column(nullable = false, unique = true)
     private String telephone;
 
-
+    private String email;
 
     // Relation avec les devis (OPTIONNEL : si tu veux stocker quel devis a été fait par quelle entreprise)
-    @OneToMany(mappedBy = "entreprise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "entreprise", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Devis> devisList = new ArrayList<>();
 
-    @OneToMany(mappedBy = "entreprise", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "entreprise", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ContratDeTravail> contratsDeTravail = new ArrayList<>();
 

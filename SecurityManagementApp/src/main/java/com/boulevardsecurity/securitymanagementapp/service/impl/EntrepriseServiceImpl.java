@@ -19,11 +19,11 @@ import java.util.stream.Collectors;
 public class EntrepriseServiceImpl implements EntrepriseService {
 
     private final EntrepriseRepository repository;
-    private final EntrepriseMapper    mapper;
+    private final EntrepriseMapper     mapper;
 
     @Override
     public EntrepriseDto createEntreprise(EntrepriseCreateDto dto) {
-        Entreprise ent   = mapper.toEntity(dto);
+        Entreprise ent   = mapper.toEntity(dto);   // 👉 gère désormais devis + contrats
         Entreprise saved = repository.save(ent);
         return mapper.toDto(saved);
     }
@@ -46,7 +46,6 @@ public class EntrepriseServiceImpl implements EntrepriseService {
         return repository.findByNom(nom)
                 .map(mapper::toDto);
     }
-
 
     @Override
     public EntrepriseDto updateEntreprise(Long id, EntrepriseDto dto) {
