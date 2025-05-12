@@ -1,0 +1,112 @@
+/* Styles modernes pour le formulaire de tarifs missions utilisant Bootstrap */
+
+/* Thématisation des cartes */
+.card {
+    border: none;
+    transition: all 0.2s ease;
+}
+
+.card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08) !important;
+}
+
+.card-header {
+    font-weight: 600;
+    border-bottom: 1px solid rgba(0,0,0,0.07);
+}
+
+/* Marges et espacement */
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-text {
+    font-size: 0.8rem;
+}
+
+/* Amélioration des badges */
+.badge.bg-success {
+    background-color: #2e7d32 !important;
+    font-weight: 500;
+    letter-spacing: 0.5px;
+}
+
+.badge.bg-info {
+    background-color: #0277bd !important;
+    font-weight: 500;
+}
+
+/* Animation pour le changement de sélection */
+.list-group-item {
+    transition: all 0.2s ease;
+    cursor: pointer;
+}
+
+.list-group-item:hover {
+    background-color: #f8f9fa;
+}
+
+.list-group-item.active {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+/* Style pour les zones d'info de prix */
+.bg-light {
+    background-color: #f8f9fa !important;
+}
+
+.input-group-text {
+    background-color: #e9ecef;
+    font-weight: 500;
+}
+
+/* Boutons avec icônes */
+.btn .fa-icon {
+    margin-right: 0.5rem;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.card-body {
+    animation: fadeIn 0.3s ease-out;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .container-fluid {
+        padding-left: 0.5rem;
+        padding-right: 0.5rem;
+    }
+}
+
+/* Style spécial pour le conteneur de missions sélectionnées */
+.missions-container {
+    max-height: 300px;
+    overflow-y: auto;
+    border-radius: 0.25rem;
+}
+
+.missions-container::-webkit-scrollbar {
+    width: 6px;
+}
+
+.missions-container::-webkit-scrollbar-track {
+    background: #f1f1f1;
+    border-radius: 10px;
+}
+
+.missions-container::-webkit-scrollbar-thumb {
+    background: #c1c1c1;
+    border-radius: 10px;
+}
+
+.missions-container::-webkit-scrollbar-thumb:hover {
+    background: #a8a8a8;
+}

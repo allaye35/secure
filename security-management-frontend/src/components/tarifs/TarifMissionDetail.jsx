@@ -1,16 +1,21 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link, useNavigate } from "react-router-dom";
 import TarifMissionService from "../../services/TarifMissionService";
-import { Container, Row, Col, Card, Badge, Button, Alert, Spinner, ListGroup } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faEuroSign, faEdit, faArrowLeft, faMoon, faCalendarWeek, faCalendarDay, faCalendarCheck, faPercent, faInfoCircle, faTag } from "@fortawesome/free-solid-svg-icons";
+import { 
+    faTag, faEuroSign, faPercent, faMoon, faCalendarWeek, 
+    faCalendarDay, faCalendarCheck, faArrowLeft, faEdit, faInfoCircle 
+} from "@fortawesome/free-solid-svg-icons";
+import "../../styles/TarifMissionDetail.css";
 
 export default function TarifMissionDetail() {
     const { id } = useParams();
     const navigate = useNavigate();
     const [tarif, setTarif] = useState(null);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);    useEffect(() => {
+    const [loading, setLoading] = useState(true);
+
+    useEffect(() => {
         setLoading(true);
         TarifMissionService.getById(id)
             .then(({ data }) => {
@@ -18,10 +23,12 @@ export default function TarifMissionDetail() {
                 setLoading(false);
             })
             .catch((err) => {
-                setError("Impossible de charger les détails du tarif: " + (err.response?.data?.message || err.message));
+                setError("Impossible de charger les détails du tarif: " + (err.response?.data || err.message));
                 setLoading(false);
             });
-    }, [id]);    // Formatage des valeurs
+    }, [id]);
+
+    // Formatage des valeurs
     const formatPrix = (prix) => {
         if (!prix && prix !== 0) return "-";
         return Number(prix).toLocaleString('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
@@ -38,180 +45,200 @@ export default function TarifMissionDetail() {
         const prixTTC = prixHT * (1 + tauxTVA / 100);
         return formatPrix(prixTTC);
     };
-      if (loading) {
+
+    // Exemples de calcul de prix avec majorations
+    const calculerExemple = (prixBase, majoration) => {
+        if (!prixBase || !majoration) return "-";
+        return formatPrix(prixBase * (1 + majoration / 100));
+    };
+
+    if (loading) {
         return (
-            <Container fluid className="py-4">
-                <div className="text-center my-5">
-                    <Spinner animation="border" variant="primary" />
-                    <p className="mt-3">Chargement des détails du tarif...</p>
+            <div className="tarif-detail">
+                <div className="loading-spinner">
+                    <div className="spinner"></div>
+                    <p>Chargement des détails du tarif...</p>
                 </div>
-            </Container>
+            </div>
         );
     }
-    
+
     if (error) {
         return (
-            <Container fluid className="py-4">
-                <Alert variant="danger">
-                    <FontAwesomeIcon icon={faInfoCircle} className="me-2" />
-                    {error}
-                </Alert>
-                <div className="text-center mt-3">
-                    <Button variant="primary" onClick={() => navigate("/tarifs")}>
-                        <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-                        Retour à la liste des tarifs
-                    </Button>
+            <div className="tarif-detail">
+                <div className="error-message">
+                    <p className="error">{error}</p>
+                    <button className="tarif-btn tarif-btn-primary" onClick={() => navigate("/tarifs")}>
+                        Retour à la liste
+                    </button>
                 </div>
-            </Container>
+            </div>
         );
     }
-    
+
     if (!tarif) return null; // Éviter les erreurs si tarif est null après chargement
     
     return (
-        <Container fluid className="py-4">
-            <Card className="shadow border-0">
-                <Card.Header className="bg-primary bg-gradient text-white py-3">
-                    <div className="d-flex justify-content-between align-items-center">
-                        <h4 className="m-0 fw-bold">
-                            <FontAwesomeIcon icon={faTag} className="me-2" />
-                            Détail du tarif mission
-                        </h4>
-                        <Badge bg="light" text="dark" pill className="px-3 py-2 fs-6">
-                            ID: {tarif.id}
-                        </Badge>
+        <div className="tarif-detail">
+            {/* En-tête */}
+            <div className="tarif-detail-header">
+                <div className="tarif-detail-title">
+                    <span>Détail du tarif mission</span>
+                    <span className="tarif-id-badge">ID: {tarif.id}</span>
+                </div>
+                <div className="tarif-detail-subtitle">{tarif.typeMission || "Type non défini"}</div>
+            </div>
+            
+            {/* Corps */}
+            <div className="tarif-detail-body">
+                <div className="tarif-card">
+                    <div className="tarif-card-header">
+                        Tarification de base
                     </div>
-                </Card.Header>
-                
-                <Card.Body className="p-4">
-                    <Row>
-                        <Col lg={6} className="mb-4">
-                            <Card className="h-100 shadow-sm border-0">
-                                <Card.Header className="bg-light border-bottom border-primary border-opacity-25">
-                                    <h5 className="mb-0 text-primary">Informations générales</h5>
-                                </Card.Header>
-                                
-                                <Card.Body>
-                                    <ListGroup variant="flush">
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faTag} className="me-2 text-primary" />
-                                                <span className="fw-bold">Type de mission</span>
-                                            </div>
-                                            <Badge 
-                                                bg="light" 
-                                                text="dark" 
-                                                className="border border-1 px-3 py-2 fs-6"
-                                            >
-                                                {tarif.typeMission || "Non défini"}
-                                            </Badge>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faEuroSign} className="me-2 text-primary" />
-                                                <span className="fw-bold">Prix unitaire HT</span>
-                                            </div>
-                                            <span className="fs-5 fw-bold">{formatPrix(tarif.prixUnitaireHT)}</span>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faPercent} className="me-2 text-primary" />
-                                                <span className="fw-bold">Taux de TVA</span>
-                                            </div>
-                                            <span>{formatPourcentage(tarif.tauxTVA)}</span>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3 bg-light">
-                                            <div>
-                                                <FontAwesomeIcon icon={faEuroSign} className="me-2 text-success" />
-                                                <span className="fw-bold">Prix unitaire TTC</span>
-                                            </div>
-                                            <span className="fs-5 fw-bold text-success">
-                                                {calculerPrixTTC(tarif.prixUnitaireHT, tarif.tauxTVA)}
-                                            </span>
-                                        </ListGroup.Item>
-                                    </ListGroup>
-                                </Card.Body>
-                            </Card>
-                        </Col>
+                    <div className="tarif-card-body">
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faTag} className="me-2" />
+                                Type de mission
+                            </div>
+                            <div className="tarif-info-value">
+                                {tarif.typeMission || "Non défini"}
+                            </div>
+                        </div>
                         
-                        <Col lg={6} className="mb-4">
-                            <Card className="h-100 shadow-sm border-0">
-                                <Card.Header className="bg-light border-bottom border-primary border-opacity-25">
-                                    <h5 className="mb-0 text-primary">Majorations applicables</h5>
-                                </Card.Header>
-                                
-                                <Card.Body>
-                                    <ListGroup variant="flush">
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faMoon} className="me-2 text-primary" />
-                                                <span className="fw-bold">Majoration nuit</span>
-                                            </div>
-                                            <Badge bg="secondary" className="px-3 py-2">
-                                                {formatPourcentage(tarif.majorationNuit)}
-                                            </Badge>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faCalendarWeek} className="me-2 text-primary" />
-                                                <span className="fw-bold">Majoration weekend</span>
-                                            </div>
-                                            <Badge bg="secondary" className="px-3 py-2">
-                                                {formatPourcentage(tarif.majorationWeekend)}
-                                            </Badge>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faCalendarDay} className="me-2 text-primary" />
-                                                <span className="fw-bold">Majoration dimanche</span>
-                                            </div>
-                                            <Badge bg="secondary" className="px-3 py-2">
-                                                {formatPourcentage(tarif.majorationDimanche)}
-                                            </Badge>
-                                        </ListGroup.Item>
-                                        
-                                        <ListGroup.Item className="d-flex justify-content-between align-items-center py-3">
-                                            <div>
-                                                <FontAwesomeIcon icon={faCalendarCheck} className="me-2 text-primary" />
-                                                <span className="fw-bold">Majoration jours fériés</span>
-                                            </div>
-                                            <Badge bg="secondary" className="px-3 py-2">
-                                                {formatPourcentage(tarif.majorationFerie)}
-                                            </Badge>
-                                        </ListGroup.Item>
-                                    </ListGroup>
-                                </Card.Body>
-                            </Card>
-                        </Col>
-                    </Row>
-                </Card.Body>
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faEuroSign} className="me-2" />
+                                Prix unitaire HT
+                            </div>
+                            <div className="tarif-info-value price-value">
+                                {formatPrix(tarif.prixUnitaireHT)}
+                            </div>
+                        </div>
+                        
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faPercent} className="me-2" />
+                                Taux de TVA
+                            </div>
+                            <div className="tarif-info-value">
+                                <span className="percentage-badge">{formatPourcentage(tarif.tauxTVA)}</span>
+                            </div>
+                        </div>
+                        
+                        <div className="tarif-info-row price-section">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faEuroSign} className="me-2" />
+                                Prix unitaire TTC
+                            </div>
+                            <div className="tarif-info-value price-value">
+                                {calculerPrixTTC(tarif.prixUnitaireHT, tarif.tauxTVA)}
+                            </div>
+                        </div>
+                    </div>
+                </div>
                 
-                <Card.Footer className="bg-light py-3 d-flex justify-content-between">
-                    <Button 
-                        variant="outline-primary" 
-                        className="d-flex align-items-center px-4 py-2 rounded-pill"
-                        onClick={() => navigate("/tarifs")}
-                    >
-                        <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-                        Retour à la liste
-                    </Button>
-                    
-                    <Link to={`/tarifs/edit/${id}`}>
-                        <Button 
-                            variant="primary" 
-                            className="d-flex align-items-center px-4 py-2 rounded-pill"
-                        >
-                            <FontAwesomeIcon icon={faEdit} className="me-2" />
-                            Modifier ce tarif
-                        </Button>
-                    </Link>
-                </Card.Footer>
-            </Card>
-        </Container>
+                <div className="tarif-card">
+                    <div className="tarif-card-header">
+                        Majorations applicables
+                    </div>
+                    <div className="tarif-card-body">
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faMoon} className="me-2" />
+                                Majoration nuit
+                            </div>
+                            <div className="tarif-info-value">
+                                <span className="percentage-badge">{formatPourcentage(tarif.majorationNuit)}</span>
+                                {tarif.majorationNuit > 0 && (
+                                    <div className="tarif-info-example">
+                                        Soit {calculerExemple(tarif.prixUnitaireHT, tarif.majorationNuit)} HT
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faCalendarWeek} className="me-2" />
+                                Majoration week-end
+                            </div>
+                            <div className="tarif-info-value">
+                                <span className="percentage-badge">{formatPourcentage(tarif.majorationWeekend)}</span>
+                                {tarif.majorationWeekend > 0 && (
+                                    <div className="tarif-info-example">
+                                        Soit {calculerExemple(tarif.prixUnitaireHT, tarif.majorationWeekend)} HT
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">                                <FontAwesomeIcon icon={faCalendarDay} className="me-2" />
+                                Majoration dimanche
+                            </div>
+                            <div className="tarif-info-value">
+                                <span className="percentage-badge">{formatPourcentage(tarif.majorationDimanche)}</span>
+                                {tarif.majorationDimanche > 0 && (
+                                    <div className="tarif-info-example">
+                                        Soit {calculerExemple(tarif.prixUnitaireHT, tarif.majorationDimanche)} HT
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        
+                        <div className="tarif-info-row">
+                            <div className="tarif-info-label">
+                                <i className="fas fa-calendar-check"></i>
+                                Majoration jours fériés
+                            </div>
+                            <div className="tarif-info-value">
+                                <span className="percentage-badge">{formatPourcentage(tarif.majorationFerie)}</span>
+                                {tarif.majorationFerie > 0 && (
+                                    <div className="tarif-info-example">
+                                        Soit {calculerExemple(tarif.prixUnitaireHT, tarif.majorationFerie)} HT
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                {tarif.missionIds && tarif.missionIds.length > 0 && (
+                    <div className="tarif-card">
+                        <div className="tarif-card-header">
+                            Missions associées
+                        </div>
+                        <div className="tarif-card-body">
+                            <p>{tarif.missionIds.length} mission(s) utilise(nt) ce tarif</p>
+                            <div className="tarif-missions-list">
+                                {tarif.missionIds.map(missionId => (
+                                    <Link 
+                                        key={missionId}
+                                        to={`/missions/${missionId}`}
+                                        className="tarif-mission-link"
+                                    >
+                                        Mission #{missionId}
+                                    </Link>
+                                ))}
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </div>
+            
+            {/* Pied de page */}
+            <div className="tarif-detail-footer">
+                <button 
+                    className="tarif-btn tarif-btn-outline" 
+                    onClick={() => navigate("/tarifs")}
+                >
+                    <i className="fas fa-arrow-left"></i>
+                    Retour à la liste
+                </button>
+                
+                <Link 
+                    to={`/tarifs/edit/${id}`}
+                    className="tarif-btn tarif-btn-primary"
+                >
+                    <i className="fas fa-edit"></i>
+                    Modifier ce tarif
+                </Link>
+            </div>
+        </div>
     );
 }

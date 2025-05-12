@@ -78,7 +78,7 @@ public class Mission {
     private GeolocalisationGPS geolocalisationGPS;
 
     // Relation avec RapportIntervention (une mission peut avoir plusieurs rapports)
-    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL)
 //    @JsonManagedReference      //
 //    @JsonIgnoreProperties("mission")
 //    @JsonIgnore
@@ -89,7 +89,7 @@ public class Mission {
     @Enumerated(EnumType.STRING)
     private TypeMission typeMission;
 
-    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, orphanRemoval = true, fetch = FetchType.EAGER)
+    @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @Builder.Default
     private List<Pointage> pointages = new ArrayList<>();  //
 
