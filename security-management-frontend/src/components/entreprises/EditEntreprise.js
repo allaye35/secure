@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate, useParams, Link } from "react-router-dom";
-import { Container, Row, Col, Form, Button, Card, InputGroup, Spinner, Alert } from "react-bootstrap";
+import { Container, Row, Col, Form, Button, Card, InputGroup, Spinner, Alert, Breadcrumb } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faSave, faTimes, faPhone, faMapMarkerAlt, faUser, faIdCard, faEnvelope, faFileContract, faCheckCircle, faArrowLeft } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
 import DevisService from "../../services/DevisService";
@@ -243,12 +243,12 @@ const EditEntreprise = () => {
   }
 
   return (
-    <Container fluid className="py-4">
-      <Card className="shadow-sm">
-        <Card.Header className="bg-warning bg-gradient text-white">
-          <h4 className="m-0">
+    <Container fluid className="py-4">      {/* Le fil d'Ariane a été supprimé */}
+        <Card className="shadow border-0">
+        <Card.Header className="bg-primary bg-gradient text-white py-3">
+          <h4 className="m-0 fw-bold">
             <FontAwesomeIcon icon={faBuilding} className="me-2" />
-            Modifier l'entreprise
+            Modifier l'entreprise: {entreprise.nom}
           </h4>
         </Card.Header>
         <Card.Body>
@@ -260,14 +260,12 @@ const EditEntreprise = () => {
           
           <Form noValidate validated={validated} onSubmit={handleSubmit}>
             <Row className="mb-4">
-              <Col lg={6}>
-                <Card className="h-100">
-                  <Card.Header className="bg-light">
-                    <h5 className="mb-0">Informations générales</h5>
+              <Col lg={6}>                <Card className="h-100 shadow-sm border-0">
+                  <Card.Header className="bg-light border-bottom border-primary border-opacity-25">
+                    <h5 className="mb-0 text-primary fw-bold">Informations générales</h5>
                   </Card.Header>
-                  <Card.Body>
-                    <Form.Group className="mb-3">
-                      <Form.Label>Nom de l'entreprise</Form.Label>
+                  <Card.Body className="p-4">                    <Form.Group className="mb-3">
+                      <Form.Label className="text-dark fw-bold">Nom de l'entreprise</Form.Label>
                       <Form.Control
                         type="text"
                         name="nom"
@@ -279,10 +277,8 @@ const EditEntreprise = () => {
                       <Form.Control.Feedback type="invalid">
                         Veuillez saisir le nom de l'entreprise.
                       </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>SIRET</Form.Label>
+                    </Form.Group>                    <Form.Group className="mb-3">
+                      <Form.Label className="text-dark fw-bold">SIRET</Form.Label>
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faIdCard} />
@@ -303,10 +299,8 @@ const EditEntreprise = () => {
                       <Form.Control.Feedback type="invalid">
                         Veuillez saisir un SIRET valide (14 chiffres).
                       </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Représentant légal</Form.Label>
+                    </Form.Group>                    <Form.Group className="mb-3">
+                      <Form.Label className="text-dark fw-bold">Représentant légal</Form.Label>
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faUser} />
@@ -323,10 +317,8 @@ const EditEntreprise = () => {
                       <Form.Control.Feedback type="invalid">
                         Veuillez saisir le nom du représentant.
                       </Form.Control.Feedback>
-                    </Form.Group>
-
-                    <Form.Group className="mb-3">
-                      <Form.Label>Téléphone</Form.Label>
+                    </Form.Group>                    <Form.Group className="mb-3">
+                      <Form.Label className="text-dark fw-bold">Téléphone</Form.Label>
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faPhone} />
@@ -357,7 +349,7 @@ const EditEntreprise = () => {
                         Veuillez saisir un numéro de téléphone valide.
                       </Form.Control.Feedback>
                     </Form.Group>                    <Form.Group className="mb-3">
-                      <Form.Label>Email</Form.Label>
+                      <Form.Label className="text-dark fw-bold">Email</Form.Label>
                       <InputGroup>
                         <InputGroup.Text>
                           <FontAwesomeIcon icon={faEnvelope} />
@@ -373,12 +365,12 @@ const EditEntreprise = () => {
                       <Form.Control.Feedback type="invalid">
                         Veuillez saisir une adresse email valide.
                       </Form.Control.Feedback>
-                    </Form.Group>
-                      <Form.Group className="mb-3">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                    </Form.Group>                    <Form.Group className="mb-4">
+                      <Form.Label className="text-dark fw-bold mb-2">
+                        <FontAwesomeIcon icon={faFileContract} className="me-2 text-primary" />
                         Contrats de travail associés
-                      </Form.Label>                      <Select
+                      </Form.Label>
+                      <Select
                         isMulti
                         name="contratsDeTravailIds"
                         options={contratsDeTravail.map(contrat => ({
@@ -402,12 +394,12 @@ const EditEntreprise = () => {
                         Associez cette entreprise à des contrats de travail. <strong>Attention:</strong> Si un contrat est déjà associé à une autre entreprise, il sera automatiquement dissocié de celle-ci pour être associé à l'entreprise actuelle.
                       </Form.Text>
                     </Form.Group>
-                    
-                    <Form.Group className="mb-3">
-                      <Form.Label>
-                        <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                      <Form.Group className="mb-4">
+                      <Form.Label className="text-dark fw-bold mb-2">
+                        <FontAwesomeIcon icon={faFileContract} className="me-2 text-primary" />
                         Devis associés
-                      </Form.Label>                      <Select
+                      </Form.Label>
+                      <Select
                         isMulti
                         name="devisIds"
                         options={devis.map(devis => ({
@@ -435,19 +427,17 @@ const EditEntreprise = () => {
                 </Card>
               </Col>
               
-              <Col lg={6}>
-                <Card className="h-100">
-                  <Card.Header className="bg-light">
-                    <h5 className="mb-0">
+              <Col lg={6}>                <Card className="h-100 shadow-sm border-0">
+                  <Card.Header className="bg-light border-bottom border-primary border-opacity-25">
+                    <h5 className="mb-0 text-primary fw-bold">
                       <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
                       Adresse
                     </h5>
                   </Card.Header>
-                  <Card.Body>
+                  <Card.Body className="p-4">
                     <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>N° de rue</Form.Label>
+                      <Col md={4}>                        <Form.Group className="mb-3">
+                          <Form.Label className="text-dark fw-bold">N° de rue</Form.Label>
                           <Form.Control
                             type="text"
                             name="numeroRue"
@@ -461,9 +451,8 @@ const EditEntreprise = () => {
                           </Form.Control.Feedback>
                         </Form.Group>
                       </Col>
-                      <Col md={8}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Rue</Form.Label>
+                      <Col md={8}>                        <Form.Group className="mb-3">
+                          <Form.Label className="text-dark fw-bold">Rue</Form.Label>
                           <Form.Control
                             type="text"
                             name="rue"
@@ -480,9 +469,8 @@ const EditEntreprise = () => {
                     </Row>
 
                     <Row>
-                      <Col md={4}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Code Postal</Form.Label>
+                      <Col md={4}>                        <Form.Group className="mb-3">
+                          <Form.Label className="text-dark fw-bold">Code Postal</Form.Label>
                           <Form.Control
                             type="text"
                             name="codePostal"
@@ -497,9 +485,8 @@ const EditEntreprise = () => {
                           </Form.Control.Feedback>
                         </Form.Group>
                       </Col>
-                      <Col md={8}>
-                        <Form.Group className="mb-3">
-                          <Form.Label>Ville</Form.Label>
+                      <Col md={8}>                        <Form.Group className="mb-3">
+                          <Form.Label className="text-dark fw-bold">Ville</Form.Label>
                           <Form.Control
                             type="text"
                             name="ville"
@@ -539,19 +526,20 @@ const EditEntreprise = () => {
                   </Card.Body>
                 </Card>
               </Col>
-            </Row>
-
-            <div className="d-flex justify-content-between mt-3">
+            </Row>            <div className="d-flex justify-content-between mt-4 pt-3 border-top">
               <Link to="/entreprises">
-                <Button variant="secondary" className="d-flex align-items-center">
-                  <FontAwesomeIcon icon={faTimes} className="me-2" />
-                  Annuler
+                <Button 
+                  variant="outline-primary" 
+                  className="d-flex align-items-center px-4 py-2 rounded-pill"
+                >
+                  <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
+                  Retour à la liste
                 </Button>
               </Link>
               <Button 
                 type="submit" 
-                variant="warning" 
-                className="d-flex align-items-center"
+                variant="primary" 
+                className="d-flex align-items-center px-4 py-2 rounded-pill"
                 disabled={loading}
               >
                 {loading ? (
@@ -559,9 +547,8 @@ const EditEntreprise = () => {
                     <span className="spinner-border spinner-border-sm me-2" role="status" aria-hidden="true"></span>
                     Modification en cours...
                   </>
-                ) : (
-                  <>
-                    <FontAwesomeIcon icon={faSave} className="me-2" />
+                ) : (                  <>
+                    <FontAwesomeIcon icon={faCheckCircle} className="me-2" />
                     Enregistrer les modifications
                   </>
                 )}

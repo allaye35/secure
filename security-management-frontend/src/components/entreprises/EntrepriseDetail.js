@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from "react";
 import { useParams, Link } from "react-router-dom";
-import { Container, Card, Row, Col, Table, Badge, Spinner, Button } from "react-bootstrap";
+import { Container, Card, Row, Col, Table, Badge, Spinner, Button, Breadcrumb } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBuilding, faIdCard, faUser, faPhone, faEnvelope, faMapMarkerAlt, faFileInvoice, faEdit, faArrowLeft, faCheckCircle, faClock, faTimesCircle, faFileContract } from "@fortawesome/free-solid-svg-icons";
+import { faBuilding, faIdCard, faUser, faPhone, faEnvelope, faMapMarkerAlt, faFileInvoice, faEdit, faArrowLeft, faCheckCircle, faClock, faTimesCircle, faFileContract, faListAlt } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
 import DevisService from "../../services/DevisService";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
@@ -60,14 +60,32 @@ export default function EntrepriseDetail() {
             setDevisLoading(false);
         });
     };
-    
-    // Fonction pour charger les détails des contrats
+      // Fonction pour charger les détails des contrats
     const loadContratsDetails = (contratIds) => {
         setContratsLoading(true);
         Promise.all(
             contratIds.map(contratId => 
                 ContratDeTravailService.getById(contratId)
-                    .then(res => res.data)
+                    .then(res => {
+                        const contratData = res.data;
+                        
+                        // Si le contrat a un ID d'agent mais pas de nom, on pourrait enrichir les données ici
+                        // Note: Cette partie est commentée car elle nécessiterait un service pour récupérer les détails de l'agent
+                        /*
+                        if (contratData.agentDeSecuriteId && !contratData.agentNom) {
+                            return AgentService.getById(contratData.agentDeSecuriteId)
+                                .then(agentRes => {
+                                    return {
+                                        ...contratData,
+                                        agentNom: `${agentRes.data.nom} ${agentRes.data.prenom}`
+                                    };
+                                })
+                                .catch(() => contratData);
+                        }
+                        */
+                        
+                        return contratData;
+                    })
                     .catch(err => {
                         console.error(`Erreur lors du chargement du contrat ${contratId}:`, err);
                         return null;
@@ -128,74 +146,76 @@ export default function EntrepriseDetail() {
         );
     }
 
-    if (!entreprise) return <p>Aucune donnée disponible</p>;
-
-    return (
-        <Container fluid className="py-4">
-            <div className="d-flex justify-content-between align-items-center mb-3">
-                <Link to="/entreprises">
-                    <Button variant="secondary" size="sm">
-                        <FontAwesomeIcon icon={faArrowLeft} className="me-2" />
-                        Retour à la liste
-                    </Button>
-                </Link>
-                
-                <Link to={`/entreprises/edit/${id}`}>
-                    <Button variant="warning" size="sm">
-                        <FontAwesomeIcon icon={faEdit} className="me-2" />
-                        Modifier l'entreprise
-                    </Button>
-                </Link>
+    if (!entreprise) return <p>Aucune donnée disponible</p>;    return (
+        <Container fluid className="py-4">            {/* La navigation fil d'Ariane a été supprimée */}            <div className="bg-light p-3 rounded-3 shadow-sm mb-4">
+                <div className="d-flex justify-content-between align-items-center">
+                    <h2 className="mb-0 text-primary fw-bold">
+                        <FontAwesomeIcon icon={faBuilding} className="me-2" />
+                        Fiche Entreprise: {entreprise.nom}
+                    </h2>
+                    
+                    <div>
+                        <Link to="/entreprises" className="me-2">
+                            <Button variant="outline-primary" size="sm" className="rounded-pill px-3">
+                                <FontAwesomeIcon icon={faListAlt} className="me-2" />
+                                Liste des entreprises
+                            </Button>
+                        </Link>
+                        
+                        <Link to={`/entreprises/edit/${id}`}>
+                            <Button variant="primary" size="sm" className="rounded-pill px-3">
+                                <FontAwesomeIcon icon={faEdit} className="me-2" />
+                                Modifier
+                            </Button>
+                        </Link>
+                    </div>
+                </div>
             </div>
 
             <Row>
                 <Col lg={8}>
-                    <Card className="shadow-sm mb-4">
-                        <Card.Header className="bg-primary bg-gradient text-white">
-                            <h4 className="m-0">
+                <Card className="shadow mb-4 border-0">
+                        <Card.Header className="bg-primary bg-gradient text-white py-3">
+                            <h4 className="m-0 fw-bold">
                                 <FontAwesomeIcon icon={faBuilding} className="me-2" />
                                 {entreprise.nom}
                             </h4>
                         </Card.Header>
                         <Card.Body>
                             <Row>
-                                <Col md={6}>
-                                    <Card className="h-100 border-0">
+                                <Col md={6}>                                    <Card className="h-100 border-0">
                                         <Card.Body>
-                                            <h5 className="border-bottom pb-2 mb-3">Informations générales</h5>
-                                            
-                                            <div className="mb-3">
-                                                <div className="text-secondary mb-1">
+                                            <h5 className="text-primary border-bottom pb-2 mb-4">Informations générales</h5>
+                                              <div className="mb-4">
+                                                <div className="text-primary mb-1">
                                                     <FontAwesomeIcon icon={faIdCard} className="me-2" />
                                                     SIRET
                                                 </div>
-                                                <div className="fw-bold fs-5">{entreprise.siretPrestataire || "Non renseigné"}</div>
+                                                <div className="fw-bold fs-5 border-bottom border-light pb-2">{entreprise.siretPrestataire || "Non renseigné"}</div>
                                             </div>
                                             
-                                            <div className="mb-3">
-                                                <div className="text-secondary mb-1">
+                                            <div className="mb-4">
+                                                <div className="text-primary mb-1">
                                                     <FontAwesomeIcon icon={faUser} className="me-2" />
                                                     Représentant
                                                 </div>
-                                                <div className="fw-bold">{entreprise.representantPrestataire || "Non renseigné"}</div>
+                                                <div className="fw-bold border-bottom border-light pb-2">{entreprise.representantPrestataire || "Non renseigné"}</div>
                                             </div>
 
-                                            <div className="mb-3">
-                                                <div className="text-secondary mb-1">
+                                            <div className="mb-4">
+                                                <div className="text-primary mb-1">
                                                     <FontAwesomeIcon icon={faPhone} className="me-2" />
                                                     Téléphone
                                                 </div>
-                                                <div className="fw-bold">{entreprise.telephone || "Non renseigné"}</div>
-                                            </div>
-
-                                            <div className="mb-3">
-                                                <div className="text-secondary mb-1">
+                                                <div className="fw-bold border-bottom border-light pb-2">{entreprise.telephone || "Non renseigné"}</div>
+                                            </div>                                            <div className="mb-4">
+                                                <div className="text-primary mb-1">
                                                     <FontAwesomeIcon icon={faEnvelope} className="me-2" />
                                                     Email
                                                 </div>
-                                                <div className="fw-bold">
+                                                <div className="fw-bold border-bottom border-light pb-2">
                                                     {entreprise.email ? (
-                                                        <a href={`mailto:${entreprise.email}`} className="text-decoration-none">
+                                                        <a href={`mailto:${entreprise.email}`} className="text-decoration-none text-primary">
                                                             {entreprise.email}
                                                         </a>
                                                     ) : "Non renseigné"}
@@ -204,30 +224,30 @@ export default function EntrepriseDetail() {
                                         </Card.Body>
                                     </Card>
                                 </Col>
-                                <Col md={6}>
-                                    <Card className="h-100 border-0">
+                                <Col md={6}>                                    <Card className="h-100 border-0">
                                         <Card.Body>
-                                            <h5 className="border-bottom pb-2 mb-3">
+                                            <h5 className="text-primary border-bottom pb-2 mb-4">
                                                 <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
                                                 Adresse
                                             </h5>
-                                            <address className="fs-6">
-                                                <strong>{entreprise.numeroRue} {entreprise.rue}</strong><br />
+                                            <address className="fs-6 mb-4">
+                                                <strong className="fs-5">{entreprise.numeroRue} {entreprise.rue}</strong><br />
                                                 {entreprise.codePostal} {entreprise.ville}<br />
                                                 {entreprise.pays}<br />
                                             </address>
 
-                                            <div className="mt-3 mb-2">
+                                            <div className="mt-4">
                                                 <Button 
-                                                    variant="outline-secondary" 
+                                                    variant="outline-primary" 
                                                     size="sm"
+                                                    className="rounded-pill px-3"
                                                     href={`https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(
                                                         `${entreprise.numeroRue} ${entreprise.rue}, ${entreprise.codePostal} ${entreprise.ville}, ${entreprise.pays}`
                                                     )}`}
                                                     target="_blank"
                                                     rel="noopener noreferrer"
                                                 >
-                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-1" />
+                                                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
                                                     Voir sur la carte
                                                 </Button>
                                             </div>
@@ -239,36 +259,34 @@ export default function EntrepriseDetail() {
                     </Card>
                 </Col>
 
-                <Col lg={4}>                    <Card className="shadow-sm mb-4">
-                        <Card.Header className="bg-info bg-gradient text-white">
-                            <h5 className="m-0">
+                <Col lg={4}>                    <Card className="shadow mb-4 border-0">
+                        <Card.Header className="bg-primary bg-opacity-75 bg-gradient text-white py-3">
+                            <h5 className="m-0 fw-bold">
                                 <FontAwesomeIcon icon={faFileInvoice} className="me-2" />
                                 Devis associés {" "}
                                 {entreprise.devisIds?.length ? 
-                                    <Badge bg="light" text="dark" pill>{entreprise.devisIds.length}</Badge> : 
-                                    <Badge bg="secondary" pill>0</Badge>
+                                    <Badge bg="light" text="dark" pill className="ms-2">{entreprise.devisIds.length}</Badge> : 
+                                    <Badge bg="secondary" pill className="ms-2">0</Badge>
                                 }
                             </h5>
-                        </Card.Header>                        <Card.Body>
+                        </Card.Header><Card.Body>
                             {devisLoading ? (
                                 <div className="text-center py-4">
                                     <Spinner animation="border" variant="info" size="sm" />
                                     <p className="mt-2">Chargement des devis...</p>
                                 </div>
-                            ) : entreprise.devisIds?.length ? (
-                                <Table hover responsive size="sm">
-                                    <thead className="table-light">
+                            ) : entreprise.devisIds?.length ? (                                <Table hover responsive size="sm" className="border">
+                                    <thead className="bg-light">
                                         <tr>
-                                            <th>Référence</th>
-                                            <th>Description</th>
-                                            <th className="text-center">Statut</th>
+                                            <th className="text-primary">Référence</th>
+                                            <th className="text-primary">Description</th>
+                                            <th className="text-center text-primary">Statut</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {devisList.map(devis => (
-                                            <tr key={devis.id}>
-                                                <td>
-                                                    <Link to={`/devis/${devis.id}`} className="text-decoration-none fw-bold">
+                                            <tr key={devis.id}>                                                <td>
+                                                    <Link to={`/devis/${devis.id}`} className="text-decoration-none fw-bold text-primary">
                                                         {devis.referenceDevis}
                                                     </Link>
                                                 </td>
@@ -296,46 +314,46 @@ export default function EntrepriseDetail() {
                                 </div>
                             )}
                         </Card.Body>
-                    </Card>                    <Card className="shadow-sm mb-4">
-                        <Card.Header className="bg-success bg-gradient text-white">
-                            <h5 className="m-0">
+                    </Card>                    <Card className="shadow mb-4 border-0">
+                        <Card.Header className="bg-primary bg-opacity-50 bg-gradient text-white py-3">
+                            <h5 className="m-0 fw-bold">
                                 <FontAwesomeIcon icon={faFileContract} className="me-2" />
                                 Contrats de travail {" "}
                                 {entreprise.contratsDeTravailIds?.length ? 
-                                    <Badge bg="light" text="dark" pill>{entreprise.contratsDeTravailIds.length}</Badge> : 
-                                    <Badge bg="secondary" pill>0</Badge>
+                                    <Badge bg="light" text="dark" pill className="ms-2">{entreprise.contratsDeTravailIds.length}</Badge> : 
+                                    <Badge bg="secondary" pill className="ms-2">0</Badge>
                                 }
                             </h5>
-                        </Card.Header>                        <Card.Body>
+                        </Card.Header><Card.Body>
                             {contratsLoading ? (
                                 <div className="text-center py-4">
                                     <Spinner animation="border" variant="success" size="sm" />
                                     <p className="mt-2">Chargement des contrats...</p>
                                 </div>
-                            ) : entreprise.contratsDeTravailIds?.length ? (
-                                <Table hover responsive size="sm">
-                                    <thead className="table-light">
+                            ) : entreprise.contratsDeTravailIds?.length ? (                                <Table hover responsive size="sm" className="border">
+                                    <thead className="bg-light">
                                         <tr>
-                                            <th>Référence</th>
-                                            <th>Agent</th>
-                                            <th className="text-center">Date</th>
+                                            <th className="text-primary">Référence</th>
+                                            <th className="text-primary">Agent</th>
+                                            <th className="text-center text-primary">Date</th>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {contratsList.map(contrat => (
-                                            <tr key={contrat.id}>
-                                                <td>
-                                                    <Link to={`/contrats-de-travail/${contrat.id}`} className="text-decoration-none fw-bold">
-                                                        {contrat.reference}
+                                            <tr key={contrat.id}>                                                <td>
+                                                    <Link to={`/contrats-de-travail/${contrat.id}`} className="text-decoration-none fw-bold text-primary">
+                                                        <FontAwesomeIcon icon={faFileContract} className="me-1 text-primary" />
+                                                        {contrat.referenceContrat || contrat.reference || "—"}
                                                     </Link>
                                                 </td>
                                                 <td>
                                                     <div className="text-truncate" style={{maxWidth: "180px"}}>
-                                                        {contrat.agentNom || "—"}
+                                                        <FontAwesomeIcon icon={faUser} className="me-1 text-secondary" />
+                                                        {contrat.agentNom || contrat.agentDeSecuriteNom || (contrat.agentDeSecuriteId ? `Agent #${contrat.agentDeSecuriteId}` : "—")}
                                                     </div>
                                                 </td>
                                                 <td className="text-center">
-                                                    {new Date(contrat.dateDebut).toLocaleDateString()}
+                                                    {contrat.dateDebut ? new Date(contrat.dateDebut).toLocaleDateString() : "—"}
                                                 </td>
                                             </tr>
                                         ))}
