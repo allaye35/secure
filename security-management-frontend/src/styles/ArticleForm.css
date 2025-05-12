@@ -35,6 +35,28 @@
     box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
 }
 
+/* Styles spécifiques à la page d'édition */
+.article-edit-container {
+    animation: fadeIn 0.4s ease;
+}
+
+.article-breadcrumb {
+    padding: 0.75rem 0;
+    margin-bottom: 1.5rem;
+    background-color: transparent;
+    border-bottom: 1px solid #e9ecef;
+}
+
+.article-breadcrumb .breadcrumb {
+    margin-bottom: 0;
+    font-size: 0.9rem;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
 /* Styles pour la liste des résultats de contrat */
 .contrat-search-results {
     max-height: 400px;

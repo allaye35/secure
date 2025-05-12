@@ -21,6 +21,17 @@ export default function ArticleForm({ onSubmit, initialData = {}, loading = fals
         ...initialData
     });
     
+    // Mettre à jour l'état du formulaire quand initialData change
+    useEffect(() => {
+        if (initialData && Object.keys(initialData).length > 0) {
+            console.log("Mise à jour du formulaire avec les données initiales:", initialData);
+            setFormData(prevFormData => ({
+                ...prevFormData,
+                ...initialData
+            }));
+        }
+    }, [initialData]);
+    
     // État pour la recherche et la sélection de contrat
     const [contrats, setContrats] = useState([]);
     const [loadingContrats, setLoadingContrats] = useState(false);
@@ -34,8 +45,10 @@ export default function ArticleForm({ onSubmit, initialData = {}, loading = fals
     useEffect(() => {
         if (formData.contratId) {
             setLoadingContrats(true);
+            console.log("Chargement du contrat associé:", formData.contratId);
             ContratService.getById(formData.contratId)
                 .then(res => {
+                    console.log("Contrat chargé:", res.data);
                     setSelectedContrat(res.data);
                 })
                 .catch(err => {
@@ -47,6 +60,19 @@ export default function ArticleForm({ onSubmit, initialData = {}, loading = fals
                 });
         }
     }, [formData.contratId]);
+    
+    // S'assurer que le contrat est chargé lors de l'initialisation quand un contratId est présent
+    useEffect(() => {
+        if (initialData && initialData.contratId && !selectedContrat) {
+            ContratService.getById(initialData.contratId)
+                .then(res => {
+                    setSelectedContrat(res.data);
+                })
+                .catch(err => {
+                    console.error("Erreur lors du chargement du contrat initial:", err);
+                });
+        }
+    }, [initialData, selectedContrat]);
     
     // Charger la liste des contrats pour la recherche
     useEffect(() => {
