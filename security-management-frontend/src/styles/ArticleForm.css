@@ -1,0 +1,159 @@
+/* Styles pour le formulaire d'article */
+.article-form-container {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+.article-form-container .card {
+    transition: all 0.3s ease;
+    border: none;
+    border-radius: 8px;
+}
+
+.article-form-container .card:hover {
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1) !important;
+}
+
+.article-form-container .card-header {
+    border-top-left-radius: 8px;
+    border-top-right-radius: 8px;
+    padding: 0.75rem 1.25rem;
+}
+
+.article-form-container .form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.article-form-container .form-control {
+    border-radius: 4px;
+    transition: all 0.2s;
+    border: 1px solid #ced4da;
+}
+
+.article-form-container .form-control:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Styles pour la liste des résultats de contrat */
+.contrat-search-results {
+    max-height: 400px;
+    overflow-y: auto;
+    border: 1px solid #dee2e6;
+    border-radius: 4px;
+}
+
+.contrat-results-header {
+    background-color: #f8f9fa;
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    position: sticky;
+    top: 0;
+    z-index: 2;
+}
+
+.contrat-result-item {
+    padding: 0.75rem;
+    border-bottom: 1px solid #dee2e6;
+    transition: background-color 0.2s;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.contrat-result-item:hover {
+    background-color: #f0f7ff;
+}
+
+.contrat-result-item:last-child {
+    border-bottom: none;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Styles pour le contrat sélectionné */
+.selected-contrat-info {
+    background-color: #f8f9fa;
+    border-radius: 6px;
+    padding: 1rem;
+    animation: fadeIn 0.3s ease-in-out;
+}
+
+.contrat-details {
+    margin-top: 1rem;
+}
+
+.contrat-detail-item {
+    margin-bottom: 0.5rem;
+    display: flex;
+}
+
+.detail-label {
+    font-weight: 500;
+    width: 150px;
+    color: #495057;
+}
+
+.detail-value {
+    color: #212529;
+    flex: 1;
+}
+
+.no-contrat-info {
+    color: #6c757d;
+    padding: 2rem 0;
+}
+
+/* Styles pour les boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 10px;
+    margin-top: 1.5rem;
+}
+
+/* Animation des cartes */
+.card {
+    animation: slideUp 0.4s ease-in-out;
+}
+
+@keyframes slideUp {
+    from { opacity: 0; transform: translateY(15px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style pour les breadcrumbs */
+.breadcrumb {
+    background-color: transparent;
+    padding: 0.5rem 0;
+}
+
+.page-title {
+    font-weight: 600;
+    color: #2c3e50;
+    margin-bottom: 0.5rem;
+}
+
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+/* Style pour les champs obligatoires */
+.required-field::after {
+    content: " *";
+    color: #dc3545;
+}
+
+/* Styles pour les états de l'UI comme le chargement */
+.spinner-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 0;
+}
+
+.spinner-text {
+    margin-top: 1rem;
+    color: #6c757d;
+}

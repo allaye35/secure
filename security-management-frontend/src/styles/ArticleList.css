@@ -1,0 +1,370 @@
+/* Styles pour la liste des articles de contrat */
+
+.article-list-container {
+    background-color: #f8f9fa;
+    min-height: 90vh;
+    padding: 1.5rem;
+    animation: fadeIn 0.5s ease;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Animation pour les éléments de liste */
+.article-item {
+    transition: all 0.3s ease;
+    animation: slideIn 0.4s ease forwards;
+    border-left: 4px solid transparent;
+}
+
+.article-item:hover {
+    background-color: rgba(13, 110, 253, 0.05);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
+    border-left: 4px solid #0d6efd;
+}
+
+/* Animation pour l'apparition des éléments */
+@keyframes slideIn {
+    from { opacity: 0; transform: translateX(-10px); }
+    to { opacity: 1; transform: translateX(0); }
+}
+
+/* Style pour le titre principal */
+.article-title-section {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.1);
+}
+
+.article-title-section h2 {
+    margin: 0;
+    color: #2c3e50;
+    font-weight: 700;
+    font-size: 1.8rem;
+    display: flex;
+    align-items: center;
+}
+
+/* Nouveau style pour l'en-tête complet */
+.article-header-section {
+    margin-bottom: 1.5rem;
+}
+
+/* Style pour la barre d'outils et filtres */
+.article-tools-row {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    gap: 1rem;
+}
+
+.article-search-container {
+    flex: 1 1 320px;
+}
+
+.article-filters-actions {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+/* Style pour la zone de recherche */
+.search-wrapper {
+    position: relative;
+}
+
+.search-input {
+    padding-left: 40px;
+    border-radius: 20px;
+    border: 1px solid #ced4da;
+    transition: all 0.2s;
+}
+
+.search-input:focus {
+    box-shadow: 0 0 0 0.25rem rgba(13, 110, 253, 0.25);
+    border-color: #86b7fe;
+}
+
+.search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6c757d;
+}
+
+/* Style pour les lignes sélectionnées */
+.selected-row {
+    background-color: rgba(13, 110, 253, 0.1) !important;
+}
+
+.selected-row:hover {
+    background-color: rgba(13, 110, 253, 0.15) !important;
+}
+
+/* Style pour les en-têtes de colonnes triables */
+.sortable-header {
+    cursor: pointer;
+    user-select: none;
+    position: relative;
+    transition: all 0.2s;
+}
+
+.sortable-header:hover {
+    background-color: rgba(0, 0, 0, 0.03);
+}
+
+/* Style pour les badges de contrat */
+.contrat-badge {
+    background-color: rgba(23, 162, 184, 0.1);
+    border: 1px solid rgba(23, 162, 184, 0.2);
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-size: 0.875rem;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: inline-block;
+}
+
+.contrat-badge:hover {
+    background-color: rgba(23, 162, 184, 0.2);
+}
+
+/* Style pour les boutons d'action */
+.action-buttons {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+.btn-action {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 4px;
+    transition: all 0.2s ease;
+    background-color: transparent;
+    border: 1px solid transparent;
+}
+
+.btn-view {
+    color: #17a2b8;
+    border-color: #17a2b8;
+}
+
+.btn-view:hover {
+    background-color: rgba(23, 162, 184, 0.1);
+}
+
+.btn-edit {
+    color: #007bff;
+    border-color: #007bff;
+}
+
+.btn-edit:hover {
+    background-color: rgba(0, 123, 255, 0.1);
+}
+
+.btn-delete {
+    color: #dc3545;
+    border-color: #dc3545;
+}
+
+.btn-delete:hover {
+    background-color: rgba(220, 53, 69, 0.1);
+}
+
+/* Style pour les cartes en mode carte */
+.article-cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.25rem;
+    animation: fadeIn 0.5s ease;
+}
+
+.article-card {
+    overflow: hidden;
+    transition: all 0.3s ease;
+    animation: fadeIn 0.5s ease;
+    border: 1px solid rgba(0, 0, 0, 0.125);
+    border-radius: 8px;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.article-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.article-card .card-header {
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem 1rem;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.article-card .card-title {
+    font-weight: 600;
+    font-size: 1rem;
+    color: #2c3e50;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 180px;
+}
+
+.article-card .card-body {
+    flex: 1 1 auto;
+    padding: 1rem;
+}
+
+.article-card .card-footer {
+    background-color: rgba(0, 0, 0, 0.03);
+    padding: 0.75rem 1rem;
+    border-top: 1px solid rgba(0, 0, 0, 0.125);
+}
+
+.article-card.selected-card {
+    border: 1px solid #0d6efd;
+    box-shadow: 0 0 0 1px rgba(13, 110, 253, 0.25);
+}
+
+.article-id {
+    font-size: 0.7rem;
+    font-weight: normal;
+}
+
+/* Style pour l'état vide */
+.empty-state {
+    text-align: center;
+    padding: 3rem 1rem;
+    animation: fadeIn 0.5s ease;
+    background-color: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+}
+
+.empty-state-icon {
+    margin-bottom: 1.5rem;
+    color: #6c757d;
+}
+
+.empty-state h4 {
+    margin-bottom: 0.75rem;
+    color: #2c3e50;
+}
+
+.empty-state p {
+    max-width: 500px;
+    margin: 0 auto 1.5rem;
+}
+
+/* Style pour les boutons de basculement de vue */
+.view-toggle {
+    display: flex;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.view-toggle .btn {
+    border-radius: 0;
+    margin: 0;
+    border: 1px solid #dee2e6;
+}
+
+.view-toggle .btn:first-child {
+    border-top-left-radius: 4px;
+    border-bottom-left-radius: 4px;
+}
+
+.view-toggle .btn:last-child {
+    border-top-right-radius: 4px;
+    border-bottom-right-radius: 4px;
+}
+
+/* Styles réactifs pour les petits écrans */
+@media (max-width: 768px) {
+    .article-title-section {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+    
+    .article-title-section h2 {
+        margin-bottom: 1rem;
+    }
+    
+    .article-tools-row {
+        flex-direction: column;
+    }
+    
+    .article-search-container {
+        width: 100%;
+        margin-bottom: 1rem;
+    }
+    
+    .article-filters-actions {
+        width: 100%;
+        justify-content: space-between;
+    }
+    
+    .table-responsive {
+        overflow-x: auto;
+    }
+    
+    .article-cards {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* Styles pour la pagination */
+.pagination-container {
+    display: flex;
+    justify-content: center;
+    margin-top: 2rem;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.pagination .page-link {
+    color: #0d6efd;
+}
+
+.pagination .page-link:hover {
+    background-color: rgba(13, 110, 253, 0.1);
+}
+
+/* Style pour le menu déroulant de filtre */
+.dropdown-menu {
+    max-height: 300px;
+    overflow-y: auto;
+}
+
+/* Animation pour les cartes */
+.article-card {
+    opacity: 0;
+    animation: cardFadeIn 0.5s ease forwards;
+}
+
+@keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}

@@ -1,4 +1,4 @@
-// src/components/articleContratTravails/ArticleContratTravailList.jsx
+// src/components/articleContratTravails/ArticleContratTravailListImproved.jsx
 import React, { useEffect, useState, useCallback, useMemo, useRef } from "react";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import ArticleContratTravailService from "../../services/ArticleContratTravailService";
@@ -12,8 +12,9 @@ import {
 } from "react-icons/fa";
 import "../../styles/ArticleContratTravailList.css";
 
-export default function ArticleContratTravailList() {
-    const location = useLocation();    const [articles, setArticles] = useState([]);
+export default function ArticleContratTravailListImproved() {
+    const location = useLocation();
+    const [articles, setArticles] = useState([]);
     const [loading, setLoading] = useState(true);
     const [isRefreshing, setIsRefreshing] = useState(false);
     const [error, setError] = useState(null);
@@ -36,7 +37,8 @@ export default function ArticleContratTravailList() {
     // États pour les notifications
     const [showToast, setShowToast] = useState(false);
     const [toastMessage, setToastMessage] = useState("");
-      // États pour la suppression progressive
+    
+    // États pour la suppression progressive
     const [deleteToastVisible, setDeleteToastVisible] = useState(false);
     const [pendingDeleteArticle, setPendingDeleteArticle] = useState(null);
     const [deleteProgress, setDeleteProgress] = useState(0);
@@ -64,7 +66,8 @@ export default function ArticleContratTravailList() {
     useEffect(() => {
         loadArticles();
     }, []);
-      // Nettoyage des ressources lors du démontage du composant
+    
+    // Nettoyage des ressources lors du démontage du composant
     useEffect(() => {
         return () => {
             if (deleteTimer) {
@@ -230,12 +233,14 @@ export default function ArticleContratTravailList() {
             <FaSortUp className="ms-1 text-primary" /> : 
             <FaSortDown className="ms-1 text-primary" />;
     };
-      // Fonction pour effacer les filtres
+    
+    // Fonction pour effacer les filtres
     const clearFilters = () => {
         setFilter("");
         setCurrentPage(1);
     };
-      // Fonction pour afficher l'aperçu d'un article
+    
+    // Fonction pour afficher l'aperçu d'un article
     const handlePreview = (article) => {
         setPreviewArticle(article);
         setShowPreview(true);
@@ -429,6 +434,280 @@ export default function ArticleContratTravailList() {
         );
     }
 
+    // Rendu du mode carte
+    const renderCardView = () => {
+        if (sortedArticles.length === 0) {
+            return (
+                <div className="text-center p-5 empty-state">
+                    <FaFileAlt size={50} style={{ opacity: 0.5 }} className="mb-4 text-muted" />
+                    <h4 className="text-muted">Aucun article trouvé</h4>
+                    <p className="text-muted">
+                        {filter ? 
+                            `Aucun résultat pour vos critères de recherche actuels` : 
+                            "Ajoutez un article pour commencer"
+                        }
+                    </p>
+                    <div className="mt-3">
+                        {filter && (
+                            <Button 
+                                variant="outline-secondary"
+                                className="me-2"
+                                onClick={clearFilters}
+                            >
+                                <FaTimes className="me-1" /> Effacer les filtres
+                            </Button>
+                        )}
+                        <Button 
+                            as={Link}
+                            to="/article-contrat-travail/create"
+                            variant="primary"
+                        >
+                            <FaPlus className="me-1" /> Créer un article
+                        </Button>
+                    </div>
+                </div>
+            );
+        }
+        
+        return (
+            <div className="article-card-grid view-transition">
+                {paginatedArticles.map((article) => (
+                    <Card key={article.id} className="article-card">
+                        <Card.Header className="d-flex justify-content-between align-items-center">
+                            <Form.Check
+                                type="checkbox"
+                                onChange={() => handleArticleSelection(article.id)}
+                                checked={selectedArticles.includes(article.id)}
+                                aria-label={`Sélectionner l'article ${article.libelle}`}
+                            />
+                            <small className="text-muted">#{article.id}</small>
+                        </Card.Header>
+                        <Card.Body>
+                            <Card.Title className="card-title">{article.libelle || "Sans titre"}</Card.Title>
+                            <Card.Text className="card-text">
+                                {article.contenu || <span className="text-muted">Pas de contenu</span>}
+                            </Card.Text>
+                            <div className="d-flex flex-column gap-2">
+                                <Button 
+                                    variant="outline-primary" 
+                                    size="sm" 
+                                    className="w-100"
+                                    onClick={() => handlePreview(article)}
+                                >
+                                    <FaEye className="me-1" /> Aperçu rapide
+                                </Button>
+                                <div className="d-flex gap-2">
+                                    <Button 
+                                        as={Link}
+                                        to={`/article-contrat-travail/${article.id}`}
+                                        variant="outline-info"
+                                        size="sm"
+                                        className="flex-grow-1"
+                                    >
+                                        <FaEye className="me-1" /> Détails
+                                    </Button>
+                                    <Button 
+                                        as={Link}
+                                        to={`/article-contrat-travail/edit/${article.id}`}
+                                        variant="outline-warning"
+                                        size="sm"
+                                        className="flex-grow-1"
+                                    >
+                                        <FaEdit className="me-1" /> Modifier
+                                    </Button>
+                                </div>
+                            </div>
+                        </Card.Body>
+                        <Card.Footer className="d-flex justify-content-end">
+                            <Button 
+                                variant="outline-danger"
+                                size="sm"
+                                onClick={() => initiateProgressiveDelete(article)}
+                                aria-label={`Supprimer l'article ${article.libelle}`}
+                            >
+                                <FaTrash className="me-1" /> Supprimer
+                            </Button>
+                        </Card.Footer>
+                    </Card>
+                ))}
+            </div>
+        );
+    };
+
+    // Rendu du mode tableau
+    const renderTableView = () => {
+        if (sortedArticles.length === 0) {
+            return (
+                <div className="text-center p-5 empty-state">
+                    <FaFileAlt 
+                        size={50}
+                        style={{ opacity: 0.5 }}
+                        className="mb-4 text-muted"
+                    />
+                    <h4 className="text-muted">Aucun article trouvé</h4>
+                    <p className="text-muted">
+                        {filter ? 
+                            `Aucun résultat pour vos critères de recherche actuels` : 
+                            "Ajoutez un article pour commencer"
+                        }
+                    </p>
+                    {filter ? (
+                        <Button 
+                            variant="outline-secondary"
+                            className="mt-2 me-2"
+                            onClick={clearFilters}
+                            aria-label="Effacer les filtres"
+                        >
+                            Effacer les filtres
+                        </Button>
+                    ) : null}
+                    <Button 
+                        as={Link}
+                        to="/article-contrat-travail/create"
+                        variant="outline-primary"
+                        className="mt-2"
+                        aria-label="Créer un nouvel article"
+                    >
+                        <FaPlus className="me-1" /> Créer un article
+                    </Button>
+                </div>
+            );
+        }
+        
+        return (
+            <>
+                <div className="table-responsive view-transition">
+                    <Table hover responsive className="align-middle article-contrat-table">
+                        <thead className="table-light">
+                            <tr>
+                                <th>
+                                    <Form.Check
+                                        type="checkbox"
+                                        onChange={(e) => handleSelectAllArticles(e.target.checked)}
+                                        checked={selectedArticles.length === paginatedArticles.length && paginatedArticles.length > 0}
+                                        aria-label="Sélectionner tous les articles"
+                                    />
+                                </th>
+                                <th onClick={() => requestSort('id')} className="sortable-header">
+                                    #
+                                    {getSortDirectionIcon('id')}
+                                </th>
+                                <th onClick={() => requestSort('libelle')} className="sortable-header">
+                                    Libellé
+                                    {getSortDirectionIcon('libelle')}
+                                </th>
+                                <th style={{ minWidth: '200px' }}>
+                                    Contenu
+                                </th>
+                                <th className="text-center">Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {paginatedArticles.map((article, index) => (
+                                <tr key={article.id} className="article-row">
+                                    <td>
+                                        <Form.Check
+                                            type="checkbox"
+                                            onChange={() => handleArticleSelection(article.id)}
+                                            checked={selectedArticles.includes(article.id)}
+                                            aria-label={`Sélectionner l'article ${article.libelle}`}
+                                        />
+                                    </td>
+                                    <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
+                                    <td className="fw-medium">
+                                        <Link 
+                                            to={`/article-contrat-travail/${article.id}`}
+                                            className="text-decoration-none text-dark stretched-link-wrapper"
+                                        >
+                                            {article.libelle || "Sans titre"}
+                                        </Link>
+                                    </td>
+                                    <td>
+                                        {article.contenu 
+                                            ? article.contenu.length > 100 
+                                                ? article.contenu.substr(0, 100) + "..." 
+                                                : article.contenu
+                                            : <span className="text-muted">Pas de contenu</span>
+                                        }
+                                    </td>
+                                    <td className="text-center">
+                                        <div className="d-flex justify-content-center gap-2">
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip>Aperçu rapide</Tooltip>}
+                                            >
+                                                <Button 
+                                                    variant="outline-primary"
+                                                    size="sm"
+                                                    className="btn-action"
+                                                    onClick={() => handlePreview(article)}
+                                                    aria-label={`Aperçu rapide de l'article ${article.libelle}`}
+                                                >
+                                                    <FaEye />
+                                                </Button>
+                                            </OverlayTrigger>
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip>Voir les détails</Tooltip>}
+                                            >
+                                                <Button 
+                                                    as={Link}
+                                                    to={`/article-contrat-travail/${article.id}`}
+                                                    variant="outline-info"
+                                                    size="sm"
+                                                    className="btn-action"
+                                                    aria-label={`Voir les détails de l'article ${article.libelle}`}
+                                                >
+                                                    <FaFileContract />
+                                                </Button>
+                                            </OverlayTrigger>
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip>Modifier</Tooltip>}
+                                            >
+                                                <Button 
+                                                    as={Link}
+                                                    to={`/article-contrat-travail/edit/${article.id}`}
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    className="btn-action"
+                                                    aria-label={`Modifier l'article ${article.libelle}`}
+                                                >
+                                                    <FaEdit />
+                                                </Button>
+                                            </OverlayTrigger>
+                                            <OverlayTrigger
+                                                placement="top"
+                                                overlay={<Tooltip>Supprimer</Tooltip>}
+                                            >
+                                                <Button 
+                                                    variant="outline-danger"
+                                                    size="sm"
+                                                    className="btn-action"
+                                                    onClick={() => initiateProgressiveDelete(article)}
+                                                    aria-label={`Supprimer l'article ${article.libelle}`}
+                                                >
+                                                    <FaTrashAlt />
+                                                </Button>
+                                            </OverlayTrigger>
+                                        </div>
+                                    </td>
+                                </tr>
+                            ))}
+                        </tbody>
+                    </Table>
+                </div>
+                
+                {/* Affichage de la pagination si nécessaire */}
+                {totalPages > 1 && (
+                    <div className="d-flex justify-content-center mt-4">
+                        <Pagination>{renderPaginationItems()}</Pagination>
+                    </div>
+                )}
+            </>
+        );
+    };
+
     return (
         <Container fluid className="article-contrat-list-container py-4 px-4">
             {/* Toast pour les notifications */}
@@ -536,7 +815,8 @@ export default function ArticleContratTravailList() {
                                         />
                                         <FaSearch className="search-icon" />
                                     </div>
-                                </Col>                                <Col xs="auto" className="ms-auto">
+                                </Col>
+                                <Col xs="auto" className="ms-auto">
                                     <div className="d-flex align-items-center">
                                         <div className="btn-group me-2">
                                             <OverlayTrigger
@@ -546,7 +826,7 @@ export default function ArticleContratTravailList() {
                                                 <Button 
                                                     variant={viewMode === 'table' ? 'primary' : 'outline-secondary'}
                                                     className={`view-toggle-btn ${viewMode === 'table' ? 'active' : ''}`}
-                                                    onClick={() => setViewMode('table')}
+                                                    onClick={() => toggleViewMode('table')}
                                                     aria-label="Afficher en mode tableau"
                                                 >
                                                     <FaList />
@@ -559,7 +839,7 @@ export default function ArticleContratTravailList() {
                                                 <Button 
                                                     variant={viewMode === 'card' ? 'primary' : 'outline-secondary'}
                                                     className={`view-toggle-btn ${viewMode === 'card' ? 'active' : ''}`}
-                                                    onClick={() => setViewMode('card')}
+                                                    onClick={() => toggleViewMode('card')}
                                                     aria-label="Afficher en mode cartes"
                                                 >
                                                     <FaThLarge />
@@ -622,7 +902,7 @@ export default function ArticleContratTravailList() {
                         <div className="d-flex align-items-center mb-3 flex-wrap filter-indicators">
                             <span className="me-2 text-muted">Filtres actifs:</span>
                             {filter && (
-                                <Badge bg="light" text="dark" className="me-2 mb-1 p-2">
+                                <Badge bg="light" text="dark" className="me-2 mb-1 p-2 filter-badge">
                                     Recherche: {filter}
                                     <Button 
                                         variant="link" 
@@ -649,167 +929,25 @@ export default function ArticleContratTravailList() {
                         </div>
                     )}
 
-                    {sortedArticles.length === 0 ? (
-                        <div className="text-center p-5 empty-state">
-                            <FaFileAlt 
-                                size={50}
-                                style={{ opacity: 0.5 }}
-                                className="mb-4 text-muted"
-                            />
-                            <h4 className="text-muted">Aucun article trouvé</h4>
-                            <p className="text-muted">
-                                {filter ? 
-                                    `Aucun résultat pour vos critères de recherche actuels` : 
-                                    "Ajoutez un article pour commencer"
-                                }
-                            </p>
-                            {filter ? (
-                                <Button 
-                                    variant="outline-secondary"
-                                    className="mt-2 me-2"
-                                    onClick={clearFilters}
-                                    aria-label="Effacer les filtres"
-                                >
-                                    Effacer les filtres
-                                </Button>
-                            ) : null}
-                            <Button 
-                                as={Link}
-                                to="/article-contrat-travail/create"
-                                variant="outline-primary"
-                                className="mt-2"
-                                aria-label="Créer un nouvel article"
-                            >
-                                <FaPlus className="me-1" /> Créer un article
-                            </Button>
-                        </div>
-                    ) : (
-                        <>
-                            {/* Astuce pour les utilisateurs */}
-                            <div className="d-flex align-items-center mb-3 bg-light p-2 rounded">
-                                <FaRegLightbulb className="text-warning me-2" />
-                                <small className="text-muted">
+                    {/* Astuce pour les utilisateurs */}
+                    <div className="d-flex align-items-center mb-3 bg-light p-2 rounded">
+                        <FaRegLightbulb className="text-warning me-2" />
+                        <small className="text-muted">
+                            {viewMode === 'table' ? (
+                                <>
                                     <span className="d-none d-md-inline">Astuce : Cliquez sur les en-têtes de colonnes pour trier les données. Utilisez la recherche pour filtrer les articles.</span>
                                     <span className="d-md-none">Faites défiler horizontalement pour voir toutes les données.</span>
-                                </small>
-                            </div>
-                            
-                            <div className="table-responsive">
-                                <Table hover responsive className="align-middle article-contrat-table">
-                                    <thead className="table-light">
-                                        <tr>
-                                            <th>
-                                                <Form.Check
-                                                    type="checkbox"
-                                                    onChange={(e) => handleSelectAllArticles(e.target.checked)}
-                                                    checked={selectedArticles.length === paginatedArticles.length && paginatedArticles.length > 0}
-                                                    aria-label="Sélectionner tous les articles"
-                                                />
-                                            </th>
-                                            <th onClick={() => requestSort('id')} className="sortable-header">
-                                                #
-                                                {getSortDirectionIcon('id')}
-                                            </th>
-                                            <th onClick={() => requestSort('libelle')} className="sortable-header">
-                                                Libellé
-                                                {getSortDirectionIcon('libelle')}
-                                            </th>
-                                            <th style={{ minWidth: '200px' }}>
-                                                Contenu
-                                            </th>
-                                            <th className="text-center">Actions</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {paginatedArticles.map((article, index) => (
-                                            <tr key={article.id} className="article-row">
-                                                <td>
-                                                    <Form.Check
-                                                        type="checkbox"
-                                                        onChange={() => handleArticleSelection(article.id)}
-                                                        checked={selectedArticles.includes(article.id)}
-                                                        aria-label={`Sélectionner l'article ${article.libelle}`}
-                                                    />
-                                                </td>
-                                                <td>{(currentPage - 1) * itemsPerPage + index + 1}</td>
-                                                <td className="fw-medium">
-                                                    <Link 
-                                                        to={`/article-contrat-travail/${article.id}`}
-                                                        className="text-decoration-none text-dark stretched-link-wrapper"
-                                                    >
-                                                        {article.libelle || "Sans titre"}
-                                                    </Link>
-                                                </td>
-                                                <td>
-                                                    {article.contenu 
-                                                        ? article.contenu.length > 100 
-                                                            ? article.contenu.substr(0, 100) + "..." 
-                                                            : article.contenu
-                                                        : <span className="text-muted">Pas de contenu</span>
-                                                    }
-                                                </td>
-                                                <td className="text-center">
-                                                    <div className="d-flex justify-content-center gap-2">
-                                                        <OverlayTrigger
-                                                            placement="top"
-                                                            overlay={<Tooltip>Voir les détails</Tooltip>}
-                                                        >
-                                                            <Button 
-                                                                as={Link}
-                                                                to={`/article-contrat-travail/${article.id}`}
-                                                                variant="outline-info"
-                                                                size="sm"
-                                                                className="btn-action"
-                                                                aria-label={`Voir les détails de l'article ${article.libelle}`}
-                                                            >
-                                                                <FaEye />
-                                                            </Button>
-                                                        </OverlayTrigger>
-                                                        <OverlayTrigger
-                                                            placement="top"
-                                                            overlay={<Tooltip>Modifier</Tooltip>}
-                                                        >
-                                                            <Button 
-                                                                as={Link}
-                                                                to={`/article-contrat-travail/edit/${article.id}`}
-                                                                variant="outline-warning"
-                                                                size="sm"
-                                                                className="btn-action"
-                                                                aria-label={`Modifier l'article ${article.libelle}`}
-                                                            >
-                                                                <FaEdit />
-                                                            </Button>
-                                                        </OverlayTrigger>
-                                                        <OverlayTrigger
-                                                            placement="top"
-                                                            overlay={<Tooltip>Supprimer</Tooltip>}
-                                                        >
-                                                            <Button 
-                                                                variant="outline-danger"
-                                                                size="sm"
-                                                                className="btn-action"
-                                                                onClick={() => initiateProgressiveDelete(article)}
-                                                                aria-label={`Supprimer l'article ${article.libelle}`}
-                                                            >
-                                                                <FaTrashAlt />
-                                                            </Button>
-                                                        </OverlayTrigger>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </Table>
-                            </div>
-                            
-                            {/* Affichage de la pagination si nécessaire */}
-                            {totalPages > 1 && (
-                                <div className="d-flex justify-content-center mt-4">
-                                    <Pagination>{renderPaginationItems()}</Pagination>
-                                </div>
+                                </>
+                            ) : (
+                                <>
+                                    <span>Astuce : Cliquez sur "Aperçu rapide" pour visualiser rapidement le contenu d'un article.</span>
+                                </>
                             )}
-                        </>
-                    )}
+                        </small>
+                    </div>
+                    
+                    {/* Affichage conditionnel selon le mode de vue sélectionné */}
+                    {viewMode === 'table' ? renderTableView() : renderCardView()}
                 </Card.Body>
                 
                 <Card.Footer className="bg-white d-flex justify-content-between align-items-center flex-wrap">
@@ -855,7 +993,8 @@ export default function ArticleContratTravailList() {
                 <Modal.Body>
                     <p>Êtes-vous sûr de vouloir supprimer les {selectedArticles.length} articles sélectionnés ? </p>
                     <p className="text-danger fw-bold">Cette action est irréversible.</p>
-                </Modal.Body>                <Modal.Footer>
+                </Modal.Body>
+                <Modal.Footer>
                     <Button variant="secondary" onClick={() => setShowBulkDeleteModal(false)}>
                         Annuler
                     </Button>
@@ -959,6 +1098,28 @@ export default function ArticleContratTravailList() {
                     </Button>
                 </Modal.Footer>
             </Modal>
+            
+            {/* Barre d'action mobile */}
+            <div className="d-md-none">
+                <div className={`mobile-action-bar ${selectedArticles.length > 0 ? 'd-flex' : 'd-none'}`}>
+                    <Button
+                        variant="danger"
+                        size="sm"
+                        onClick={() => setShowBulkDeleteModal(true)}
+                        className="w-100 mx-1"
+                    >
+                        <FaTrash className="me-1" /> Supprimer ({selectedArticles.length})
+                    </Button>
+                    <Button 
+                        variant="secondary" 
+                        size="sm"
+                        onClick={() => setSelectedArticles([])}
+                        className="w-100 mx-1"
+                    >
+                        <FaTimes className="me-1" /> Annuler
+                    </Button>
+                </div>
+            </div>
         </Container>
     );
 }
