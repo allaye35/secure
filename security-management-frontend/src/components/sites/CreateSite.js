@@ -4,9 +4,10 @@ import { useNavigate, Link }          from "react-router-dom";
 import SiteService                    from "../../services/SiteService";
 import MissionService                 from "../../services/MissionService";
 import Select                         from "react-select";
-import { Button, Card, Container, Form, Row, Col, Alert, Breadcrumb, Spinner } from 'react-bootstrap';
+import { Button, Card, Container, Form, Row, Col, Alert, Breadcrumb, Spinner, InputGroup, OverlayTrigger, Tooltip, FloatingLabel } from 'react-bootstrap';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
-import { faSave, faTimes, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
+import { faSave, faTimes, faMapMarkerAlt, faInfoCircle, faExclamationTriangle, faSync, faMapPin, faCheck, faBuilding } from '@fortawesome/free-solid-svg-icons';
+import '../../styles/SiteForms.css';
 
 export default function CreateSite() {
     const nav = useNavigate();
@@ -19,13 +20,15 @@ export default function CreateSite() {
         ville: "",
         departement: "",
         region: "",
-        pays: "",
+        pays: "France",
         missionsIds: []
     });
     const [missionsOptions, setMissionsOptions] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [loadingMissions, setLoadingMissions] = useState(true);
+    const [validated, setValidated] = useState(false);
+    const [showSuccess, setShowSuccess] = useState(false);
 
     // Charger la liste des missions existantes
     useEffect(() => {
@@ -61,6 +64,15 @@ export default function CreateSite() {
 
     const handleSubmit = async e => {
         e.preventDefault();
+        const form = e.currentTarget;
+        
+        // Validation du formulaire
+        setValidated(true);
+        if (form.checkValidity() === false) {
+            e.stopPropagation();
+            return;
+        }
+        
         // Vérification minimale
         if (!site.nom.trim()) {
             setError("Le nom du site est obligatoire");
@@ -70,7 +82,11 @@ export default function CreateSite() {
         setLoading(true);
         try {
             await SiteService.createSite(site);
-            nav("/sites");
+            // Afficher le message de succès brièvement avant la redirection
+            setShowSuccess(true);
+            setTimeout(() => {
+                nav("/sites");
+            }, 1200);
         } catch (err) {
             console.error(err);
             setError("Erreur lors de la création du site. Veuillez réessayer.");
@@ -78,181 +94,243 @@ export default function CreateSite() {
         }
     };
 
+    // Récupération automatique du code postal et ville via une API (simulé)
+    const handlePostalCodeBlur = () => {
+        if (site.codePostal && site.codePostal.length === 5 && !site.ville) {
+            // Simule une recherche du nom de la ville basée sur le code postal
+            // Dans un cas réel, vous pourriez utiliser une API comme api-adresse.data.gouv.fr
+            setTimeout(() => {
+                if (site.codePostal.startsWith('75')) {
+                    setSite(s => ({...s, ville: 'Paris', departement: 'Paris', region: 'Île-de-France'}));
+                } else if (site.codePostal.startsWith('69')) {
+                    setSite(s => ({...s, ville: 'Lyon', departement: 'Rhône', region: 'Auvergne-Rhône-Alpes'}));
+                } else if (site.codePostal.startsWith('13')) {
+                    setSite(s => ({...s, ville: 'Marseille', departement: 'Bouches-du-Rhône', region: 'Provence-Alpes-Côte d\'Azur'}));
+                }
+            }, 300);
+        }
+    };
+
     const selectStyles = {
         control: (styles) => ({
             ...styles,
             borderColor: '#dee2e6',
+            boxShadow: '0 0 0 0.1rem rgba(13,110,253,.15)',
+            transition: 'border-color .15s ease-in-out, box-shadow .15s ease-in-out',
             '&:hover': {
-                borderColor: '#ced4da'
+                borderColor: '#86b7fe'
             }
-        })
+        }),
+        menuPortal: base => ({ ...base, zIndex: 9999 })
     };
 
     return (
-        <Container fluid className="py-4">
+        <Container fluid className="py-4 animate__animated animate__fadeIn">
             <Breadcrumb className="mb-3">
                 <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/sites" }}>Sites</Breadcrumb.Item>
                 <Breadcrumb.Item active>Nouveau site</Breadcrumb.Item>
             </Breadcrumb>
 
-            <Card className="shadow-sm">
-                <Card.Header className="bg-primary bg-gradient text-white">
+            <Card className="shadow border-0">
+                <Card.Header className="bg-primary bg-gradient text-white position-relative">
                     <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
                     <span className="fw-bold fs-4">Créer un nouveau site</span>
                 </Card.Header>
-                <Card.Body>
-                    {error && <Alert variant="danger">{error}</Alert>}
+                
+                <Card.Body className="px-4 py-4">
+                    {error && 
+                        <Alert variant="danger" className="d-flex align-items-center">
+                            <FontAwesomeIcon icon={faExclamationTriangle} className="me-2 fs-4" />
+                            <div>{error}</div>
+                        </Alert>
+                    }
+                    
+                    {showSuccess && 
+                        <Alert variant="success" className="d-flex align-items-center">
+                            <FontAwesomeIcon icon={faCheck} className="me-2 fs-4" />
+                            <div>Site créé avec succès! Redirection en cours...</div>
+                        </Alert>
+                    }
 
-                    <Form onSubmit={handleSubmit}>
+                    <Form noValidate validated={validated} onSubmit={handleSubmit}>
                         <Row className="mb-3">
-                            <Col md>
+                            <Col>
                                 <Form.Group>
-                                    <Form.Label>Nom du site <span className="text-danger">*</span></Form.Label>
-                                    <Form.Control
-                                        name="nom"
-                                        placeholder="Nom du site"
-                                        required
-                                        value={site.nom}
-                                        onChange={handleChange}
-                                    />
-                                    <Form.Text muted>Le nom est obligatoire</Form.Text>
+                                    <FloatingLabel controlId="nomSite" label="Nom du site *">
+                                        <Form.Control
+                                            name="nom"
+                                            placeholder="Nom du site"
+                                            required
+                                            value={site.nom}
+                                            onChange={handleChange}
+                                            className="shadow-sm"
+                                        />
+                                    </FloatingLabel>
+                                    <Form.Control.Feedback type="invalid">
+                                        Le nom du site est obligatoire
+                                    </Form.Control.Feedback>
                                 </Form.Group>
                             </Col>
                         </Row>
 
-                        <Card className="mb-4">
-                            <Card.Header className="bg-light">Adresse</Card.Header>
+                        <Card className="mb-4 border-light shadow-sm">
+                            <Card.Header className="bg-light d-flex align-items-center">
+                                <FontAwesomeIcon icon={faMapPin} className="me-2 text-primary" />
+                                <span className="fw-bold">Adresse</span>
+                            </Card.Header>
                             <Card.Body>
                                 <Row className="mb-3">
                                     <Col md={2}>
-                                        <Form.Group>
-                                            <Form.Label>Numéro</Form.Label>
+                                        <FloatingLabel controlId="numeroAdresse" label="Numéro">
                                             <Form.Control
                                                 name="numero"
                                                 placeholder="N°"
                                                 value={site.numero}
                                                 onChange={handleChange}
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                     <Col md={10}>
-                                        <Form.Group>
-                                            <Form.Label>Rue</Form.Label>
+                                        <FloatingLabel controlId="rueAdresse" label="Rue">
                                             <Form.Control
                                                 name="rue"
                                                 placeholder="Rue"
                                                 value={site.rue}
                                                 onChange={handleChange}
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                 </Row>
 
                                 <Row className="mb-3">
                                     <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label>Code postal</Form.Label>
+                                        <FloatingLabel controlId="codePostalAdresse" label="Code postal">
                                             <Form.Control
                                                 name="codePostal"
                                                 placeholder="Code postal"
                                                 value={site.codePostal}
                                                 onChange={handleChange}
+                                                onBlur={handlePostalCodeBlur}
+                                                className="shadow-sm"
+                                                pattern="[0-9]{5}"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
+                                        <Form.Control.Feedback type="invalid">
+                                            Le code postal doit contenir 5 chiffres
+                                        </Form.Control.Feedback>
                                     </Col>
                                     <Col md={8}>
-                                        <Form.Group>
-                                            <Form.Label>Ville</Form.Label>
+                                        <FloatingLabel controlId="villeAdresse" label="Ville">
                                             <Form.Control
                                                 name="ville"
                                                 placeholder="Ville"
                                                 value={site.ville}
                                                 onChange={handleChange}
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                 </Row>
 
                                 <Row>
                                     <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label>Département</Form.Label>
+                                        <FloatingLabel controlId="departementAdresse" label="Département">
                                             <Form.Control
                                                 name="departement"
                                                 placeholder="Département"
                                                 value={site.departement}
                                                 onChange={handleChange}
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label>Région</Form.Label>
+                                        <FloatingLabel controlId="regionAdresse" label="Région">
                                             <Form.Control
                                                 name="region"
                                                 placeholder="Région"
                                                 value={site.region}
                                                 onChange={handleChange}
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                     <Col md={4}>
-                                        <Form.Group>
-                                            <Form.Label>Pays</Form.Label>
+                                        <FloatingLabel controlId="paysAdresse" label="Pays">
                                             <Form.Control
                                                 name="pays"
                                                 placeholder="Pays"
                                                 value={site.pays}
                                                 onChange={handleChange}
                                                 defaultValue="France"
+                                                className="shadow-sm"
                                             />
-                                        </Form.Group>
+                                        </FloatingLabel>
                                     </Col>
                                 </Row>
                             </Card.Body>
                         </Card>
 
-                        <Form.Group className="mb-4">
-                            <Form.Label>Missions associées</Form.Label>
-                            {loadingMissions ? (
-                                <div className="text-center py-2">
-                                    <Spinner animation="border" size="sm" /> Chargement des missions...
-                                </div>
-                            ) : (
-                                <Select
-                                    isMulti
-                                    options={missionsOptions}
-                                    placeholder="Sélectionnez une ou plusieurs missions..."
-                                    onChange={handleMissionsChange}
-                                    noOptionsMessage={() => "Aucune mission disponible"}
-                                    styles={selectStyles}
-                                    className="basic-multi-select"
-                                    classNamePrefix="select"
-                                />
-                            )}
-                            <Form.Text muted>Sélectionnez les missions à associer à ce site</Form.Text>
-                        </Form.Group>
+                        <Card className="mb-4 border-light shadow-sm">
+                            <Card.Header className="bg-light d-flex align-items-center">
+                                <FontAwesomeIcon icon={faBuilding} className="me-2 text-primary" />
+                                <span className="fw-bold">Missions associées</span>
+                                <OverlayTrigger
+                                    placement="top"
+                                    overlay={<Tooltip>Sélectionnez les missions à associer à ce site</Tooltip>}
+                                >
+                                    <FontAwesomeIcon icon={faInfoCircle} className="ms-2 text-muted" />
+                                </OverlayTrigger>
+                            </Card.Header>
+                            <Card.Body>
+                                {loadingMissions ? (
+                                    <div className="text-center py-3">
+                                        <Spinner animation="border" size="sm" className="me-2" />
+                                        <span>Chargement des missions...</span>
+                                    </div>
+                                ) : (
+                                    <div className="select-container">
+                                        <Select
+                                            isMulti
+                                            options={missionsOptions}
+                                            placeholder="Sélectionnez une ou plusieurs missions..."
+                                            onChange={handleMissionsChange}
+                                            noOptionsMessage={() => "Aucune mission disponible"}
+                                            styles={selectStyles}
+                                            className="basic-multi-select"
+                                            classNamePrefix="select"
+                                            menuPortalTarget={document.body}
+                                        />
+                                    </div>
+                                )}
+                            </Card.Body>
+                        </Card>
 
-                        <div className="d-flex justify-content-end gap-2">
+                        <div className="d-flex justify-content-end gap-2 mt-4">
                             <Button 
                                 variant="outline-secondary" 
                                 as={Link} 
                                 to="/sites"
+                                className="px-4 py-2"
+                                disabled={loading}
                             >
-                                <FontAwesomeIcon icon={faTimes} className="me-1" /> Annuler
+                                <FontAwesomeIcon icon={faTimes} className="me-2" /> Annuler
                             </Button>
                             <Button 
                                 type="submit" 
                                 variant="primary" 
                                 disabled={loading}
+                                className="px-4 py-2"
                             >
                                 {loading ? (
                                     <>
-                                        <Spinner size="sm" animation="border" className="me-1" /> Création en cours...
+                                        <Spinner size="sm" animation="border" className="me-2" /> Création en cours...
                                     </>
                                 ) : (
                                     <>
-                                        <FontAwesomeIcon icon={faSave} className="me-1" /> Enregistrer
+                                        <FontAwesomeIcon icon={faSave} className="me-2" /> Enregistrer
                                     </>
                                 )}
                             </Button>
