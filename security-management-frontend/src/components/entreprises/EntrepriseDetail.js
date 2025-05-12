@@ -4,19 +4,36 @@ import { Container, Card, Row, Col, Table, Badge, Spinner, Button } from "react-
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBuilding, faIdCard, faUser, faPhone, faEnvelope, faMapMarkerAlt, faFileInvoice, faEdit, faArrowLeft, faCheckCircle, faClock, faTimesCircle, faFileContract } from "@fortawesome/free-solid-svg-icons";
 import EntrepriseService from "../../services/EntrepriseService";
+import DevisService from "../../services/DevisService";
+import ContratDeTravailService from "../../services/ContratDeTravailService";
 
 export default function EntrepriseDetail() {
     const { id } = useParams();
     const [entreprise, setEntreprise] = useState(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-
-    useEffect(() => {
+    
+    // États pour stocker les détails des devis et contrats associés
+    const [devisList, setDevisList] = useState([]);
+    const [contratsList, setContratsList] = useState([]);
+    const [devisLoading, setDevisLoading] = useState(false);
+    const [contratsLoading, setContratsLoading] = useState(false);    useEffect(() => {
         setLoading(true);
         EntrepriseService.getEntrepriseById(id)
             .then(res => {
-                setEntreprise(res.data);
+                const entrepriseData = res.data;
+                setEntreprise(entrepriseData);
                 setLoading(false);
+                
+                // Si l'entreprise a des devis, charger leurs détails
+                if (entrepriseData.devisIds && entrepriseData.devisIds.length > 0) {
+                    loadDevisDetails(entrepriseData.devisIds);
+                }
+                
+                // Si l'entreprise a des contrats, charger leurs détails
+                if (entrepriseData.contratsDeTravailIds && entrepriseData.contratsDeTravailIds.length > 0) {
+                    loadContratsDetails(entrepriseData.contratsDeTravailIds);
+                }
             })
             .catch(err => {
                 console.error("Chargement entreprise :", err);
@@ -24,6 +41,44 @@ export default function EntrepriseDetail() {
                 setLoading(false);
             });
     }, [id]);
+    
+    // Fonction pour charger les détails des devis
+    const loadDevisDetails = (devisIds) => {
+        setDevisLoading(true);
+        Promise.all(
+            devisIds.map(devisId => 
+                DevisService.getById(devisId)
+                    .then(res => res.data)
+                    .catch(err => {
+                        console.error(`Erreur lors du chargement du devis ${devisId}:`, err);
+                        return null;
+                    })
+            )
+        )
+        .then(devisDetails => {
+            setDevisList(devisDetails.filter(devis => devis !== null));
+            setDevisLoading(false);
+        });
+    };
+    
+    // Fonction pour charger les détails des contrats
+    const loadContratsDetails = (contratIds) => {
+        setContratsLoading(true);
+        Promise.all(
+            contratIds.map(contratId => 
+                ContratDeTravailService.getById(contratId)
+                    .then(res => res.data)
+                    .catch(err => {
+                        console.error(`Erreur lors du chargement du contrat ${contratId}:`, err);
+                        return null;
+                    })
+            )
+        )
+        .then(contratsDetails => {
+            setContratsList(contratsDetails.filter(contrat => contrat !== null));
+            setContratsLoading(false);
+        });
+    };
 
     // Fonction pour afficher le statut avec le bon badge de couleur
     const renderStatutBadge = (statut) => {
@@ -184,20 +239,23 @@ export default function EntrepriseDetail() {
                     </Card>
                 </Col>
 
-                <Col lg={4}>
-                    <Card className="shadow-sm mb-4">
+                <Col lg={4}>                    <Card className="shadow-sm mb-4">
                         <Card.Header className="bg-info bg-gradient text-white">
                             <h5 className="m-0">
                                 <FontAwesomeIcon icon={faFileInvoice} className="me-2" />
                                 Devis associés {" "}
-                                {entreprise.devisList?.length ? 
-                                    <Badge bg="light" text="dark" pill>{entreprise.devisList.length}</Badge> : 
+                                {entreprise.devisIds?.length ? 
+                                    <Badge bg="light" text="dark" pill>{entreprise.devisIds.length}</Badge> : 
                                     <Badge bg="secondary" pill>0</Badge>
                                 }
                             </h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {entreprise.devisList?.length ? (
+                        </Card.Header>                        <Card.Body>
+                            {devisLoading ? (
+                                <div className="text-center py-4">
+                                    <Spinner animation="border" variant="info" size="sm" />
+                                    <p className="mt-2">Chargement des devis...</p>
+                                </div>
+                            ) : entreprise.devisIds?.length ? (
                                 <Table hover responsive size="sm">
                                     <thead className="table-light">
                                         <tr>
@@ -207,7 +265,7 @@ export default function EntrepriseDetail() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {entreprise.devisList.map(devis => (
+                                        {devisList.map(devis => (
                                             <tr key={devis.id}>
                                                 <td>
                                                     <Link to={`/devis/${devis.id}`} className="text-decoration-none fw-bold">
@@ -238,21 +296,23 @@ export default function EntrepriseDetail() {
                                 </div>
                             )}
                         </Card.Body>
-                    </Card>
-
-                    <Card className="shadow-sm mb-4">
+                    </Card>                    <Card className="shadow-sm mb-4">
                         <Card.Header className="bg-success bg-gradient text-white">
                             <h5 className="m-0">
                                 <FontAwesomeIcon icon={faFileContract} className="me-2" />
                                 Contrats de travail {" "}
-                                {entreprise.contratsDeTravail?.length ? 
-                                    <Badge bg="light" text="dark" pill>{entreprise.contratsDeTravail.length}</Badge> : 
+                                {entreprise.contratsDeTravailIds?.length ? 
+                                    <Badge bg="light" text="dark" pill>{entreprise.contratsDeTravailIds.length}</Badge> : 
                                     <Badge bg="secondary" pill>0</Badge>
                                 }
                             </h5>
-                        </Card.Header>
-                        <Card.Body>
-                            {entreprise.contratsDeTravail?.length ? (
+                        </Card.Header>                        <Card.Body>
+                            {contratsLoading ? (
+                                <div className="text-center py-4">
+                                    <Spinner animation="border" variant="success" size="sm" />
+                                    <p className="mt-2">Chargement des contrats...</p>
+                                </div>
+                            ) : entreprise.contratsDeTravailIds?.length ? (
                                 <Table hover responsive size="sm">
                                     <thead className="table-light">
                                         <tr>
@@ -262,7 +322,7 @@ export default function EntrepriseDetail() {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {entreprise.contratsDeTravail.map(contrat => (
+                                        {contratsList.map(contrat => (
                                             <tr key={contrat.id}>
                                                 <td>
                                                     <Link to={`/contrats-de-travail/${contrat.id}`} className="text-decoration-none fw-bold">
