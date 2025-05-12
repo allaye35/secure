@@ -54,3 +54,99 @@
 .actions button:hover {
     color: #1e88e5;
 }
+
+/* Styles pour les statistiques */
+.tarif-list .card .card-header h5 {
+    margin-bottom: 0;
+    font-weight: 600;
+}
+
+.tarif-list .card h2 {
+    font-size: 1.8rem;
+    font-weight: bold;
+}
+
+/* Styles pour la ligne du tableau au survol */
+.tarif-row {
+    transition: all 0.2s ease;
+}
+
+.tarif-row:hover {
+    background-color: rgba(13, 110, 253, 0.05) !important;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    transform: translateY(-1px);
+}
+
+/* Styles pour les boutons d'action */
+.action-btn {
+    width: 2.2rem;
+    height: 2.2rem;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+}
+
+.action-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Styles pour les auto-suggestions */
+.autocomplete-suggestions {
+    position: absolute;
+    z-index: 1050;
+    width: 100%;
+    max-height: 200px;
+    overflow-y: auto;
+}
+
+.suggestion {
+    cursor: pointer;
+    transition: background-color 0.2s;
+}
+
+.suggestion:hover {
+    background-color: #f8f9fa;
+}
+
+/* Mode sombre */
+.bg-dark .table {
+    color: #f8f9fa;
+}
+
+.bg-dark .table-striped>tbody>tr:nth-of-type(odd) {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.bg-dark .text-muted {
+    color: #adb5bd !important;
+}
+
+/* Animation de transition */
+.card, .btn, .badge, .alert {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Responsive design amélioré */
+@media (max-width: 768px) {
+    .tarif-list .card h2 {
+        font-size: 1.5rem;
+    }
+    
+    .action-btn {
+        width: 2rem;
+        height: 2rem;
+    }
+}
+
+@media (max-width: 576px) {
+    .tarif-list .action-buttons {
+        justify-content: center;
+    }
+    
+    .tarif-list .card-header h2 {
+        font-size: 1.2rem;
+    }
+}
