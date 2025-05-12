@@ -1,9 +1,12 @@
 // src/components/sites/CreateSite.jsx
 import React, { useEffect, useState } from "react";
-import { useNavigate }                from "react-router-dom";
+import { useNavigate, Link }          from "react-router-dom";
 import SiteService                    from "../../services/SiteService";
 import MissionService                 from "../../services/MissionService";
 import Select                         from "react-select";
+import { Button, Card, Container, Form, Row, Col, Alert, Breadcrumb, Spinner } from 'react-bootstrap';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faSave, faTimes, faMapMarkerAlt } from '@fortawesome/free-solid-svg-icons';
 
 export default function CreateSite() {
     const nav = useNavigate();
@@ -20,10 +23,13 @@ export default function CreateSite() {
         missionsIds: []
     });
     const [missionsOptions, setMissionsOptions] = useState([]);
-    const [error, setError]                     = useState("");
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [loadingMissions, setLoadingMissions] = useState(true);
 
     // Charger la liste des missions existantes
     useEffect(() => {
+        setLoadingMissions(true);
         MissionService.getAllMissions()
             .then(res => {
                 const opts = res.data.map(m => ({
@@ -31,13 +37,19 @@ export default function CreateSite() {
                     label: `#${m.id} – ${m.titre || "(sans titre)"}`
                 }));
                 setMissionsOptions(opts);
+                setLoadingMissions(false);
             })
-            .catch(() => setError("Impossible de charger les missions"));
+            .catch(() => {
+                setError("Impossible de charger les missions");
+                setLoadingMissions(false);
+            });
     }, []);
 
     const handleChange = e => {
         const { name, value } = e.target;
         setSite(s => ({ ...s, [name]: value }));
+        // Réinitialiser le message d'erreur lorsque l'utilisateur commence à modifier un champ
+        if (error) setError("");
     };
 
     const handleMissionsChange = selected => {
@@ -49,97 +61,205 @@ export default function CreateSite() {
 
     const handleSubmit = async e => {
         e.preventDefault();
-        // Vérif minimales
+        // Vérification minimale
         if (!site.nom.trim()) {
-            setError("Le nom est obligatoire");
+            setError("Le nom du site est obligatoire");
             return;
         }
+
+        setLoading(true);
         try {
             await SiteService.createSite(site);
             nav("/sites");
-        } catch {
-            setError("Erreur lors de la création du site");
+        } catch (err) {
+            console.error(err);
+            setError("Erreur lors de la création du site. Veuillez réessayer.");
+            setLoading(false);
         }
     };
 
+    const selectStyles = {
+        control: (styles) => ({
+            ...styles,
+            borderColor: '#dee2e6',
+            '&:hover': {
+                borderColor: '#ced4da'
+            }
+        })
+    };
+
     return (
-        <div style={{ padding: 20 }}>
-            <h2>➕ Créer un site</h2>
-            {error && <p style={{ color: "red" }}>{error}</p>}
+        <Container fluid className="py-4">
+            <Breadcrumb className="mb-3">
+                <Breadcrumb.Item linkAs={Link} linkProps={{ to: "/sites" }}>Sites</Breadcrumb.Item>
+                <Breadcrumb.Item active>Nouveau site</Breadcrumb.Item>
+            </Breadcrumb>
 
-            <form onSubmit={handleSubmit}>
-                <div style={{
-                    display: "grid",
-                    gridTemplateColumns: "1fr 1fr 1fr 1fr",
-                    gap: 8,
-                    marginBottom: 16
-                }}>
-                    <input
-                        name="nom"
-                        placeholder="Nom *"
-                        required
-                        value={site.nom}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="numero"
-                        placeholder="N°"
-                        value={site.numero}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="rue"
-                        placeholder="Rue"
-                        value={site.rue}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="codePostal"
-                        placeholder="Code postal"
-                        value={site.codePostal}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="ville"
-                        placeholder="Ville"
-                        value={site.ville}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="departement"
-                        placeholder="Département"
-                        value={site.departement}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="region"
-                        placeholder="Région"
-                        value={site.region}
-                        onChange={handleChange}
-                    />
-                    <input
-                        name="pays"
-                        placeholder="Pays"
-                        value={site.pays}
-                        onChange={handleChange}
-                    />
-                </div>
+            <Card className="shadow-sm">
+                <Card.Header className="bg-primary bg-gradient text-white">
+                    <FontAwesomeIcon icon={faMapMarkerAlt} className="me-2" />
+                    <span className="fw-bold fs-4">Créer un nouveau site</span>
+                </Card.Header>
+                <Card.Body>
+                    {error && <Alert variant="danger">{error}</Alert>}
 
-                <div style={{ marginBottom: 24, minWidth: 300 }}>
-                    <label style={{ display: "block", marginBottom: 8 }}>
-                        Missions associées
-                    </label>
-                    <Select
-                        isMulti
-                        options={missionsOptions}
-                        placeholder="Sélectionnez une ou plusieurs missions…"
-                        onChange={handleMissionsChange}
-                        noOptionsMessage={() => "Aucune mission disponible"}
-                    />
-                </div>
+                    <Form onSubmit={handleSubmit}>
+                        <Row className="mb-3">
+                            <Col md>
+                                <Form.Group>
+                                    <Form.Label>Nom du site <span className="text-danger">*</span></Form.Label>
+                                    <Form.Control
+                                        name="nom"
+                                        placeholder="Nom du site"
+                                        required
+                                        value={site.nom}
+                                        onChange={handleChange}
+                                    />
+                                    <Form.Text muted>Le nom est obligatoire</Form.Text>
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-                <button type="submit">Enregistrer</button>
-            </form>
-        </div>
+                        <Card className="mb-4">
+                            <Card.Header className="bg-light">Adresse</Card.Header>
+                            <Card.Body>
+                                <Row className="mb-3">
+                                    <Col md={2}>
+                                        <Form.Group>
+                                            <Form.Label>Numéro</Form.Label>
+                                            <Form.Control
+                                                name="numero"
+                                                placeholder="N°"
+                                                value={site.numero}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={10}>
+                                        <Form.Group>
+                                            <Form.Label>Rue</Form.Label>
+                                            <Form.Control
+                                                name="rue"
+                                                placeholder="Rue"
+                                                value={site.rue}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <Row className="mb-3">
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label>Code postal</Form.Label>
+                                            <Form.Control
+                                                name="codePostal"
+                                                placeholder="Code postal"
+                                                value={site.codePostal}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={8}>
+                                        <Form.Group>
+                                            <Form.Label>Ville</Form.Label>
+                                            <Form.Control
+                                                name="ville"
+                                                placeholder="Ville"
+                                                value={site.ville}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+
+                                <Row>
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label>Département</Form.Label>
+                                            <Form.Control
+                                                name="departement"
+                                                placeholder="Département"
+                                                value={site.departement}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label>Région</Form.Label>
+                                            <Form.Control
+                                                name="region"
+                                                placeholder="Région"
+                                                value={site.region}
+                                                onChange={handleChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4}>
+                                        <Form.Group>
+                                            <Form.Label>Pays</Form.Label>
+                                            <Form.Control
+                                                name="pays"
+                                                placeholder="Pays"
+                                                value={site.pays}
+                                                onChange={handleChange}
+                                                defaultValue="France"
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
+
+                        <Form.Group className="mb-4">
+                            <Form.Label>Missions associées</Form.Label>
+                            {loadingMissions ? (
+                                <div className="text-center py-2">
+                                    <Spinner animation="border" size="sm" /> Chargement des missions...
+                                </div>
+                            ) : (
+                                <Select
+                                    isMulti
+                                    options={missionsOptions}
+                                    placeholder="Sélectionnez une ou plusieurs missions..."
+                                    onChange={handleMissionsChange}
+                                    noOptionsMessage={() => "Aucune mission disponible"}
+                                    styles={selectStyles}
+                                    className="basic-multi-select"
+                                    classNamePrefix="select"
+                                />
+                            )}
+                            <Form.Text muted>Sélectionnez les missions à associer à ce site</Form.Text>
+                        </Form.Group>
+
+                        <div className="d-flex justify-content-end gap-2">
+                            <Button 
+                                variant="outline-secondary" 
+                                as={Link} 
+                                to="/sites"
+                            >
+                                <FontAwesomeIcon icon={faTimes} className="me-1" /> Annuler
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="primary" 
+                                disabled={loading}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Spinner size="sm" animation="border" className="me-1" /> Création en cours...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FontAwesomeIcon icon={faSave} className="me-1" /> Enregistrer
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </Form>
+                </Card.Body>
+            </Card>
+        </Container>
     );
 }
