@@ -1,10 +1,13 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useParams, Link } from "react-router-dom";
 import ContratDeTravailService from "../../services/ContratDeTravailService";
 import ArticleContratTravailService from "../../services/ArticleContratTravailService";
 import FicheDePaieService from "../../services/FicheDePaieService";
 import AgentService from "../../services/AgentService";
 import EntrepriseService from "../../services/EntrepriseService";
+import { usePDF } from "react-to-pdf";
+import jsPDF from 'jspdf';
+import html2canvas from 'html2canvas';
 import "../../styles/ContratDetail.css"; // Utilisation du fichier CSS dédié
 
 const ContratDeTravailDetail = () => {
@@ -15,18 +18,20 @@ const ContratDeTravailDetail = () => {
     const [articles, setArticles] = useState([]);
     const [fichesDePaie, setFichesDePaie] = useState([]);
     const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [selectedArticle, setSelectedArticle] = useState(null);
+    const [error, setError] = useState(null);    const [selectedArticle, setSelectedArticle] = useState(null);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
-
-    // Nouvel état pour le formulaire de création d'article
-    const [showArticleForm, setShowArticleForm] = useState(false);
-    const [newArticle, setNewArticle] = useState({
-        libelle: "",
-        contenu: "",
-        contratDeTravailId: parseInt(id)
+    const [exportInProgress, setExportInProgress] = useState(false);
+      // Options pour l'export PDF
+    const { toPDF, targetRef } = usePDF({
+        filename: `contrat-de-travail-${id}.pdf`,
+        page: { margin: 20 },
+        method: 'save'
     });
-    const [creatingArticle, setCreatingArticle] = useState(false);
+    
+    // Fonction pour imprimer le contrat
+    const handlePrint = () => {
+        toPDF();
+    };
 
     useEffect(() => {
 
@@ -65,12 +70,12 @@ const ContratDeTravailDetail = () => {
 
                 // Debuggage des articles
                 console.log("Articles récupérés (brut):", articlesRes);
-                console.log("Articles récupérés (données):", articlesRes.data);
-
-                // S'assurer que les articles sont bien un tableau
+                console.log("Articles récupérés (données):", articlesRes.data);                // S'assurer que les articles sont bien un tableau et les trier par ordre croissant
                 const articlesData = Array.isArray(articlesRes.data) ? articlesRes.data : [];
-                console.log("Articles après traitement:", articlesData);
-                setArticles(articlesData);
+                // Trier les articles par ordre croissant de leur ID
+                const articlesTries = articlesData.sort((a, b) => a.id - b.id);
+                console.log("Articles après traitement et tri:", articlesTries);
+                setArticles(articlesTries);
 
                 // Debuggage des fiches de paie
                 console.log("Fiches de paie récupérées:", fichesRes.data);
@@ -116,15 +121,50 @@ const ContratDeTravailDetail = () => {
     const formatDate = (dateString) => {
         if (!dateString) return "–";
         return dateString.slice(0, 10).split('-').reverse().join('/');
-    };
-
-    // Fonction pour télécharger ou afficher le PDF du contrat
+    };    // Fonction pour télécharger ou afficher le PDF du contrat
     const handleViewPdf = () => {
         if (contrat.documentPdf) {
             setShowPdfPreview(!showPdfPreview);
         } else {
             alert("Aucun document PDF disponible pour ce contrat.");
         }
+    };    // Fonction pour exporter la page en PDF avec html2canvas et jsPDF
+    const exportToPDF = () => {
+        setExportInProgress(true);
+        const element = targetRef.current;
+        const fileName = `contrat-travail-${contrat?.referenceContrat || id}.pdf`;
+        
+        const pdfOptions = {
+            margin: 10,
+            filename: fileName,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2 },
+            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+        };
+        
+        html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: false
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+            const pdf = new jsPDF('p', 'mm', 'a4');
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            const imgY = 20;
+            
+            pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+            pdf.save(fileName);
+            setExportInProgress(false);
+        }).catch(err => {
+            console.error("Erreur lors de l'export PDF:", err);
+            setExportInProgress(false);
+            alert("Une erreur s'est produite lors de l'export en PDF.");
+        });
     };
 
     // Fonction pour afficher le détail d'un article
@@ -134,87 +174,53 @@ const ContratDeTravailDetail = () => {
         } else {
             setSelectedArticle(article);
         }
-    };
-
-    // Fonction pour gérer les changements dans le formulaire
-    const handleArticleInputChange = (e) => {
-        const { name, value } = e.target;
-        setNewArticle({
-            ...newArticle,
-            [name]: value
-        });
-    };
-
-    // Fonction pour soumettre le formulaire et créer un article
-    const handleArticleSubmit = (e) => {
-        e.preventDefault();
-        setCreatingArticle(true);
-
-        // S'assurer que l'ID du contrat est bien un nombre
-        const articleData = {
-            ...newArticle,
-            contratDeTravailId: Number(id)
-        };
-
-        console.log("Données d'article à envoyer:", articleData);
-
-        ArticleContratTravailService.create(articleData)
-            .then(response => {
-                console.log("Article créé:", response.data);
-
-                // Ajouter le nouvel article à la liste des articles
-                setArticles([...articles, response.data]);
-
-                // Réinitialiser le formulaire
-                setNewArticle({
-                    libelle: "",
-                    contenu: "",
-                    contratDeTravailId: Number(id)
-                });
-
-                // Fermer le formulaire
-                setShowArticleForm(false);
-
-                // Rafraîchir les données des articles depuis le serveur
-                ArticleContratTravailService.getByContratTravail(id)
-                    .then(refreshResponse => {
-                        console.log("Articles rafraîchis:", refreshResponse.data);
-                        setArticles(refreshResponse.data || []);
-                    })
-                    .catch(refreshError => {
-                        console.error("Erreur lors du rafraîchissement des articles:", refreshError);
-                    });
-
-                alert("L'article a été créé avec succès!");
-            })
-            .catch(err => {
-                console.error("Erreur lors de la création de l'article:", err);
-                alert("Erreur lors de la création de l'article. Veuillez réessayer.");
-            })
-            .finally(() => {
-                setCreatingArticle(false);
-            });
-    };
-
+    };    // Aucune fonction nécessaire pour l'ajout d'articles (fonctionnalité retirée)
+    
     return (
-        <div className="contrat-detail">
-            <h2 className="title">📄 Contrat {contrat.referenceContrat}</h2>
-
-            {/* Bouton pour visualiser le PDF du contrat */}
-            <div className="pdf-actions">
-                <button
-                    className={`btn pdf-button ${contrat.documentPdf ? '' : 'disabled'}`}
-                    onClick={handleViewPdf}
-                    disabled={!contrat.documentPdf}
-                >
-                    📑 {showPdfPreview ? 'Masquer le PDF' : 'Visualiser le contrat PDF'}
-                </button>
+        <div className="contrat-detail modern">
+            <div className="contrat-header">
+                <h2 className="title">📄 Contrat de Travail: {contrat.referenceContrat}</h2>
+                
+                <div className="action-buttons">
+                    <button 
+                        className="btn btn-print action-btn" 
+                        onClick={handlePrint}
+                        disabled={exportInProgress}
+                        title="Imprimer le contrat"
+                    >
+                        <span className="btn-icon">🖨️</span> Imprimer
+                    </button>
+                      <button 
+                        className="btn btn-export action-btn" 
+                        onClick={exportToPDF}
+                        disabled={exportInProgress}
+                        title="Exporter en PDF"
+                    >
+                        <span className="btn-icon">📥</span> Exporter en PDF
+                        {exportInProgress && <span className="spinner"></span>}
+                    </button>
+                    
+                    {contrat.documentPdf && (
+                        <button
+                            className="btn pdf-button action-btn"
+                            onClick={handleViewPdf}
+                        >
+                            <span className="btn-icon">📑</span> {showPdfPreview ? 'Masquer le PDF' : 'PDF Original'}
+                        </button>
+                    )}
+                </div>
             </div>
-
+            
+            <div className="contrat-status">
+                <span className={`status-badge ${contrat.dateFin ? (new Date(contrat.dateFin) < new Date() ? 'expired' : 'active') : 'active'}`}>
+                    {contrat.dateFin ? (new Date(contrat.dateFin) < new Date() ? 'Expiré' : 'Actif') : 'En cours'}
+                </span>
+            </div>
+            
             {/* Prévisualiseur de PDF conditionnel */}
             {showPdfPreview && contrat.documentPdf && (
                 <div className="pdf-preview-container">
-                    <h3>Aperçu du contrat</h3>
+                    <h3>Document PDF Original</h3>
                     <div className="pdf-viewer">
                         <iframe
                             src={`data:application/pdf;base64,${contrat.documentPdf}`}
@@ -229,11 +235,13 @@ const ContratDeTravailDetail = () => {
                             download={`contrat_${contrat.referenceContrat}.pdf`}
                             className="btn download-btn"
                         >
-                            ⬇️ Télécharger le PDF
+                            ⬇️ Télécharger le PDF original
                         </a>
                     </div>
                 </div>
             )}
+              {/* Zone pour l'impression/export PDF */}
+            <div className="printable-content" ref={targetRef}>
 
             {/* Informations générales du contrat */}
             <div className="info-section">
@@ -246,21 +254,60 @@ const ContratDeTravailDetail = () => {
                     <p><strong>Créé le :</strong> {contrat.createdAt ? contrat.createdAt.replace("T"," ").slice(0,19) : "–"}</p>
                     <p><strong>Mis à jour :</strong> {contrat.updatedAt ? contrat.updatedAt.replace("T"," ").slice(0,19) : "–"}</p>
                 </div>
-            </div>
-
-            {/* Informations sur l'agent */}
-            <div className="info-section">
+            </div>            {/* Informations sur l'agent */}
+            <div className="info-section agent-highlight">
                 <h3>Agent de sécurité</h3>
-                <div className="info-block">
+                <div className="info-block agent-info-block">
                     {agent ? (
                         <>
-                            <p><strong>Nom :</strong> {agent.nom} {agent.prenom}</p>
-                            <p><strong>Matricule :</strong> {agent.numeroMatricule}</p>
-                            <p><strong>Contact :</strong> {agent.telephone}</p>
-                            <p><strong>Email :</strong> {agent.email}</p>
-                            <Link to={`/agents/${agent.id}`} className="detail-link">
-                                Voir le profil complet de l'agent
-                            </Link>
+                            <div className="agent-primary-info">
+                                <div className="agent-avatar">
+                                    {agent.photo ? 
+                                        <img src={agent.photo} alt={`${agent.nom} ${agent.prenom}`} /> : 
+                                        <div className="avatar-placeholder">
+                                            {agent.nom && agent.prenom ? 
+                                                `${agent.nom.charAt(0)}${agent.prenom.charAt(0)}` : 
+                                                "AS"}
+                                        </div>
+                                    }
+                                </div>
+                                <div className="agent-main-details">
+                                    <h4 className="agent-name">{agent.nom} {agent.prenom}</h4>
+                                    <div className="agent-badge">Matricule: {agent.numeroMatricule}</div>
+                                    <p className="agent-position">{agent.fonction || "Agent de sécurité"}</p>
+                                </div>
+                            </div>
+                            
+                            <div className="agent-secondary-info">
+                                <div className="info-grid">
+                                    <div className="info-item">
+                                        <p className="info-label">Contact</p>
+                                        <p className="info-value">{agent.telephone || "Non renseigné"}</p>
+                                    </div>
+                                    <div className="info-item">
+                                        <p className="info-label">Email</p>
+                                        <p className="info-value">{agent.email || "Non renseigné"}</p>
+                                    </div>
+                                    {agent.dateNaissance && (
+                                        <div className="info-item">
+                                            <p className="info-label">Date de naissance</p>
+                                            <p className="info-value">{formatDate(agent.dateNaissance)}</p>
+                                        </div>
+                                    )}
+                                    {agent.adresse && (
+                                        <div className="info-item">
+                                            <p className="info-label">Adresse</p>
+                                            <p className="info-value">{agent.adresse}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div className="agent-action">
+                                    <Link to={`/agents/${agent.id}`} className="detail-link">
+                                        Voir le profil complet de l'agent
+                                    </Link>
+                                </div>
+                            </div>
                         </>
                     ) : (
                         <p>Aucune information d'agent disponible.</p>
@@ -298,96 +345,10 @@ const ContratDeTravailDetail = () => {
                 </div>
             )}
 
-            {/* Articles du contrat - Version plus conviviale quand vide */}
-            <div className="info-section">
-                <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+            {/* Articles du contrat - Version plus conviviale quand vide */}            <div className="info-section">
+                <div className="section-header" style={{ marginBottom: '20px' }}>
                     <h3>Articles du contrat ({articles.length})</h3>
-
-                    {/* Bouton pour ajouter un nouvel article - repositionné en haut à droite */}
-                    <button
-                        onClick={() => setShowArticleForm(!showArticleForm)}
-                        className="btn"
-                        style={{
-                            backgroundColor: '#007bff',
-                            color: 'white',
-                            border: 'none',
-                            padding: '8px 16px',
-                            borderRadius: '4px',
-                            cursor: 'pointer'
-                        }}
-                    >
-                        {showArticleForm ? '❌ Annuler' : '➕ Ajouter un article'}
-                    </button>
                 </div>
-
-                {/* Formulaire pour créer un nouvel article */}
-                {showArticleForm && (
-                    <div className="article-form" style={{
-                        border: '1px solid #ddd',
-                        borderRadius: '8px',
-                        padding: '20px',
-                        marginBottom: '30px',
-                        backgroundColor: '#f9f9f9'
-                    }}>
-                        <h4 style={{ marginTop: 0 }}>Nouvel article pour le contrat</h4>
-                        <form onSubmit={handleArticleSubmit}>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                    Titre de l'article:
-                                </label>
-                                <input
-                                    type="text"
-                                    name="libelle"
-                                    value={newArticle.libelle}
-                                    onChange={handleArticleInputChange}
-                                    required
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #ddd'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ marginBottom: '15px' }}>
-                                <label style={{ display: 'block', marginBottom: '5px', fontWeight: 'bold' }}>
-                                    Contenu de l'article:
-                                </label>
-                                <textarea
-                                    name="contenu"
-                                    value={newArticle.contenu}
-                                    onChange={handleArticleInputChange}
-                                    required
-                                    rows="10"
-                                    style={{
-                                        width: '100%',
-                                        padding: '8px',
-                                        borderRadius: '4px',
-                                        border: '1px solid #ddd',
-                                        fontFamily: 'inherit'
-                                    }}
-                                />
-                            </div>
-                            <div style={{ textAlign: 'right' }}>
-                                <button
-                                    type="submit"
-                                    disabled={creatingArticle}
-                                    style={{
-                                        backgroundColor: '#28a745',
-                                        color: 'white',
-                                        border: 'none',
-                                        padding: '10px 20px',
-                                        borderRadius: '4px',
-                                        cursor: creatingArticle ? 'not-allowed' : 'pointer',
-                                        opacity: creatingArticle ? 0.7 : 1
-                                    }}
-                                >
-                                    {creatingArticle ? 'Création en cours...' : '💾 Enregistrer l\'article'}
-                                </button>
-                            </div>
-                        </form>
-                    </div>
-                )}
 
                 {/* Liste des articles - toujours affichée */}
                 {articles.length > 0 ? (
@@ -511,13 +472,12 @@ const ContratDeTravailDetail = () => {
                         </p>
                     </div>
                 )}
-            </div>
-
-            {/* Actions et liens */}
+            </div>            {/* Actions et liens */}
             <div className="actions-container">
                 <Link to="/contrats-de-travail" className="back-link">⬅ Retour à la liste</Link>
                 <Link to={`/contrats-de-travail/edit/${id}`} className="edit-link">✏️ Modifier ce contrat</Link>
             </div>
+            </div> {/* Fermeture de la div printable-content */}
         </div>
     );
 };

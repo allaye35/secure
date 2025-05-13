@@ -39,8 +39,7 @@ public class ContratDeTravail {
     @Column(nullable = false, length = 15)
     private TypeContrat typeContrat;
 
-    @PastOrPresent
-    @Column(nullable = false)
+
     private LocalDate dateDebut;
 
     @Column
