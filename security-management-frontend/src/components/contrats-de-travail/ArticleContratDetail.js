@@ -1,9 +1,10 @@
 import React, { useState } from "react";
-import { Button, Badge, Row, Col, Card } from "react-bootstrap"; // Import des composants Bootstrap
+import { Button, Badge, Row, Col, Card, Dropdown, ButtonGroup, OverlayTrigger, Tooltip } from "react-bootstrap"; // Import des composants Bootstrap supplémentaires
 
-const ArticleContratDetail = ({ article }) => {
-    // État pour gérer l'impression
+const ArticleContratDetail = ({ article, onBack }) => {
+    // État pour gérer l'impression et autres actions
     const [isPrinting, setIsPrinting] = useState(false);
+    const [isExporting, setIsExporting] = useState(false);
 
     // Fonction pour formater une date
     const formatDate = (dateString) => {
@@ -20,6 +21,18 @@ const ArticleContratDetail = ({ article }) => {
         }, 300);
     };
 
+    // Fonction pour gérer l'export en PDF
+    const handleExportPDF = () => {
+        setIsExporting(true);
+        // Simuler un délai pour l'export (à remplacer par votre logique réelle d'export PDF)
+        setTimeout(() => {
+            alert("Le document a été exporté en PDF");
+            setIsExporting(false);
+        }, 1000);
+        // Ici vous pouvez implémenter une vraie fonction d'export PDF
+        // avec une bibliothèque comme jsPDF ou html2pdf.js
+    };
+
     return (
         <Card className="article-item shadow" style={{
             borderRadius: '10px',
@@ -32,6 +45,59 @@ const ArticleContratDetail = ({ article }) => {
             width: '100%',
             position: 'relative'
         }}>
+            {/* Navigation et Actions principales en haut */}
+            <div className="d-flex justify-content-between align-items-center bg-light p-3 border-bottom d-print-none">
+                <Button 
+                    variant="outline-secondary" 
+                    className="d-flex align-items-center"
+                    onClick={onBack}
+                >
+                    <i className="bi bi-arrow-left me-2"></i>
+                    Retour à la liste
+                </Button>
+                
+                <ButtonGroup>
+                    <OverlayTrigger
+                        placement="top"
+                        overlay={<Tooltip>Modifier ce contrat</Tooltip>}
+                    >
+                        <Button variant="outline-primary">
+                            <i className="bi bi-pencil-square"></i>
+                            <span className="d-none d-md-inline ms-2">Modifier</span>
+                        </Button>
+                    </OverlayTrigger>
+                    
+                    <Dropdown as={ButtonGroup}>
+                        <Button 
+                            variant="primary" 
+                            onClick={handlePrint}
+                            disabled={isPrinting}
+                        >
+                            <i className="bi bi-printer-fill me-1"></i> Imprimer
+                        </Button>
+                        <Dropdown.Toggle split variant="primary" />
+                        <Dropdown.Menu>
+                            <Dropdown.Item 
+                                onClick={handleExportPDF}
+                                disabled={isExporting}
+                            >
+                                <i className="bi bi-file-earmark-pdf me-2"></i>
+                                {isExporting ? 'Exportation...' : 'Exporter en PDF'}
+                            </Dropdown.Item>
+                            <Dropdown.Item>
+                                <i className="bi bi-file-earmark-word me-2"></i>
+                                Exporter en Word
+                            </Dropdown.Item>
+                            <Dropdown.Divider />
+                            <Dropdown.Item>
+                                <i className="bi bi-envelope me-2"></i>
+                                Envoyer par email
+                            </Dropdown.Item>
+                        </Dropdown.Menu>
+                    </Dropdown>
+                </ButtonGroup>
+            </div>
+
             <Card.Header style={{
                 backgroundColor: '#3498db',
                 padding: '20px 30px',
@@ -43,7 +109,7 @@ const ArticleContratDetail = ({ article }) => {
                 <h4 className="article-title m-0 fw-bold" style={{ fontSize: '1.8rem' }}>
                     {article.libelle || 'Article sans titre'}
                 </h4>
-                <div className="d-none d-print-none">
+                <div className="d-print-none">
                     <Badge bg="light" text="dark" className="me-2">
                         Article #{article.id || '0'}
                     </Badge>
@@ -51,33 +117,6 @@ const ArticleContratDetail = ({ article }) => {
             </Card.Header>
 
             <Card.Body style={{ padding: '30px 40px' }}>
-                {/* Actions buttons - visible only on screen, not when printing */}
-                <div className="mb-4 d-print-none">
-                    <Row className="justify-content-end">
-                        <Col xs="auto">
-                            <Button 
-                                variant="outline-primary" 
-                                className="me-2"
-                                onClick={handlePrint}
-                                disabled={isPrinting}
-                            >
-                                <i className="bi bi-printer"></i> Imprimer
-                            </Button>
-                            <Button 
-                                variant="outline-secondary" 
-                                className="me-2"
-                            >
-                                <i className="bi bi-download"></i> Exporter en PDF
-                            </Button>
-                            <Button 
-                                variant="outline-info"
-                            >
-                                <i className="bi bi-share"></i> Partager
-                            </Button>
-                        </Col>
-                    </Row>
-                </div>
-
                 <div className="article-metadata p-3 mb-4 bg-light rounded" style={{
                     display: 'flex', 
                     flexWrap: 'wrap', 
@@ -117,11 +156,11 @@ const ArticleContratDetail = ({ article }) => {
                     <Col>
                         <div className="d-flex justify-content-between align-items-center">
                             <div>
-                                <Button variant="success" size="sm" className="me-2">
+                                <Button variant="success" className="me-2">
                                     <i className="bi bi-check-circle"></i> Valider
                                 </Button>
-                                <Button variant="warning" size="sm">
-                                    <i className="bi bi-pencil"></i> Modifier
+                                <Button variant="danger">
+                                    <i className="bi bi-x-circle"></i> Rejeter
                                 </Button>
                             </div>
                             <p className="article-relation-info text-muted fst-italic mb-0" style={{ fontSize: '1.1rem' }}>
@@ -131,6 +170,30 @@ const ArticleContratDetail = ({ article }) => {
                     </Col>
                 </Row>
             </Card.Body>
+            
+            {/* Indicateur de chargement pour l'impression/export */}
+            {(isPrinting || isExporting) && (
+                <div style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    bottom: 0,
+                    backgroundColor: 'rgba(255,255,255,0.7)',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    zIndex: 1050,
+                    pointerEvents: 'none'
+                }} className="d-print-none">
+                    <div className="text-center">
+                        <div className="spinner-border text-primary" role="status">
+                            <span className="visually-hidden">Chargement...</span>
+                        </div>
+                        <p className="mt-2">{isPrinting ? 'Préparation de l\'impression...' : 'Génération du PDF...'}</p>
+                    </div>
+                </div>
+            )}
         </Card>
     );
 };

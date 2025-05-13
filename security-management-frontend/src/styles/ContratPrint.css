@@ -1,0 +1,95 @@
+/* Styles pour les articles du contrat */
+.article-card {
+  margin-bottom: 1.5rem;
+}
+
+.article-number {
+  font-weight: 700;
+  color: #007bff;
+}
+
+.article-content {
+  white-space: pre-wrap;
+  line-height: 1.6;
+}
+
+/* Styles pour l'impression */
+.print-container {
+  max-width: 100%;
+}
+
+.print-section {
+  margin-bottom: 2rem;
+}
+
+.print-section h3 {
+  border-bottom: 2px solid #f0f0f0;
+  padding-bottom: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* Styles pour les blocs de signature */
+.signatures {
+  margin-top: 3rem;
+}
+
+.signature-block {
+  width: 45%;
+  padding: 1rem;
+  border: 1px solid #dee2e6;
+  border-radius: 0.25rem;
+}
+
+.signature-title {
+  font-weight: bold;
+  margin-bottom: 0.5rem;
+}
+
+.signature-line {
+  height: 1px;
+  background-color: #000;
+  margin: 4rem 0 1rem;
+}
+
+.signature-info {
+  font-size: 0.875rem;
+  color: #6c757d;
+  text-align: center;
+}
+
+/* Styles pour les blocs d'info */
+.info-box {
+  margin-bottom: 1rem;
+}
+
+.info-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.8);
+  margin-bottom: 0.25rem;
+}
+
+.parties-contractantes {
+  margin: 1.5rem 0;
+}
+
+.partie {
+  background-color: rgba(255, 255, 255, 0.1);
+  padding: 1rem;
+  border-radius: 0.5rem;
+  width: 48%;
+}
+
+/* Styles spécifiques pour l'impression */
+@media print {
+  .contrat-detail-container {
+    padding: 0;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+  
+  .page-break {
+    page-break-before: always;
+  }
+}
