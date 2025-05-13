@@ -1,9 +1,13 @@
 .contrat-form-container {
-    max-width: 700px; margin: 2rem auto;
-    padding: 1.5rem; background: #fff;
-    border-radius: .5rem; box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    max-width: 1200px;
+    margin: 2rem auto;
+    background-color: #fff;
+    border-radius: 0.75rem;
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
     font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
 }
+
 .contrat-form-container h2 { margin-bottom:1rem; color:#004085; }
 .contrat-form-container label {
     display:block; margin:0.75rem 0; font-weight:500;
@@ -24,4 +28,148 @@
 .error {
     color:#c00; background:#fdd; padding:0.5rem 1rem;
     border-radius:0.25rem;
+}
+
+/* Styles pour les onglets */
+.nav-tabs {
+    background-color: #f8f9fa;
+    border-bottom: 1px solid #dee2e6;
+}
+
+.nav-tabs .nav-link {
+    border: none;
+    color: #6c757d;
+    padding: 1rem 1.5rem;
+    font-weight: 500;
+    transition: all 0.2s ease;
+}
+
+.nav-tabs .nav-link.active {
+    color: #0d6efd;
+    background-color: #fff;
+    border-bottom: 2px solid #0d6efd;
+}
+
+.nav-tabs .nav-link:hover:not(.active) {
+    background-color: #f1f3f5;
+}
+
+/* Styles pour les cartes */
+.card.border-0 {
+    transition: all 0.3s ease;
+}
+
+.card .card-header {
+    border-bottom: 0;
+}
+
+.card-body {
+    padding: 1.5rem;
+}
+
+/* Styles pour les champs de formulaire */
+.form-label {
+    font-weight: 500;
+    color: #495057;
+}
+
+.form-control:focus, .form-select:focus {
+    border-color: #80bdff;
+    box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+}
+
+/* Styles pour React Select */
+.react-select-container {
+    margin-bottom: 0.5rem;
+}
+
+.react-select__control {
+    min-height: 38px !important;
+    border-radius: 0.375rem !important;
+}
+
+.react-select__control:hover {
+    border-color: #80bdff !important;
+}
+
+.react-select__multi-value {
+    background-color: #e9ecef !important;
+}
+
+.react-select__multi-value__label {
+    color: #495057 !important;
+}
+
+/* Animations pour les transitions entre onglets */
+.tab-content .tab-pane {
+    animation: fadeIn 0.3s ease;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style pour la prévisualisation des clauses */
+.clauses-preview {
+    max-height: 300px;
+    overflow-y: auto;
+    padding-right: 0.5rem;
+    border-radius: 0.375rem;
+}
+
+/* Boutons */
+.btn {
+    font-weight: 500;
+    letter-spacing: 0.3px;
+    transition: all 0.2s;
+}
+
+.btn-primary {
+    background-color: #0d6efd;
+    border-color: #0d6efd;
+}
+
+.btn-primary:hover {
+    background-color: #0b5ed7;
+    border-color: #0a58ca;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.btn-success {
+    background-color: #198754;
+    border-color: #198754;
+}
+
+.btn-success:hover {
+    background-color: #157347;
+    border-color: #146c43;
+    transform: translateY(-1px);
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+/* Résumé du contrat */
+.bg-light.rounded.border {
+    background-color: #f8f9fa;
+    border-color: #dee2e6 !important;
+}
+
+/* Champs obligatoires */
+.required-field::after {
+    content: "*";
+    color: #dc3545;
+    margin-left: 0.25rem;
+}
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .nav-tabs .nav-link {
+        padding: 0.75rem 1rem;
+        font-size: 0.9rem;
+    }
+    
+    .card-body {
+        padding: 1rem;
+    }
 }

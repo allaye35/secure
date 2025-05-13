@@ -66,15 +66,15 @@ public class AgentDeSecurite {
     @Builder.Default
     private Set<Mission> missions = new HashSet<>();
 
-    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL)
     @Builder.Default
     private List<Disponibilite> disponibilites = new ArrayList<>();
 
-    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL)
     @Builder.Default
     private List<CarteProfessionnelle> cartesProfessionnelles = new ArrayList<>();
 
-    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL)
     @Builder.Default
     private List<DiplomeSSIAP> diplomesSSIAP = new ArrayList<>();
 
@@ -82,11 +82,11 @@ public class AgentDeSecurite {
     @Builder.Default
     private Role role = Role.AGENT_SECURITE;
 
-    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ContratDeTravail> contratsDeTravail = new ArrayList<>();
 
-    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "agentDeSecurite", cascade = CascadeType.ALL)
     @Builder.Default
     private List<GestionnaireNotifications> notifications = new ArrayList<>();
 

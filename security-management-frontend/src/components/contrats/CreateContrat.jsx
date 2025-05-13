@@ -2,29 +2,38 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import ContratService from "../../services/ContratService";
-import DevisService   from "../../services/DevisService";
+import DevisService from "../../services/DevisService";
 import MissionService from "../../services/MissionService";
 import ArticleService from "../../services/ArticleService";
+import { Container, Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { 
+    faFileContract, faSave, faArrowLeft, faCalendarAlt, 
+    faClipboardCheck, faFileInvoice, faTasks, faFilePdf, 
+    faClock, faCheck, faGavel
+} from "@fortawesome/free-solid-svg-icons";
 
 export default function CreateContrat() {
     const navigate = useNavigate();
 
     const [form, setForm] = useState({
-        referenceContrat:   "",
-        dateSignature:      "",
-        dureeMois:          "",
+        referenceContrat: "",
+        dateSignature: "",
+        dureeMois: "",
         taciteReconduction: false,
-        preavisMois:        "",
-        documentPdf:        null,
-        devisId:            "",
-        missionIds:         [],
-        articleIds:         []
+        preavisMois: "",
+        documentPdf: null,
+        devisId: "",
+        missionIds: [],
+        articleIds: []
     });
-    const [devisList,    setDevisList]    = useState([]);
+    const [devisList, setDevisList] = useState([]);
     const [missionsList, setMissionsList] = useState([]);
     const [articlesList, setArticlesList] = useState([]);
-    const [error,        setError]        = useState("");
-    const [loading,      setLoading]      = useState(false);
+    const [error, setError] = useState("");
+    const [loading, setLoading] = useState(false);
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
 
     useEffect(() => {
         // Charger les données nécessaires avec gestion d'erreur
@@ -52,17 +61,18 @@ export default function CreateContrat() {
     }, []);
 
     const handleChange = e => {
-        const { name, type, checked, files, options, value } = e.target;
+        const { name, type, checked, files, value } = e.target;
 
         if (type === "file") {
-            setForm(f => ({ ...f, documentPdf: files[0] }));
+            const file = files[0];
+            setForm(f => ({ ...f, documentPdf: file }));
+            setSelectedFile(file ? file.name : null);
         } else if (type === "checkbox") {
             setForm(f => ({ ...f, [name]: checked }));
-        } else if (type === "select-multiple") {
-            const vals = Array.from(options)
-                .filter(o => o.selected)
-                .map(o => Number(o.value));
-            setForm(f => ({ ...f, [name]: vals }));
+        } else if (name === "missionIds" || name === "articleIds") {
+            // Pour les sélections multiples
+            const selectedOptions = Array.from(e.target.selectedOptions, option => Number(option.value));
+            setForm(f => ({ ...f, [name]: selectedOptions }));
         } else {
             setForm(f => ({ ...f, [name]: value }));
         }
@@ -71,7 +81,7 @@ export default function CreateContrat() {
     const handleSubmit = async e => {
         e.preventDefault();
         setError("");
-        setLoading(true);
+        setIsSubmitting(true);
 
         try {
             // Créer l'objet JSON pour l'envoi
@@ -105,13 +115,13 @@ export default function CreateContrat() {
                     } catch (innerErr) {
                         console.error("Création contrat avec PDF :", innerErr.response || innerErr);
                         setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
-                        setLoading(false);
+                        setIsSubmitting(false);
                     }
                 };
                 
                 fileReader.onerror = () => {
                     setError("Erreur lors de la lecture du fichier PDF.");
-                    setLoading(false);
+                    setIsSubmitting(false);
                 };
             } else {
                 // Sans fichier PDF, envoi direct de l'objet
@@ -121,135 +131,269 @@ export default function CreateContrat() {
         } catch (err) {
             console.error("Création contrat :", err.response || err);
             setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
-            setLoading(false);
+            setIsSubmitting(false);
         }
     };
 
     if (loading && !articlesList.length && !devisList.length) {
-        return <div>Chargement des données...</div>;
+        return (
+            <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-3">Chargement des données...</p>
+                </div>
+            </Container>
+        );
     }
 
     return (
-        <div style={{ padding:20, maxWidth:600, margin:"0 auto" }}>
-            <h2>➕ Créer un contrat</h2>
-            {error && <p style={{ color:"red" }}>{error}</p>}
+        <Container className="py-4">
+            <Card className="shadow-sm">
+                <Card.Header className="bg-primary text-white">
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h2 className="h4 mb-0">
+                            <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                            Créer un nouveau contrat
+                        </h2>
+                        <Button variant="light" onClick={() => navigate("/contrats")}>
+                            <FontAwesomeIcon icon={faArrowLeft} className="me-1" />
+                            Retour
+                        </Button>
+                    </div>
+                </Card.Header>
+                
+                <Card.Body>
+                    {error && (
+                        <Alert variant="danger" className="mb-4">
+                            {error}
+                        </Alert>
+                    )}
 
-            <form onSubmit={handleSubmit} encType="multipart/form-data">
-                {/* Référence */}
-                <label>Référence*<br/>
-                    <input
-                        name="referenceContrat"
-                        value={form.referenceContrat}
-                        onChange={handleChange}
-                        required
-                    />
-                </label><br/>
+                    <Form onSubmit={handleSubmit}>
+                        <Row>
+                            <Col md={6} className="mb-3">
+                                <Form.Group controlId="referenceContrat">
+                                    <Form.Label>Référence du contrat<span className="text-danger">*</span></Form.Label>
+                                    <Form.Control
+                                        type="text"
+                                        name="referenceContrat"
+                                        value={form.referenceContrat}
+                                        onChange={handleChange}
+                                        required
+                                        placeholder="Ex: CONT-2025-001"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            
+                            <Col md={6} className="mb-3">
+                                <Form.Group controlId="dateSignature">
+                                    <Form.Label>
+                                        <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
+                                        Date de signature<span className="text-danger">*</span>
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="date"
+                                        name="dateSignature"
+                                        value={form.dateSignature}
+                                        onChange={handleChange}
+                                        required
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        <Row>
+                            <Col md={6} className="mb-3">
+                                <Form.Group controlId="dureeMois">
+                                    <Form.Label>
+                                        <FontAwesomeIcon icon={faClock} className="me-1" />
+                                        Durée (mois)
+                                    </Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="dureeMois"
+                                        value={form.dureeMois}
+                                        onChange={handleChange}
+                                        placeholder="Ex: 12"
+                                        min="0"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            
+                            <Col md={6} className="mb-3">
+                                <Form.Group controlId="devisId">
+                                    <Form.Label>
+                                        <FontAwesomeIcon icon={faFileInvoice} className="me-1" />
+                                        Devis associé<span className="text-danger">*</span>
+                                    </Form.Label>
+                                    <Form.Select
+                                        name="devisId"
+                                        value={form.devisId}
+                                        onChange={handleChange}
+                                        required
+                                    >
+                                        <option value="">— Sélectionner un devis —</option>
+                                        {devisList.map(d => (
+                                            <option key={d.id} value={d.id}>
+                                                {d.referenceDevis} ({new Date(d.dateDevis).toLocaleDateString()})
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-                {/* Date de signature */}
-                <label>Date de signature*<br/>
-                    <input
-                        name="dateSignature"
-                        type="date"
-                        value={form.dateSignature}
-                        onChange={handleChange}
-                        required
-                    />
-                </label><br/>
+                        <Row>
+                            <Col md={6} className="mb-3">
+                                <Form.Group controlId="preavisMois">
+                                    <Form.Label>Préavis (mois)</Form.Label>
+                                    <Form.Control
+                                        type="number"
+                                        name="preavisMois"
+                                        value={form.preavisMois}
+                                        onChange={handleChange}
+                                        placeholder="Ex: 3"
+                                        min="0"
+                                    />
+                                </Form.Group>
+                            </Col>
+                            
+                            <Col md={6} className="mb-3">
+                                <Form.Group className="mt-4">
+                                    <Form.Check
+                                        type="switch"
+                                        id="taciteReconduction"
+                                        name="taciteReconduction"
+                                        label={
+                                            <span>
+                                                <FontAwesomeIcon icon={faCheck} className="me-1" />
+                                                Tacite reconduction
+                                            </span>
+                                        }
+                                        checked={form.taciteReconduction}
+                                        onChange={handleChange}
+                                    />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        <Row className="mb-4">
+                            <Col md={12}>
+                                <Form.Group controlId="documentPdf">
+                                    <Form.Label>
+                                        <FontAwesomeIcon icon={faFilePdf} className="me-1" />
+                                        Document PDF signé
+                                    </Form.Label>
+                                    <InputGroup>
+                                        <Form.Control
+                                            type="file"
+                                            name="documentPdf"
+                                            accept="application/pdf"
+                                            onChange={handleChange}
+                                            className="form-control-file"
+                                        />
+                                    </InputGroup>
+                                    {selectedFile && (
+                                        <small className="text-muted d-block mt-1">
+                                            Fichier sélectionné: {selectedFile}
+                                        </small>
+                                    )}
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        <h5 className="mb-3 mt-4">
+                            <FontAwesomeIcon icon={faTasks} className="me-2" />
+                            Missions liées au contrat
+                        </h5>
+                        <Row className="mb-4">
+                            <Col>
+                                <Form.Group controlId="missionIds">
+                                    <Form.Select 
+                                        multiple 
+                                        name="missionIds" 
+                                        value={form.missionIds.map(String)}
+                                        onChange={handleChange}
+                                        className="form-control form-control-sm"
+                                        style={{ height: "120px" }}
+                                    >
+                                        {missionsList.map(m => (
+                                            <option key={m.id} value={m.id}>
+                                                {m.titreMission || m.titre || m.libelle || `Mission #${m.id}`} — {m.dateDebutMission ? new Date(m.dateDebutMission).toLocaleDateString() : 'N/A'}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                    <Form.Text className="text-muted">
+                                        Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs missions
+                                    </Form.Text>
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        <h5 className="mb-3">
+                            <FontAwesomeIcon icon={faGavel} className="me-2" />
+                            Articles juridiques applicables
+                        </h5>
+                        <Row className="mb-4">
+                            <Col>
+                                <Form.Group controlId="articleIds">
+                                    <Form.Select 
+                                        multiple 
+                                        name="articleIds" 
+                                        value={form.articleIds.map(String)}
+                                        onChange={handleChange}
+                                        className="form-control form-control-sm"
+                                        style={{ height: "120px" }}
+                                    >
+                                        {articlesList.map(a => (
+                                            <option key={a.id} value={a.id}>
+                                                {a.titre || a.libelle || `Article #${a.id}`}
+                                            </option>
+                                        ))}
+                                    </Form.Select>
+                                    <Form.Text className="text-muted">
+                                        Maintenez Ctrl (ou Cmd) pour sélectionner plusieurs articles
+                                    </Form.Text>
+                                </Form.Group>
+                            </Col>
+                        </Row>
 
-                {/* Durée */}
-                <label>Durée (mois)<br/>
-                    <input
-                        name="dureeMois"
-                        type="number"
-                        value={form.dureeMois}
-                        onChange={handleChange}
-                    />
-                </label><br/>
-
-                {/* Tacite reconduction */}
-                <label>
-                    Tacite reconduction&nbsp;
-                    <input
-                        name="taciteReconduction"
-                        type="checkbox"
-                        checked={form.taciteReconduction}
-                        onChange={handleChange}
-                    />
-                </label><br/>
-
-                {/* Préavis */}
-                <label>Préavis (mois)<br/>
-                    <input
-                        name="preavisMois"
-                        type="number"
-                        value={form.preavisMois}
-                        onChange={handleChange}
-                    />
-                </label><br/>
-
-                {/* PDF signé */}
-                <label>Document PDF signé<br/>
-                    <input
-                        name="documentPdf"
-                        type="file"
-                        accept="application/pdf"
-                        onChange={handleChange}
-                    />
-                </label><br/>
-
-                {/* Devis */}
-                <label>Devis*<br/>
-                    <select
-                        name="devisId"
-                        value={form.devisId}
-                        onChange={handleChange}
-                        required
-                    >
-                        <option value="">— Sélectionner —</option>
-                        {devisList.map(d => (
-                            <option key={d.id} value={d.id}>
-                                {d.referenceDevis} ({d.dateDevis})
-                            </option>
-                        ))}
-                    </select>
-                </label><br/>
-
-                {/* Missions liées */}
-                <label>Missions liées<br/>
-                    <select
-                        name="missionIds"
-                        multiple size={5}
-                        value={form.missionIds}
-                        onChange={handleChange}
-                    >
-                        {missionsList.map(m => (
-                            <option key={m.id} value={m.id}>
-                                {m.titreMission || m.titre || m.libelle || `Mission #${m.id}`} — {m.dateDebutMission || m.dateDebut || 'N/A'}
-                            </option>
-                        ))}
-                    </select>
-                </label><br/>
-
-                {/* Articles juridiques */}
-                <label>Articles juridiques<br/>
-                    <select
-                        name="articleIds"
-                        multiple size={5}
-                        value={form.articleIds}
-                        onChange={handleChange}
-                    >
-                        {articlesList.map(a => (
-                            <option key={a.id} value={a.id}>
-                                {a.titre || a.libelle || `Article #${a.id}`}
-                            </option>
-                        ))}
-                    </select>
-                </label><br/>
-
-                <button type="submit" style={{ marginTop:16 }} disabled={loading}>
-                    {loading ? "Enregistrement..." : "Enregistrer"}
-                </button>
-            </form>
-        </div>
+                        <div className="d-flex justify-content-end mt-4">
+                            <Button 
+                                variant="secondary" 
+                                className="me-2"
+                                onClick={() => navigate("/contrats")}
+                            >
+                                Annuler
+                            </Button>
+                            <Button 
+                                type="submit" 
+                                variant="primary" 
+                                disabled={isSubmitting}
+                            >
+                                {isSubmitting ? (
+                                    <>
+                                        <Spinner
+                                            as="span"
+                                            animation="border"
+                                            size="sm"
+                                            role="status"
+                                            aria-hidden="true"
+                                            className="me-2"
+                                        />
+                                        Enregistrement...
+                                    </>
+                                ) : (
+                                    <>
+                                        <FontAwesomeIcon icon={faSave} className="me-2" />
+                                        Enregistrer
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </Form>
+                </Card.Body>
+            </Card>
+        </Container>
     );
 }

@@ -1,6 +1,7 @@
 // src/components/contrats-de-travail/ContratDeTravailCreate.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { Container, Spinner, Alert } from "react-bootstrap";
 import ContratDeTravailService, { MetaService } from "../../services/ContratDeTravailService";
 import ContratDeTravailForm from "./ContratDeTravailForm";
 
@@ -13,11 +14,13 @@ export default function ContratDeTravailCreate() {
         dateFin: "",
         description: "",
         salaireDeBase: "",
-        periodiciteSalaire: "MENSUEL", // Correction de "Mensuelle" à "MENSUEL" pour correspondre à l'enum du backend
+        periodiciteSalaire: "MENSUEL",
         agentDeSecuriteId: "",
         entrepriseId: "",
         missionId: "",
         clauseIds: [],
+        articleIds: [],
+        ficheDePaieIds: [],
         documentPdf: null
     });
     const [meta, setMeta] = useState({
@@ -28,6 +31,7 @@ export default function ContratDeTravailCreate() {
     });
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [initialLoadComplete, setInitialLoadComplete] = useState(false);
 
     useEffect(() => {
         setIsLoading(true);
@@ -48,14 +52,14 @@ export default function ContratDeTravailCreate() {
                 clauses: Array.isArray(clausesResponse.data) ? clausesResponse.data : []
             });
             setIsLoading(false);
+            setInitialLoadComplete(true);
         }).catch(err => {
             console.error("Erreur lors du chargement des données:", err);
             setError("Erreur lors du chargement des données: " + (err.message || "Erreur inconnue"));
             setIsLoading(false);
+            setInitialLoadComplete(true);
         });
-    }, []);
-
-    const handleSubmit = async e => {
+    }, []);    const handleSubmit = async e => {
         e.preventDefault();
         setError(null);
         setIsLoading(true);
@@ -63,43 +67,100 @@ export default function ContratDeTravailCreate() {
         try {
             console.log("Données du formulaire à envoyer:", data);
             
-            // Créer un objet JSON plutôt que FormData
+            // Vérifier si la référence existe déjà
+            try {
+                const checkResponse = await ContratDeTravailService.checkReferenceExists(data.referenceContrat);
+                if (checkResponse.data && checkResponse.data.exists === true) {
+                    setError(`La référence de contrat "${data.referenceContrat}" existe déjà. Veuillez en choisir une autre.`);
+                    setIsLoading(false);
+                    return;
+                }
+            } catch (checkError) {
+                console.log("Erreur lors de la vérification de référence:", checkError);
+                // Continue même si la vérification échoue
+            }
+              // Préparation des données à envoyer au serveur
+            const today = new Date();
+            const currentDateStr = today.toISOString().split('T')[0];
+            
             const jsonData = {
                 referenceContrat: data.referenceContrat,
                 typeContrat: data.typeContrat,
-                dateDebut: data.dateDebut,
-                dateFin: data.dateFin,
+                // Utiliser la date du jour pour satisfaire la validation côté backend
+                dateDebut: currentDateStr,
+                dateFin: data.typeContrat === "CDI" ? null : data.dateFin,
                 description: data.description,
-                // Assurer que la valeur est un nombre avec 2 décimales maximum
-                salaireDeBase: Number(parseFloat(data.salaireDeBase).toFixed(2)),
+                salaireDeBase: Number(parseFloat(data.salaireDeBase || 0).toFixed(2)),
                 periodiciteSalaire: data.periodiciteSalaire,
                 agentDeSecuriteId: parseInt(data.agentDeSecuriteId) || null,
                 entrepriseId: parseInt(data.entrepriseId) || null,
                 missionId: parseInt(data.missionId) || null
             };
 
-            // Ajouter clauseIds uniquement s'il y en a
+            // Ajouter les IDs des clauses si sélectionnées
             if (data.clauseIds && data.clauseIds.length > 0) {
                 jsonData.clauseIds = data.clauseIds.map(id => parseInt(id));
+            }
+            
+            // Ajouter les IDs des articles si sélectionnés
+            if (data.articleIds && data.articleIds.length > 0) {
+                jsonData.articleIds = data.articleIds.map(id => parseInt(id));
+            }
+            
+            // Ajouter les IDs des fiches de paie si sélectionnées
+            if (data.ficheDePaieIds && data.ficheDePaieIds.length > 0) {
+                jsonData.ficheDePaieIds = data.ficheDePaieIds.map(id => parseInt(id));
             }
 
             console.log("Données JSON à envoyer:", jsonData);
             
-            // Envoi de l'objet JSON au lieu du FormData
+            // Créer le contrat
             const response = await ContratDeTravailService.create(jsonData);
             console.log("Réponse de création:", response);
-            navigate("/contrats-de-travail");
-        } catch (err) {
+            
+            // Si un fichier PDF est présent, l'envoyer séparément
+            if (data.documentPdf) {
+                const formData = new FormData();
+                formData.append('file', data.documentPdf);
+                
+                await ContratDeTravailService.uploadContratDocument(response.data.id, formData);
+                console.log("Document PDF uploadé avec succès");
+            }
+            
+            navigate("/contrats-de-travail");        } catch (err) {
             console.error("Erreur lors de la création:", err);
-            const errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
+            let errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
+            
+            // Vérifier si c'est une erreur de duplication
+            if (errorMessage.includes("Duplicate entry") && errorMessage.includes("referenceContrat")) {
+                errorMessage = `La référence de contrat "${data.referenceContrat}" existe déjà. Veuillez en choisir une autre.`;
+            }
+            
             setError(`Échec de la création: ${errorMessage}`);
         } finally {
             setIsLoading(false);
         }
     };
 
-    if (isLoading && !meta.missions.length) {
-        return <div style={{textAlign: 'center', padding: '20px'}}>Chargement des données...</div>;
+    if (!initialLoadComplete) {
+        return (
+            <Container className="d-flex justify-content-center align-items-center py-5">
+                <div className="text-center">
+                    <Spinner animation="border" variant="primary" />
+                    <p className="mt-3">Chargement des données nécessaires...</p>
+                </div>
+            </Container>
+        );
+    }
+
+    if (error && !meta.missions.length) {
+        return (
+            <Container className="py-5">
+                <Alert variant="danger">
+                    {error}
+                </Alert>
+            </Container>
+        );
     }
 
     return (

@@ -11,6 +11,12 @@ const ContratDeTravailService = {
     prolonger: (id, date) =>
         axios.patch(`${BASE}/${id}/prolonger`, null, { params: { nouvelleDateFin: date } }),
     getByAgent: agentId => axios.get(`${BASE}/agent/${agentId}`),
+    uploadContratDocument: (id, formData) => 
+        axios.post(`${BASE}/${id}/upload-document`, formData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+        }),
+    checkReferenceExists: (reference) => 
+        axios.get(`${BASE}/check-reference/${reference}`),
 };
 
 export const MetaService = {
