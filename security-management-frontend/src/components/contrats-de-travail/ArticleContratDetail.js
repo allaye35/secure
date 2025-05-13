@@ -1,94 +1,137 @@
-import React from "react";
+import React, { useState } from "react";
+import { Button, Badge, Row, Col, Card } from "react-bootstrap"; // Import des composants Bootstrap
 
 const ArticleContratDetail = ({ article }) => {
+    // État pour gérer l'impression
+    const [isPrinting, setIsPrinting] = useState(false);
+
     // Fonction pour formater une date
     const formatDate = (dateString) => {
         if (!dateString) return "–";
         return new Date(dateString).toLocaleString();
     };
 
+    // Fonction pour gérer l'impression
+    const handlePrint = () => {
+        setIsPrinting(true);
+        setTimeout(() => {
+            window.print();
+            setIsPrinting(false);
+        }, 300);
+    };
+
     return (
-        <div className="article-item" style={{
-            border: '1px solid #e2e8f0',
+        <Card className="article-item shadow" style={{
             borderRadius: '10px',
             margin: '15px auto 25px',
             padding: '0',
             backgroundColor: '#fff',
-            boxShadow: '0 4px 6px rgba(0,0,0,0.05)',
             overflow: 'hidden',
             maxWidth: '800px',           // Largeur approximative A4
             minHeight: '1123px',         // Hauteur approximative A4 (297mm)
             width: '100%',
             position: 'relative'
         }}>
-            <div className="article-header" style={{
+            <Card.Header style={{
                 backgroundColor: '#3498db',
-                padding: '20px 30px',    // Padding augmenté
-                color: 'white'
+                padding: '20px 30px',
+                color: 'white',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
             }}>
-                <h4 className="article-title" style={{
-                    fontWeight: '700',   // Plus en gras
-                    margin: '0',
-                    fontSize: '1.8rem'   // Titre plus grand
-                }}>
+                <h4 className="article-title m-0 fw-bold" style={{ fontSize: '1.8rem' }}>
                     {article.libelle || 'Article sans titre'}
                 </h4>
-            </div>
+                <div className="d-none d-print-none">
+                    <Badge bg="light" text="dark" className="me-2">
+                        Article #{article.id || '0'}
+                    </Badge>
+                </div>
+            </Card.Header>
 
-            {/* Affichage détaillé de l'article (toujours visible) */}
-            <div className="article-content" style={{
-                padding: '30px 40px',    // Padding augmenté pour ressembler à une page A4
-                backgroundColor: '#fff'
-            }}>
-                <div className="article-metadata" style={{
+            <Card.Body style={{ padding: '30px 40px' }}>
+                {/* Actions buttons - visible only on screen, not when printing */}
+                <div className="mb-4 d-print-none">
+                    <Row className="justify-content-end">
+                        <Col xs="auto">
+                            <Button 
+                                variant="outline-primary" 
+                                className="me-2"
+                                onClick={handlePrint}
+                                disabled={isPrinting}
+                            >
+                                <i className="bi bi-printer"></i> Imprimer
+                            </Button>
+                            <Button 
+                                variant="outline-secondary" 
+                                className="me-2"
+                            >
+                                <i className="bi bi-download"></i> Exporter en PDF
+                            </Button>
+                            <Button 
+                                variant="outline-info"
+                            >
+                                <i className="bi bi-share"></i> Partager
+                            </Button>
+                        </Col>
+                    </Row>
+                </div>
+
+                <div className="article-metadata p-3 mb-4 bg-light rounded" style={{
                     display: 'flex', 
                     flexWrap: 'wrap', 
-                    gap: '40px',         // Plus d'espacement
-                    marginBottom: '30px',
-                    background: '#f8fafc',
-                    padding: '20px',
-                    borderRadius: '8px'  // Bordures plus arrondies
+                    gap: '40px'
                 }}>
-                    {article.createdAt && <p style={{margin: '0', fontSize: '1.2rem'}}><strong>Créé le :</strong> {formatDate(article.createdAt)}</p>}
-                    {article.updatedAt && <p style={{margin: '0', fontSize: '1.2rem'}}><strong>Mis à jour le :</strong> {formatDate(article.updatedAt)}</p>}
+                    {article.createdAt && (
+                        <div>
+                            <Badge bg="secondary" className="me-2">Créé le</Badge>
+                            <span style={{ fontSize: '1.2rem' }}>{formatDate(article.createdAt)}</span>
+                        </div>
+                    )}
+                    {article.updatedAt && (
+                        <div>
+                            <Badge bg="info" className="me-2">Mis à jour le</Badge>
+                            <span style={{ fontSize: '1.2rem' }}>{formatDate(article.updatedAt)}</span>
+                        </div>
+                    )}
                 </div>
 
-                <div className="article-text" style={{
-                    whiteSpace: 'pre-wrap',
-                    padding: '30px',     // Padding augmenté
-                    border: '1px solid #e2e8f0',
-                    borderRadius: '8px',
-                    backgroundColor: '#fff',
-                    marginBottom: '30px',
-                    fontFamily: "'Times New Roman', serif", // Police plus formelle pour un contrat
-                    lineHeight: '1.8',
-                    fontSize: '1.25rem', // Taille de texte augmentée 
-                    boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
-                }}>
-                    <h5 style={{marginTop: 0, color: '#2c3e50', fontWeight: '600', marginBottom: '20px', fontSize: '1.4rem', borderBottom: '1px solid #eaeaea', paddingBottom: '10px'}}>
-                        Contenu de l'article :
-                    </h5>
-                    {article.contenu || 'Aucun contenu disponible.'}
-                </div>
-
-                <div className="article-meta" style={{
-                    textAlign: 'right',
-                    position: 'relative',
-                    marginTop: '40px',
-                    paddingTop: '20px',
-                    borderTop: '1px solid #eaeaea'
-                }}>
-                    <p className="article-relation-info" style={{
-                        fontSize: '1.1rem',
-                        color: '#718096',
-                        fontStyle: 'italic',
-                        marginBottom: '0'
+                <Card className="article-text mb-4">
+                    <Card.Header className="bg-light">
+                        <h5 className="m-0 fw-bold" style={{ fontSize: '1.4rem', color: '#2c3e50' }}>
+                            Contenu de l'article
+                        </h5>
+                    </Card.Header>
+                    <Card.Body style={{
+                        whiteSpace: 'pre-wrap',
+                        fontFamily: "'Times New Roman', serif", 
+                        lineHeight: '1.8',
+                        fontSize: '1.25rem'
                     }}>
-                        Article du contrat de travail
-                    </p>
-                </div>
-            </div>
-        </div>
+                        {article.contenu || 'Aucun contenu disponible.'}
+                    </Card.Body>
+                </Card>
+
+                <Row className="mt-5 pt-3 border-top">
+                    <Col>
+                        <div className="d-flex justify-content-between align-items-center">
+                            <div>
+                                <Button variant="success" size="sm" className="me-2">
+                                    <i className="bi bi-check-circle"></i> Valider
+                                </Button>
+                                <Button variant="warning" size="sm">
+                                    <i className="bi bi-pencil"></i> Modifier
+                                </Button>
+                            </div>
+                            <p className="article-relation-info text-muted fst-italic mb-0" style={{ fontSize: '1.1rem' }}>
+                                Article du contrat de travail
+                            </p>
+                        </div>
+                    </Col>
+                </Row>
+            </Card.Body>
+        </Card>
     );
 };
 
