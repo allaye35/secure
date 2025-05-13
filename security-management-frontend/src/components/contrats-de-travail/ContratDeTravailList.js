@@ -1,68 +1,422 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
-import ContratDeTravailService from "../../services/ContratDeTravailService";
-import "../../styles/AgentList.css"; // ou un CSS dédié
+import ContratDeTravailService, { MetaService } from "../../services/ContratDeTravailService";
+import { Container, Row, Col, Form, Table, Card, Button, InputGroup, Badge, Spinner } from "react-bootstrap";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import { faSearch, faFilter, faPlus, faEye, faPencilAlt, faTrash, faFileContract } from "@fortawesome/free-solid-svg-icons";
 
 const ContratDeTravailList = () => {
-    const [list, setList] = useState([]);
+    const [contrats, setContrats] = useState([]);
+    const [filteredContrats, setFilteredContrats] = useState([]);
+    const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [agents, setAgents] = useState([]);
+    const [entreprises, setEntreprises] = useState([]);
+    
+    // États des filtres
+    const [searchTerm, setSearchTerm] = useState("");
+    const [filters, setFilters] = useState({
+        typeContrat: "",
+        entrepriseId: "",
+        agentId: "",
+        dateDebut: "",
+        dateFin: "",
+        actif: ""
+    });
+    const [showFilters, setShowFilters] = useState(false);
 
     useEffect(() => {
-        console.log("Loading contracts...");
-        ContratDeTravailService.getAll()
-            .then(res => setList(res.data))
-            .catch(() => setError("Impossible de charger les contrats de travail."));
+        const fetchData = async () => {
+            try {
+                setLoading(true);
+                const [contratsRes, agentsRes, entreprisesRes] = await Promise.all([
+                    ContratDeTravailService.getAll(),
+                    MetaService.getAgents(),
+                    MetaService.getEntreprises()
+                ]);
+                
+                setContrats(contratsRes.data);
+                setFilteredContrats(contratsRes.data);
+                setAgents(agentsRes.data);
+                setEntreprises(entreprisesRes.data);
+                setLoading(false);
+            } catch (err) {
+                console.error("Erreur lors du chargement des données:", err);
+                setError("Impossible de charger les données. Veuillez réessayer plus tard.");
+                setLoading(false);
+            }
+        };
+        
+        fetchData();
     }, []);
 
-    if (error) return <p className="error">{error}</p>;
+    useEffect(() => {
+        // Appliquer les filtres à chaque changement de filtre ou de terme de recherche
+        applyFilters();
+    }, [searchTerm, filters]);
+
+    const applyFilters = () => {
+        let results = [...contrats];
+        
+        // Filtrage par terme de recherche (référence ou infos générales)
+        if (searchTerm.trim() !== "") {
+            const term = searchTerm.toLowerCase();
+            results = results.filter(contrat => 
+                contrat.referenceContrat?.toLowerCase().includes(term) ||
+                contrat.typeContrat?.toLowerCase().includes(term)
+            );
+        }
+        
+        // Filtre par type de contrat
+        if (filters.typeContrat) {
+            results = results.filter(contrat => contrat.typeContrat === filters.typeContrat);
+        }
+        
+        // Filtre par entreprise
+        if (filters.entrepriseId) {
+            results = results.filter(contrat => contrat.entrepriseId === Number(filters.entrepriseId));
+        }
+        
+        // Filtre par agent
+        if (filters.agentId) {
+            results = results.filter(contrat => contrat.agentDeSecuriteId === Number(filters.agentId));
+        }
+        
+        // Filtre par date de début
+        if (filters.dateDebut) {
+            results = results.filter(contrat => new Date(contrat.dateDebut) >= new Date(filters.dateDebut));
+        }
+        
+        // Filtre par date de fin
+        if (filters.dateFin) {
+            results = results.filter(contrat => 
+                contrat.dateFin ? new Date(contrat.dateFin) <= new Date(filters.dateFin) : true
+            );
+        }
+        
+        // Filtre par contrat actif ou non
+        if (filters.actif === "actif") {
+            const today = new Date();
+            results = results.filter(contrat => 
+                new Date(contrat.dateDebut) <= today && 
+                (!contrat.dateFin || new Date(contrat.dateFin) >= today)
+            );
+        } else if (filters.actif === "expire") {
+            const today = new Date();
+            results = results.filter(contrat => 
+                contrat.dateFin && new Date(contrat.dateFin) < today
+            );
+        } else if (filters.actif === "futur") {
+            const today = new Date();
+            results = results.filter(contrat => new Date(contrat.dateDebut) > today);
+        }
+        
+        setFilteredContrats(results);
+    };
+
+    const handleFilterChange = (e) => {
+        const { name, value } = e.target;
+        setFilters(prev => ({
+            ...prev,
+            [name]: value
+        }));
+    };
+
+    const resetFilters = () => {
+        setFilters({
+            typeContrat: "",
+            entrepriseId: "",
+            agentId: "",
+            dateDebut: "",
+            dateFin: "",
+            actif: ""
+        });
+        setSearchTerm("");
+        setFilteredContrats(contrats);
+    };
+
+    const handleDelete = (id) => {
+        if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contrat ? Cette action est irréversible.")) {
+            ContratDeTravailService.delete(id)
+                .then(() => {
+                    const updatedContrats = contrats.filter(c => c.id !== id);
+                    setContrats(updatedContrats);
+                    setFilteredContrats(filteredContrats.filter(c => c.id !== id));
+                })
+                .catch(err => {
+                    console.error("Erreur lors de la suppression:", err);
+                    setError("Impossible de supprimer le contrat. Veuillez réessayer.");
+                });
+        }
+    };
+
+    const getContratStatus = (contrat) => {
+        const today = new Date();
+        const dateDebut = new Date(contrat.dateDebut);
+        const dateFin = contrat.dateFin ? new Date(contrat.dateFin) : null;
+        
+        if (dateDebut > today) {
+            return <Badge bg="warning">À venir</Badge>;
+        } else if (!dateFin || dateFin >= today) {
+            return <Badge bg="success">Actif</Badge>;
+        } else {
+            return <Badge bg="secondary">Expiré</Badge>;
+        }
+    };
+    
+    const formatDate = (dateString) => {
+        if (!dateString) return "–";
+        const date = new Date(dateString);
+        return date.toLocaleDateString();
+    };
+    
+    const getAgentName = (id) => {
+        const agent = agents.find(a => a.id === id);
+        return agent ? `${agent.prenom} ${agent.nom}` : id;
+    };
+    
+    const getEntrepriseName = (id) => {
+        const entreprise = entreprises.find(e => e.id === id);
+        return entreprise ? entreprise.nom : id;
+    };
+
+    if (error) return (
+        <Container className="mt-4">
+            <div className="alert alert-danger">
+                <i className="bi bi-exclamation-triangle me-2"></i>
+                {error}
+            </div>
+        </Container>
+    );
 
     return (
-        <div className="agent-list-container">
-            <div className="controls">
-                <h2>Contrats de travail</h2>
-                <Link to="/contrats-de-travail/create" className="btn add-btn">➕ Nouveau contrat</Link>
-            </div>
-            <div className="table-wrapper">
-                <table className="agent-table">
-                    <thead>
-                    <tr>
-                        <th>#</th><th>Réf.</th><th>Type</th><th>Début</th>
-                        <th>Fin</th><th>Salaire</th><th>Agent</th><th>Entreprise</th>
-                        <th>Actions</th>
-                    </tr>
-                    </thead>
-                    <tbody>
-                    {list.map((c,i)=>(
-                        <tr key={c.id}>
-                            <td>{i+1}</td>
-                            <td>{c.referenceContrat}</td>
-                            <td>{c.typeContrat}</td>
-                            <td>{c.dateDebut}</td>
-                            <td>{c.dateFin||"–"}</td>
-                            <td>{c.salaireDeBase}</td>
-                            <td>{c.agentDeSecuriteId}</td>
-                            <td>{c.entrepriseId}</td>
-                            <td className="actions">
-                                <Link to={`/contrats-de-travail/${c.id}`} className="btn view">Voir</Link>
-                                <Link to={`/contrats-de-travail/edit/${c.id}`} className="btn edit">Modifier</Link>
-                                <button
-                                    className="btn delete"
-                                    onClick={()=>{
-                                        if(window.confirm("Supprimer ce contrat ?"))
-                                            ContratDeTravailService.delete(c.id)
-                                                .then(()=>setList(list.filter(x=>x.id!==c.id)));
-                                    }}
-                                >Supprimer</button>
-                            </td>
-                        </tr>
-                    ))}
-                    {list.length===0 && (
-                        <tr><td colSpan="9" className="no-data">Aucun contrat trouvé.</td></tr>
+        <Container fluid className="mt-4">
+            <Card className="shadow-sm">
+                <Card.Header className="bg-primary text-white">
+                    <Row className="align-items-center">
+                        <Col>
+                            <h2 className="h4 mb-0">
+                                <FontAwesomeIcon icon={faFileContract} className="me-2" />
+                                Contrats de travail
+                            </h2>
+                        </Col>
+                        <Col xs="auto">
+                            <Link to="/contrats-de-travail/create" className="btn btn-light">
+                                <FontAwesomeIcon icon={faPlus} className="me-2" />
+                                Nouveau contrat
+                            </Link>
+                        </Col>
+                    </Row>
+                </Card.Header>
+                <Card.Body>
+                    <Row className="mb-3">
+                        <Col md={6} lg={4}>
+                            <InputGroup>
+                                <Form.Control
+                                    placeholder="Rechercher un contrat..."
+                                    value={searchTerm}
+                                    onChange={(e) => setSearchTerm(e.target.value)}
+                                />
+                                <Button variant="outline-secondary">
+                                    <FontAwesomeIcon icon={faSearch} />
+                                </Button>
+                            </InputGroup>
+                        </Col>
+                        <Col>
+                            <Button 
+                                variant="outline-secondary" 
+                                onClick={() => setShowFilters(!showFilters)}
+                                className="ms-2"
+                            >
+                                <FontAwesomeIcon icon={faFilter} className="me-2" />
+                                {showFilters ? "Masquer les filtres" : "Afficher les filtres"}
+                            </Button>
+                            {showFilters && (
+                                <Button 
+                                    variant="outline-danger" 
+                                    onClick={resetFilters}
+                                    className="ms-2"
+                                    size="sm"
+                                >
+                                    Réinitialiser les filtres
+                                </Button>
+                            )}
+                        </Col>
+                    </Row>
+                    
+                    {showFilters && (
+                        <Card className="mb-4 border bg-light">
+                            <Card.Body>
+                                <Row>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Type de contrat</Form.Label>
+                                            <Form.Select 
+                                                name="typeContrat"
+                                                value={filters.typeContrat}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">Tous</option>
+                                                <option value="CDI">CDI</option>
+                                                <option value="CDD">CDD</option>
+                                                <option value="Intérim">Intérim</option>
+                                                <option value="Stage">Stage</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Agent</Form.Label>
+                                            <Form.Select
+                                                name="agentId"
+                                                value={filters.agentId}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">Tous</option>
+                                                {agents.map(agent => (
+                                                    <option key={agent.id} value={agent.id}>
+                                                        {agent.prenom} {agent.nom}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Entreprise</Form.Label>
+                                            <Form.Select
+                                                name="entrepriseId"
+                                                value={filters.entrepriseId}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">Toutes</option>
+                                                {entreprises.map(entreprise => (
+                                                    <option key={entreprise.id} value={entreprise.id}>
+                                                        {entreprise.nom}
+                                                    </option>
+                                                ))}
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Statut</Form.Label>
+                                            <Form.Select
+                                                name="actif"
+                                                value={filters.actif}
+                                                onChange={handleFilterChange}
+                                            >
+                                                <option value="">Tous</option>
+                                                <option value="actif">Actifs</option>
+                                                <option value="expire">Expirés</option>
+                                                <option value="futur">À venir</option>
+                                            </Form.Select>
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                                <Row>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Date début (à partir de)</Form.Label>
+                                            <Form.Control
+                                                type="date"
+                                                name="dateDebut"
+                                                value={filters.dateDebut}
+                                                onChange={handleFilterChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                    <Col md={4} lg={3} className="mb-3">
+                                        <Form.Group>
+                                            <Form.Label>Date fin (jusqu'à)</Form.Label>
+                                            <Form.Control
+                                                type="date"
+                                                name="dateFin"
+                                                value={filters.dateFin}
+                                                onChange={handleFilterChange}
+                                            />
+                                        </Form.Group>
+                                    </Col>
+                                </Row>
+                            </Card.Body>
+                        </Card>
                     )}
-                    </tbody>
-                </table>
-            </div>
-        </div>
+                    
+                    {loading ? (
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" />
+                            <p className="mt-2">Chargement des contrats...</p>
+                        </div>
+                    ) : (
+                        <>
+                            <div className="table-responsive">
+                                <Table hover striped className="align-middle">
+                                    <thead className="table-light">
+                                        <tr>
+                                            <th>#</th>
+                                            <th>Référence</th>
+                                            <th>Type</th>
+                                            <th>Agent</th>
+                                            <th>Entreprise</th>
+                                            <th>Début</th>
+                                            <th>Fin</th>
+                                            <th>Salaire (€)</th>
+                                            <th>Statut</th>
+                                            <th>Actions</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        {filteredContrats.map((c, i) => (
+                                            <tr key={c.id}>
+                                                <td>{i + 1}</td>
+                                                <td>{c.referenceContrat}</td>
+                                                <td>{c.typeContrat}</td>
+                                                <td>{getAgentName(c.agentDeSecuriteId)}</td>
+                                                <td>{getEntrepriseName(c.entrepriseId)}</td>
+                                                <td>{formatDate(c.dateDebut)}</td>
+                                                <td>{formatDate(c.dateFin)}</td>
+                                                <td>{c.salaireDeBase} €</td>
+                                                <td>{getContratStatus(c)}</td>
+                                                <td>
+                                                    <div className="d-flex gap-2">
+                                                        <Link to={`/contrats-de-travail/${c.id}`} className="btn btn-sm btn-info text-white">
+                                                            <FontAwesomeIcon icon={faEye} />
+                                                        </Link>
+                                                        <Link to={`/contrats-de-travail/edit/${c.id}`} className="btn btn-sm btn-warning">
+                                                            <FontAwesomeIcon icon={faPencilAlt} />
+                                                        </Link>
+                                                        <Button variant="danger" size="sm" onClick={() => handleDelete(c.id)}>
+                                                            <FontAwesomeIcon icon={faTrash} />
+                                                        </Button>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        ))}
+                                    </tbody>
+                                </Table>
+                            </div>
+                            
+                            {filteredContrats.length === 0 && (
+                                <div className="text-center py-4 bg-light rounded">
+                                    <p className="text-muted mb-0">
+                                        {contrats.length === 0 ? 
+                                            "Aucun contrat de travail n'a été trouvé." : 
+                                            "Aucun contrat ne correspond à vos critères de recherche."
+                                        }
+                                    </p>
+                                </div>
+                            )}
+                            
+                            <div className="mt-3 text-end">
+                                <small className="text-muted">
+                                    {filteredContrats.length} contrat(s) sur {contrats.length} au total
+                                </small>
+                            </div>
+                        </>
+                    )}
+                </Card.Body>
+            </Card>
+        </Container>
     );
 };
 
