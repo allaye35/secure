@@ -17,8 +17,7 @@ const ContratDeTravailDetail = () => {
     const [entreprise, setEntreprise] = useState(null);
     const [articles, setArticles] = useState([]);
     const [fichesDePaie, setFichesDePaie] = useState([]);
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);    const [selectedArticle, setSelectedArticle] = useState(null);
+    const [loading, setLoading] = useState(true);    const [error, setError] = useState(null);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
     const [exportInProgress, setExportInProgress] = useState(false);
       // Options pour l'export PDF
@@ -165,16 +164,7 @@ const ContratDeTravailDetail = () => {
             setExportInProgress(false);
             alert("Une erreur s'est produite lors de l'export en PDF.");
         });
-    };
-
-    // Fonction pour afficher le détail d'un article
-    const toggleArticleDetail = (article) => {
-        if (selectedArticle && selectedArticle.id === article.id) {
-            setSelectedArticle(null);
-        } else {
-            setSelectedArticle(article);
-        }
-    };    // Aucune fonction nécessaire pour l'ajout d'articles (fonctionnalité retirée)
+    };    // Toutes les fonctions d'ajout et de toggle d'articles ont été retirées
     
     return (
         <div className="contrat-detail modern">
@@ -241,20 +231,108 @@ const ContratDeTravailDetail = () => {
                 </div>
             )}
               {/* Zone pour l'impression/export PDF */}
-            <div className="printable-content" ref={targetRef}>
-
-            {/* Informations générales du contrat */}
-            <div className="info-section">
-                <h3>Informations générales</h3>
-                <div className="info-block">
-                    <p><strong>Type de contrat :</strong> {contrat.typeContrat}</p>
-                    <p><strong>Début :</strong> {formatDate(contrat.dateDebut)}</p>
-                    <p><strong>Fin :</strong> {formatDate(contrat.dateFin)}</p>
-                    <p><strong>Salaire :</strong> {contrat.salaireDeBase} € ({contrat.periodiciteSalaire})</p>
-                    <p><strong>Créé le :</strong> {contrat.createdAt ? contrat.createdAt.replace("T"," ").slice(0,19) : "–"}</p>
-                    <p><strong>Mis à jour :</strong> {contrat.updatedAt ? contrat.updatedAt.replace("T"," ").slice(0,19) : "–"}</p>
+            <div className="printable-content" ref={targetRef}>            {/* Informations générales du contrat - Style amélioré */}
+            <div className="info-section" style={{ 
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                marginBottom: '30px',
+                border: '1px solid #eaedf2'
+            }}>
+                <h3 style={{
+                    borderBottom: '2px solid #eaedf2',
+                    paddingBottom: '12px',
+                    paddingLeft: '20px',
+                    paddingTop: '20px',
+                    marginTop: '0',
+                    marginBottom: '20px',
+                    color: '#2c3e50',
+                    fontSize: '1.3rem',
+                    fontWeight: '600',
+                    backgroundColor: '#f8fafc',
+                    borderTopLeftRadius: '8px',
+                    borderTopRightRadius: '8px'
+                }}>
+                    <span style={{ marginRight: '10px' }}>📋</span>
+                    Informations générales du contrat
+                </h3>
+                
+                <div className="info-block" style={{ 
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fill, minmax(250px, 1fr))',
+                    gap: '20px',
+                    padding: '0 20px 20px'
+                }}>
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#f0f8ff',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #3498db'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Type de contrat</div>
+                        <div style={{ fontWeight: '600', fontSize: '1.1em' }}>{contrat.typeContrat || "–"}</div>
+                    </div>
+                    
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#f0fff4',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #2ecc71'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Date de début</div>
+                        <div style={{ fontWeight: '600', fontSize: '1.1em' }}>{formatDate(contrat.dateDebut)}</div>
+                    </div>
+                    
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#fff0f6',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #e84393'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Date de fin</div>
+                        <div style={{ fontWeight: '600', fontSize: '1.1em' }}>{formatDate(contrat.dateFin)}</div>
+                    </div>
+                    
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#fffaf0',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #f39c12'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Salaire</div>
+                        <div style={{ fontWeight: '600', fontSize: '1.1em' }}>
+                            {contrat.salaireDeBase} € 
+                            <span style={{ fontSize: '0.8em', color: '#718096', marginLeft: '5px' }}>
+                                ({contrat.periodiciteSalaire})
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#f7fafc',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #7f8c8d'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Créé le</div>
+                        <div style={{ fontWeight: '500', fontSize: '0.9em' }}>
+                            {contrat.createdAt ? contrat.createdAt.replace("T"," ").slice(0,19) : "–"}
+                        </div>
+                    </div>
+                    
+                    <div className="info-card" style={{
+                        padding: '15px',
+                        backgroundColor: '#f7fafc',
+                        borderRadius: '6px',
+                        borderLeft: '4px solid #7f8c8d'
+                    }}>
+                        <div style={{ fontSize: '0.9em', color: '#718096', marginBottom: '4px' }}>Dernière mise à jour</div>
+                        <div style={{ fontWeight: '500', fontSize: '0.9em' }}>
+                            {contrat.updatedAt ? contrat.updatedAt.replace("T"," ").slice(0,19) : "–"}
+                        </div>
+                    </div>
                 </div>
-            </div>            {/* Informations sur l'agent */}
+            </div>{/* Informations sur l'agent */}
             <div className="info-section agent-highlight">
                 <h3>Agent de sécurité</h3>
                 <div className="info-block agent-info-block">
@@ -313,34 +391,195 @@ const ContratDeTravailDetail = () => {
                         <p>Aucune information d'agent disponible.</p>
                     )}
                 </div>
-            </div>
-
-            {/* Informations sur l'entreprise */}
-            <div className="info-section">
-                <h3>Entreprise</h3>
-                <div className="info-block">
+            </div>            {/* Informations sur l'entreprise */}
+            <div className="info-section" style={{
+                backgroundColor: '#fff',
+                borderRadius: '8px',
+                boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                marginBottom: '30px',
+                border: '1px solid #eaedf2'
+            }}>
+                <h3 style={{
+                    borderBottom: '2px solid #eaedf2',
+                    paddingBottom: '12px',
+                    paddingLeft: '20px',
+                    paddingTop: '20px',
+                    marginTop: '0',
+                    marginBottom: '20px',
+                    color: '#2c3e50',
+                    fontSize: '1.3rem',
+                    fontWeight: '600',
+                    backgroundColor: '#f8fafc',
+                    borderTopLeftRadius: '8px',
+                    borderTopRightRadius: '8px'
+                }}>
+                    <span style={{ marginRight: '10px' }}>🏢</span>
+                    Entreprise
+                </h3>
+                
+                <div className="info-block" style={{ padding: '0 20px 20px' }}>
                     {entreprise ? (
                         <>
-                            <p><strong>Nom :</strong> {entreprise.raisonSociale}</p>
-                            <p><strong>SIRET :</strong> {entreprise.siret}</p>
-                            <p><strong>Adresse :</strong> {entreprise.adresse}</p>
-                            <p><strong>Contact :</strong> {entreprise.telephone}</p>
-                            <Link to={`/entreprises/${entreprise.id}`} className="detail-link">
-                                Voir le profil complet de l'entreprise
-                            </Link>
+                            <div className="entreprise-card" style={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                backgroundColor: '#f0f7ff',
+                                borderRadius: '8px',
+                                padding: '20px',
+                                border: '1px solid #e3eaf2'
+                            }}>
+                                <div className="entreprise-header" style={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    marginBottom: '15px'
+                                }}>
+                                    <div className="entreprise-logo" style={{
+                                        width: '60px',
+                                        height: '60px',
+                                        borderRadius: '8px',
+                                        backgroundColor: '#3498db',
+                                        color: '#fff',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        fontSize: '24px',
+                                        fontWeight: 'bold',
+                                        marginRight: '15px'
+                                    }}>
+                                        {entreprise.raisonSociale ? entreprise.raisonSociale.charAt(0) : 'E'}
+                                    </div>
+                                    <div>
+                                        <h4 style={{
+                                            margin: '0 0 5px 0',
+                                            fontSize: '1.2rem',
+                                            color: '#2c3e50'
+                                        }}>
+                                            {entreprise.raisonSociale}
+                                        </h4>
+                                        <p style={{
+                                            margin: '0',
+                                            color: '#718096',
+                                            fontSize: '0.9rem'
+                                        }}>
+                                            SIRET: {entreprise.siret}
+                                        </p>
+                                    </div>
+                                </div>
+                                
+                                <div className="entreprise-details" style={{
+                                    display: 'grid',
+                                    gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))',
+                                    gap: '15px',
+                                    marginBottom: '20px'
+                                }}>
+                                    <div className="detail-item">
+                                        <p className="detail-label" style={{
+                                            margin: '0 0 5px 0',
+                                            fontSize: '0.8rem',
+                                            color: '#718096'
+                                        }}>Adresse</p>
+                                        <p className="detail-value" style={{
+                                            margin: '0',
+                                            fontWeight: '500',
+                                            color: '#2d3748'
+                                        }}>{entreprise.adresse || 'Non renseignée'}</p>
+                                    </div>
+                                    
+                                    <div className="detail-item">
+                                        <p className="detail-label" style={{
+                                            margin: '0 0 5px 0',
+                                            fontSize: '0.8rem',
+                                            color: '#718096'
+                                        }}>Contact</p>
+                                        <p className="detail-value" style={{
+                                            margin: '0',
+                                            fontWeight: '500',
+                                            color: '#2d3748'
+                                        }}>{entreprise.telephone || 'Non renseigné'}</p>
+                                    </div>
+                                    
+                                    {entreprise.email && (
+                                        <div className="detail-item">
+                                            <p className="detail-label" style={{
+                                                margin: '0 0 5px 0',
+                                                fontSize: '0.8rem',
+                                                color: '#718096'
+                                            }}>Email</p>
+                                            <p className="detail-value" style={{
+                                                margin: '0',
+                                                fontWeight: '500',
+                                                color: '#2d3748'
+                                            }}>{entreprise.email}</p>
+                                        </div>
+                                    )}
+                                </div>
+                                
+                                <div style={{ textAlign: 'right' }}>
+                                    <Link to={`/entreprises/${entreprise.id}`} className="detail-link" style={{
+                                        color: '#3498db',
+                                        textDecoration: 'none',
+                                        fontWeight: '500',
+                                        display: 'inline-flex',
+                                        alignItems: 'center'
+                                    }}>
+                                        Voir le profil complet de l'entreprise
+                                        <span style={{ marginLeft: '5px' }}>→</span>
+                                    </Link>
+                                </div>
+                            </div>
                         </>
                     ) : (
-                        <p>Aucune information d'entreprise disponible.</p>
+                        <div style={{
+                            padding: '25px',
+                            backgroundColor: '#f8f9fa',
+                            borderRadius: '8px',
+                            textAlign: 'center',
+                            border: '1px dashed #cbd5e0'
+                        }}>
+                            <p style={{ margin: '0', color: '#718096' }}>
+                                Aucune information d'entreprise disponible.
+                            </p>
+                        </div>
                     )}
                 </div>
             </div>
 
             {/* Description du contrat */}
             {contrat.description && (
-                <div className="info-section">
-                    <h3>Description</h3>
-                    <div className="info-block">
-                        <p>{contrat.description}</p>
+                <div className="info-section" style={{
+                    backgroundColor: '#fff',
+                    borderRadius: '8px',
+                    boxShadow: '0 2px 10px rgba(0,0,0,0.05)',
+                    marginBottom: '30px',
+                    border: '1px solid #eaedf2'
+                }}>
+                    <h3 style={{
+                        borderBottom: '2px solid #eaedf2',
+                        paddingBottom: '12px',
+                        paddingLeft: '20px',
+                        paddingTop: '20px',
+                        marginTop: '0',
+                        marginBottom: '20px',
+                        color: '#2c3e50',
+                        fontSize: '1.3rem',
+                        fontWeight: '600',
+                        backgroundColor: '#f8fafc',
+                        borderTopLeftRadius: '8px',
+                        borderTopRightRadius: '8px'
+                    }}>
+                        <span style={{ marginRight: '10px' }}>📝</span>
+                        Description
+                    </h3>
+                    <div className="info-block" style={{ padding: '0 20px 20px' }}>
+                        <div style={{
+                            backgroundColor: '#f8f9fa',
+                            padding: '20px',
+                            borderRadius: '6px',
+                            lineHeight: '1.6',
+                            whiteSpace: 'pre-wrap'
+                        }}>
+                            {contrat.description}
+                        </div>
                     </div>
                 </div>
             )}
@@ -350,67 +589,78 @@ const ContratDeTravailDetail = () => {
                     <h3>Articles du contrat ({articles.length})</h3>
                 </div>
 
-                {/* Liste des articles - toujours affichée */}
-                {articles.length > 0 ? (
+                {/* Liste des articles - toujours affichée */}                {articles.length > 0 ? (
                     <div className="articles-list">
                         {articles.map(article => (
                             <div key={article.id} className="article-item" style={{
                                 border: '1px solid #ddd',
-                                borderRadius: '5px',
-                                margin: '10px 0',
-                                padding: '15px',
-                                backgroundColor: '#f9f9f9'
+                                borderRadius: '8px',
+                                margin: '15px 0',
+                                padding: '20px',
+                                backgroundColor: '#fff',
+                                boxShadow: '0 2px 4px rgba(0,0,0,0.05)'
                             }}>
-                                <div className="article-header"
-                                    onClick={() => toggleArticleDetail(article)}
-                                    style={{ cursor: 'pointer' }}>
+                                <div className="article-header">
                                     <h4 className="article-title" style={{
-                                        fontWeight: 'bold',
-                                        marginBottom: '10px',
-                                        color: '#333',
-                                        borderBottom: '1px solid #eee',
-                                        paddingBottom: '8px'
+                                        fontWeight: '600',
+                                        marginBottom: '15px',
+                                        color: '#2c3e50',
+                                        borderBottom: '2px solid #ecf0f1',
+                                        paddingBottom: '10px'
                                     }}>
-                                        {selectedArticle && selectedArticle.id === article.id ? '▼' : '▶'} {article.libelle || 'Article sans titre'}
+                                        {article.libelle || 'Article sans titre'}
                                     </h4>
                                 </div>
 
-                                {/* Affichage détaillé de l'article */}
-                                {selectedArticle && selectedArticle.id === article.id && (
-                                    <div className="article-content" style={{
+                                {/* Affichage détaillé de l'article (toujours visible) */}
+                                <div className="article-content" style={{
+                                    padding: '15px',
+                                    backgroundColor: '#f8f9fa',
+                                    border: '1px solid #eee',
+                                    borderRadius: '6px'
+                                }}>
+                                    <div className="article-metadata" style={{
+                                        display: 'flex', 
+                                        flexWrap: 'wrap', 
+                                        gap: '20px', 
+                                        marginBottom: '15px',
+                                        background: '#edf2f7',
                                         padding: '10px',
-                                        backgroundColor: '#fff',
-                                        border: '1px solid #eee',
                                         borderRadius: '4px'
                                     }}>
-                                        <div className="article-metadata" style={{marginBottom: '12px'}}>
-                                            <p><strong>Identifiant :</strong> {article.id}</p>
-                                            <p><strong>Titre :</strong> {article.libelle || 'Non spécifié'}</p>
-                                            {article.createdAt && <p><strong>Date de création :</strong> {new Date(article.createdAt).toLocaleString()}</p>}
-                                            {article.updatedAt && <p><strong>Dernière mise à jour :</strong> {new Date(article.updatedAt).toLocaleString()}</p>}
-                                        </div>
-
-                                        <div className="article-text" style={{
-                                            whiteSpace: 'pre-wrap',
-                                            padding: '15px',
-                                            border: '1px solid #eee',
-                                            borderRadius: '4px',
-                                            backgroundColor: '#fafafa',
-                                            marginBottom: '10px',
-                                            fontFamily: 'Georgia, serif',
-                                            lineHeight: '1.6'
-                                        }}>
-                                            <h5 style={{marginTop: 0, color: '#555'}}>Contenu de l'article :</h5>
-                                            {article.contenu || 'Aucun contenu disponible.'}
-                                        </div>
-
-                                        <div className="article-meta">
-                                            <p className="article-relation-info" style={{fontSize: '0.9em', color: '#666'}}>
-                                                <small>Cet article est associé au contrat de travail #{article.contratDeTravailId}</small>
-                                            </p>
-                                        </div>
+                                        <p style={{margin: '0'}}><strong>ID :</strong> {article.id}</p>
+                                        {article.createdAt && <p style={{margin: '0'}}><strong>Créé le :</strong> {new Date(article.createdAt).toLocaleString()}</p>}
+                                        {article.updatedAt && <p style={{margin: '0'}}><strong>Mis à jour le :</strong> {new Date(article.updatedAt).toLocaleString()}</p>}
                                     </div>
-                                )}
+
+                                    <div className="article-text" style={{
+                                        whiteSpace: 'pre-wrap',
+                                        padding: '20px',
+                                        border: '1px solid #e2e8f0',
+                                        borderRadius: '6px',
+                                        backgroundColor: '#fff',
+                                        marginBottom: '15px',
+                                        fontFamily: "'Segoe UI', Arial, sans-serif",
+                                        lineHeight: '1.6',
+                                        boxShadow: 'inset 0 2px 4px rgba(0,0,0,0.03)'
+                                    }}>
+                                        <h5 style={{marginTop: 0, color: '#3498db', fontWeight: '600', marginBottom: '12px'}}>
+                                            Contenu de l'article :
+                                        </h5>
+                                        {article.contenu || 'Aucun contenu disponible.'}
+                                    </div>
+
+                                    <div className="article-meta" style={{textAlign: 'right'}}>
+                                        <p className="article-relation-info" style={{
+                                            fontSize: '0.9em', 
+                                            color: '#718096',
+                                            fontStyle: 'italic',
+                                            marginBottom: '0'
+                                        }}>
+                                            Article n°{article.id} du contrat de travail #{article.contratDeTravailId}
+                                        </p>
+                                    </div>
+                                </div>
                             </div>
                         ))}
                     </div>
@@ -427,31 +677,93 @@ const ContratDeTravailDetail = () => {
                         </p>
                     </div>
                 )}
-            </div>
-
-            {/* Fiches de paie - Version plus conviviale quand vide */}
+            </div>            {/* Fiches de paie - Version améliorée */}
             <div className="info-section">
-                <h3>Fiches de paie ({fichesDePaie.length})</h3>
+                <h3 style={{
+                    color: '#2c3e50',
+                    borderBottom: '2px solid #ecf0f1',
+                    paddingBottom: '10px',
+                    marginBottom: '20px'
+                }}>Fiches de paie ({fichesDePaie.length})</h3>
+                
                 {fichesDePaie.length > 0 ? (
-                    <div className="table-wrapper">
-                        <table>
+                    <div className="table-wrapper" style={{
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        boxShadow: '0 4px 8px rgba(0,0,0,0.05)'
+                    }}>
+                        <table style={{
+                            width: '100%',
+                            borderCollapse: 'collapse',
+                            backgroundColor: '#fff',
+                            fontSize: '14px'
+                        }}>
                             <thead>
-                                <tr>
-                                    <th>Référence</th>
-                                    <th>Période</th>
-                                    <th>Net à payer</th>
-                                    <th>Actions</th>
+                                <tr style={{
+                                    backgroundColor: '#3498db',
+                                    color: 'white',
+                                    textAlign: 'left'
+                                }}>
+                                    <th style={{ padding: '12px 15px' }}>Référence</th>
+                                    <th style={{ padding: '12px 15px' }}>Période</th>
+                                    <th style={{ padding: '12px 15px' }}>Net à payer</th>
+                                    <th style={{ padding: '12px 15px' }}>Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
-                                {fichesDePaie.map(fiche => (
-                                    <tr key={fiche.id}>
-                                        <td>{fiche.reference}</td>
-                                        <td>{formatDate(fiche.periodeDebut)} - {formatDate(fiche.periodeFin)}</td>
-                                        <td>{fiche.netAPayer} €</td>
-                                        <td>
-                                            <Link to={`/fiches-de-paie/${fiche.id}`} className="btn view">
-                                                Voir
+                                {fichesDePaie.map((fiche, index) => (
+                                    <tr key={fiche.id} style={{
+                                        borderBottom: '1px solid #ecf0f1',
+                                        backgroundColor: index % 2 === 0 ? '#f8f9fa' : '#fff'
+                                    }}>
+                                        <td style={{ padding: '12px 15px', fontWeight: '500' }}>{fiche.reference}</td>
+                                        <td style={{ padding: '12px 15px' }}>
+                                            <div style={{ display: 'flex', alignItems: 'center' }}>
+                                                <span className="date-badge" style={{
+                                                    backgroundColor: '#e3f2fd',
+                                                    color: '#1976d2',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '12px',
+                                                    marginRight: '8px'
+                                                }}>
+                                                    {formatDate(fiche.periodeDebut)}
+                                                </span>
+                                                <span style={{ margin: '0 5px' }}>→</span>
+                                                <span className="date-badge" style={{
+                                                    backgroundColor: '#e3f2fd',
+                                                    color: '#1976d2',
+                                                    padding: '4px 8px',
+                                                    borderRadius: '4px',
+                                                    fontSize: '12px'
+                                                }}>
+                                                    {formatDate(fiche.periodeFin)}
+                                                </span>
+                                            </div>
+                                        </td>
+                                        <td style={{ 
+                                            padding: '12px 15px', 
+                                            fontWeight: '600',
+                                            color: '#2ecc71' 
+                                        }}>
+                                            {fiche.netAPayer} €
+                                        </td>
+                                        <td style={{ padding: '12px 15px' }}>
+                                            <Link to={`/fiches-de-paie/${fiche.id}`} className="btn view" style={{
+                                                backgroundColor: '#3498db',
+                                                color: 'white',
+                                                padding: '6px 12px',
+                                                borderRadius: '4px',
+                                                textDecoration: 'none',
+                                                fontSize: '13px',
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                justifyContent: 'center',
+                                                border: 'none',
+                                                cursor: 'pointer',
+                                                transition: 'background-color 0.2s'
+                                            }}>
+                                                <span style={{ marginRight: '5px' }}>👁️</span> Consulter
                                             </Link>
                                         </td>
                                     </tr>
@@ -461,14 +773,33 @@ const ContratDeTravailDetail = () => {
                     </div>
                 ) : (
                     <div className="info-block empty-state" style={{
-                        padding: '20px',
+                        padding: '25px',
                         backgroundColor: '#f8f9fa',
-                        borderRadius: '4px',
-                        textAlign: 'center'
+                        borderRadius: '8px',
+                        textAlign: 'center',
+                        border: '1px dashed #cbd5e0'
                     }}>
-                        <p style={{ margin: '10px 0', color: '#6c757d' }}>
-                            <span role="img" aria-label="information" style={{ fontSize: '24px', marginRight: '10px' }}>ℹ️</span>
-                            Aucune fiche de paie associée à ce contrat.
+                        <div style={{ marginBottom: '10px' }}>
+                            <span role="img" aria-label="information" style={{ 
+                                fontSize: '32px', 
+                                display: 'block',
+                                marginBottom: '10px'
+                            }}>📋</span>
+                        </div>
+                        <p style={{ 
+                            margin: '5px 0 15px', 
+                            color: '#4a5568',
+                            fontSize: '16px',
+                            fontWeight: '500'
+                        }}>
+                            Aucune fiche de paie n'est associée à ce contrat.
+                        </p>
+                        <p style={{ 
+                            margin: '0', 
+                            color: '#718096',
+                            fontSize: '14px'
+                        }}>
+                            Les fiches de paie apparaîtront ici une fois créées.
                         </p>
                     </div>
                 )}
