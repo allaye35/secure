@@ -15,14 +15,13 @@ import {
 
 export default function EditContrat() {
     const { id } = useParams();
-    const navigate = useNavigate();
-
-    const [data, setData] = useState(null);
+    const navigate = useNavigate();    const [data, setData] = useState(null);
     const [devisList, setDevisList] = useState([]);
     const [missionsList, setMissionsList] = useState([]);
     const [articlesList, setArticlesList] = useState([]);
     const [error, setError] = useState("");
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [selectedFile, setSelectedFile] = useState(null);
     const [loading, setLoading] = useState({
         contrat: true,
         devis: true,
@@ -90,12 +89,14 @@ export default function EditContrat() {
                 console.error("Erreur lors du chargement des articles:", err);
                 setLoading(prev => ({...prev, articles: false}));
             });
-    }, [id, navigate]);
-
-    const handleChange = e => {
-        const { name, type, checked, value } = e.target;
+    }, [id, navigate]);    const handleChange = e => {
+        const { name, type, checked, value, files } = e.target;
         
-        if (type === "checkbox") {
+        if (type === "file") {
+            const file = files[0];
+            setSelectedFile(file ? file.name : null);
+            // Ne pas stocker le fichier dans l'état data, il sera passé séparément
+        } else if (type === "checkbox") {
             setData(d => ({ ...d, [name]: checked }));
         } else if (name === "missionIds" || name === "articleIds") {
             // Pour les sélections multiples
@@ -104,23 +105,33 @@ export default function EditContrat() {
         } else {
             setData(d => ({ ...d, [name]: value }));
         }
-    };
-
-    const handleSubmit = async e => {
+    };    const handleSubmit = async e => {
         e.preventDefault();
         setError("");
         setIsSubmitting(true);
         
         try {
+            // Vérifier uniquement la présence de la référence du contrat (seul champ obligatoire)
+            if (!data.referenceContrat) {
+                setError("Veuillez saisir une référence pour le contrat");
+                setIsSubmitting(false);
+                return;
+            }
+            
             const payload = {
                 ...data,
                 dureeMois: data.dureeMois ? Number(data.dureeMois) : null,
                 preavisMois: data.preavisMois ? Number(data.preavisMois) : null,
-                devisId: Number(data.devisId),
+                // Rendre le devisId optionnel
+                devisId: data.devisId ? Number(data.devisId) : null,
                 missionIds: data.missionIds.map(v => Number(v)),
                 articleIds: data.articleIds.map(v => Number(v))
             };
-            await ContratService.update(id, payload);
+            
+            // Récupérer le fichier PDF s'il a été sélectionné
+            const pdfFile = e.target.documentPdf?.files?.[0] || null;
+            
+            await ContratService.update(id, payload, pdfFile);
             navigate("/contrats");
         } catch (err) {
             console.error("Erreur lors de la modification:", err);
@@ -195,17 +206,14 @@ export default function EditContrat() {
                             </Col>
                             
                             <Col md={6} className="mb-3">
-                                <Form.Group controlId="dateSignature">
-                                    <Form.Label>
+                                <Form.Group controlId="dateSignature">                                    <Form.Label>
                                         <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                                        Date de signature<span className="text-danger">*</span>
-                                    </Form.Label>
-                                    <Form.Control
+                                        Date de signature (optionnelle)
+                                    </Form.Label>                                    <Form.Control
                                         type="date"
                                         name="dateSignature"
                                         value={data.dateSignature}
                                         onChange={handleChange}
-                                        required
                                     />
                                 </Form.Group>
                             </Col>
@@ -230,17 +238,14 @@ export default function EditContrat() {
                             </Col>
                             
                             <Col md={6} className="mb-3">
-                                <Form.Group controlId="devisId">
-                                    <Form.Label>
+                                <Form.Group controlId="devisId">                                    <Form.Label>
                                         <FontAwesomeIcon icon={faFileInvoice} className="me-1" />
-                                        Devis associé<span className="text-danger">*</span>
+                                        Devis associé (optionnel)
                                     </Form.Label>
-                                    <InputGroup>
-                                        <Form.Select
+                                    <InputGroup>                                    <Form.Select
                                             name="devisId"
                                             value={data.devisId}
                                             onChange={handleChange}
-                                            required
                                             disabled={loading.devis}
                                         >
                                             <option value="">— Sélectionner un devis —</option>
@@ -264,9 +269,7 @@ export default function EditContrat() {
                                     </InputGroup>
                                 </Form.Group>
                             </Col>
-                        </Row>
-
-                        <Row>
+                        </Row>                        <Row>
                             <Col md={6} className="mb-3">
                                 <Form.Group controlId="preavisMois">
                                     <Form.Label>Préavis (mois)</Form.Label>
@@ -296,6 +299,31 @@ export default function EditContrat() {
                                         checked={data.taciteReconduction}
                                         onChange={handleChange}
                                     />
+                                </Form.Group>
+                            </Col>
+                        </Row>
+                        
+                        <Row className="mb-4">
+                            <Col md={12}>
+                                <Form.Group controlId="documentPdf">
+                                    <Form.Label>
+                                        <FontAwesomeIcon icon={faFilePdf} className="me-1" />
+                                        Document PDF signé (optionnel)
+                                    </Form.Label>
+                                    <InputGroup>
+                                        <Form.Control
+                                            type="file"
+                                            name="documentPdf"
+                                            accept="application/pdf"
+                                            onChange={handleChange}
+                                            className="form-control-file"
+                                        />
+                                    </InputGroup>
+                                    {selectedFile && (
+                                        <small className="text-muted d-block mt-1">
+                                            Fichier sélectionné: {selectedFile}
+                                        </small>
+                                    )}
                                 </Form.Group>
                             </Col>
                         </Row>

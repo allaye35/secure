@@ -16,12 +16,10 @@ import java.util.List;
 @Slf4j
 public class ContratController {
 
-    private final ContratService service;
-
-    /* ---------- CREATE ---------- */
+    private final ContratService service;    /* ---------- CREATE ---------- */
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     public ResponseEntity<ContratDto> create(
-            @RequestPart("dto")  ContratCreateDto dto,
+            @RequestPart("dto") @jakarta.validation.Valid ContratCreateDto dto,
             @RequestPart(value = "file", required = false) MultipartFile file) {
 
         return ResponseEntity.status(HttpStatus.CREATED)

@@ -37,19 +37,20 @@ public class ContratMapper {
                         .map(ArticleContrat::getId)
                         .collect(Collectors.toList()))
                 .build();
-    }
-
-    /* ========== DTO création ➜ Entity ========== */
+    }    /* ========== DTO création ➜ Entity ========== */
     public Contrat toEntity(ContratCreateDto dto) {
-        // Récupération du devis
-        Devis d = devisRepo.findById(dto.getDevisId())
-                .orElseThrow(() -> new IllegalArgumentException(
-                        "Devis introuvable id=" + dto.getDevisId()));
-        
-        // Vérification si le devis est déjà associé à un contrat
-        if (d.getContrat() != null) {
-            throw new IllegalArgumentException(
-                    "Le devis id=" + dto.getDevisId() + " est déjà associé au contrat id=" + d.getContrat().getId());
+        // Récupération du devis (optionnel)
+        Devis d = null;
+        if (dto.getDevisId() != null) {
+            d = devisRepo.findById(dto.getDevisId())
+                    .orElseThrow(() -> new IllegalArgumentException(
+                            "Devis introuvable id=" + dto.getDevisId()));
+            
+            // Vérification si le devis est déjà associé à un contrat
+            if (d.getContrat() != null) {
+                throw new IllegalArgumentException(
+                        "Le devis id=" + dto.getDevisId() + " est déjà associé au contrat id=" + d.getContrat().getId());
+            }
         }
 
         Contrat contrat = Contrat.builder()

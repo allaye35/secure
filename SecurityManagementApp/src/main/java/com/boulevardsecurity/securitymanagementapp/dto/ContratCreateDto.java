@@ -1,13 +1,15 @@
 // src/main/java/com/boulevardsecurity/securitymanagementapp/dto/ContratCreateDto.java
 package com.boulevardsecurity.securitymanagementapp.dto;
 
+import jakarta.validation.constraints.NotBlank;
 import lombok.*;
 import java.time.LocalDate;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ContratCreateDto {
-    /** Référence unique du contrat (ex : “CONTRAT-2025-001”) */
+    /** Référence unique du contrat (ex : "CONTRAT-2025-001") */
+    @NotBlank(message = "La référence du contrat est obligatoire")
     private String referenceContrat;
     /** Date de signature effective */
     private LocalDate dateSignature;

@@ -33,27 +33,76 @@ export default function CreateContrat() {
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-
-    useEffect(() => {
+    const [selectedFile, setSelectedFile] = useState(null);    useEffect(() => {
         // Charger les données nécessaires avec gestion d'erreur
         const loadData = async () => {
             setLoading(true);
+            setError("");
+            
+            // Définir un timeout pour les requêtes
+            const timeoutDuration = 10000; // 10 secondes
+            const controller = new AbortController();
+            const { signal } = controller;
+            setTimeout(() => controller.abort(), timeoutDuration);
+            
+            // Essayer de charger les données même en cas d'erreur pour avoir au moins certaines données
+            let devisLoaded = false, missionsLoaded = false, articlesLoaded = false;
+            
+            // 1. Charger les devis
             try {
-                const [devis, missions, articles] = await Promise.all([
-                    DevisService.getAll(),
-                    MissionService.getAllMissions(),
-                    ArticleService.getAll()
-                ]);
-                
-                setDevisList(devis.data || []);
-                setMissionsList(missions.data || []);
-                setArticlesList(articles.data || []);
-            } catch (err) {
-                console.error("Erreur chargement des données:", err);
-                setError("Impossible de charger les données. Veuillez rafraîchir la page.");
-            } finally {
-                setLoading(false);
+                console.log("▶️ Chargement des devis...");
+                const devisResponse = await DevisService.getAll();
+                setDevisList(Array.isArray(devisResponse?.data) ? devisResponse.data : []);
+                console.log("✅ Devis chargés:", devisResponse?.data?.length || 0, "éléments");
+                devisLoaded = true;
+            } catch (devisErr) {
+                console.error("❌ Erreur chargement des devis:", devisErr);
+                // Vérifier si le backend est accessible
+                if (devisErr?.code === "ERR_NETWORK") {
+                    setError(prev => prev + "Le serveur n'est pas accessible. ");
+                } else {
+                    setError(prev => prev + "Erreur lors du chargement des devis. ");
+                }
+            }
+            
+            // 2. Charger les missions
+            try {
+                console.log("▶️ Chargement des missions...");
+                const missionsResponse = await MissionService.getAllMissions();
+                setMissionsList(Array.isArray(missionsResponse?.data) ? missionsResponse.data : []);
+                console.log("✅ Missions chargées:", missionsResponse?.data?.length || 0, "éléments");
+                missionsLoaded = true;
+            } catch (missionsErr) {
+                console.error("❌ Erreur chargement des missions:", missionsErr);
+                if (!devisLoaded && missionsErr?.code === "ERR_NETWORK") {
+                    // Ne pas dupliquer le message d'erreur réseau
+                } else {
+                    setError(prev => prev + "Erreur lors du chargement des missions. ");
+                }
+            }
+            
+            // 3. Charger les articles
+            try {
+                console.log("▶️ Chargement des articles juridiques...");
+                const articlesResponse = await ArticleService.getAll();
+                setArticlesList(Array.isArray(articlesResponse?.data) ? articlesResponse.data : []);
+                console.log("✅ Articles juridiques chargés:", articlesResponse?.data?.length || 0, "éléments");
+                articlesLoaded = true;
+            } catch (articlesErr) {
+                console.error("❌ Erreur chargement des articles:", articlesErr);
+                if ((!devisLoaded && !missionsLoaded) && articlesErr?.code === "ERR_NETWORK") {
+                    // Ne pas dupliquer le message d'erreur réseau
+                } else {
+                    setError(prev => prev + "Erreur lors du chargement des articles juridiques. ");
+                }
+            }
+            
+            setLoading(false);
+            
+            // Vérifier si toutes les données sont chargées
+            if (!devisLoaded && !missionsLoaded && !articlesLoaded) {
+                console.error("❌❌❌ Aucune donnée n'a pu être chargée!");
+                setError("Impossible de charger les données. Vérifiez que le serveur est accessible.");
             }
         };
         
@@ -76,66 +125,77 @@ export default function CreateContrat() {
         } else {
             setForm(f => ({ ...f, [name]: value }));
         }
-    };
-
-    const handleSubmit = async e => {
+    };    const handleSubmit = async e => {
         e.preventDefault();
         setError("");
         setIsSubmitting(true);
-
-        try {
-            // Créer l'objet JSON pour l'envoi
+        
+    // Vérifier uniquement la présence de la référence du contrat (seul champ obligatoire)
+        if (!form.referenceContrat) {
+            setError("Veuillez saisir une référence pour le contrat");
+            setIsSubmitting(false);
+            return;
+        }
+                
+        try {            // Créer l'objet pour l'envoi - uniquement les données JSON sans le fichier
             const contratData = {
                 referenceContrat: form.referenceContrat,
-                dateSignature: form.dateSignature,
+                dateSignature: form.dateSignature || null,
                 dureeMois: form.dureeMois ? parseInt(form.dureeMois, 10) : null,
-                taciteReconduction: form.taciteReconduction,
+                taciteReconduction: form.taciteReconduction || false,
                 preavisMois: form.preavisMois ? parseInt(form.preavisMois, 10) : null,
-                devisId: parseInt(form.devisId, 10),
-                missionIds: form.missionIds,
-                articleIds: form.articleIds
+                // Rendre devisId optionnel
+                devisId: form.devisId ? parseInt(form.devisId, 10) : null
             };
-
-            // Si nous avons un fichier PDF, nous devons le convertir en base64
-            if (form.documentPdf) {
-                const fileReader = new FileReader();
-                fileReader.readAsDataURL(form.documentPdf);
-                
-                fileReader.onload = async () => {
-                    try {
-                        // Extrait la partie base64 du résultat (supprime le préfixe "data:application/pdf;base64,")
-                        const base64Data = fileReader.result.split(',')[1];
-                        
-                        // Ajoute la représentation base64 du fichier à l'objet contrat
-                        contratData.documentPdf = base64Data;
-                        
-                        // Envoi des données avec le document PDF encodé
-                        await ContratService.create(contratData);
-                        navigate("/contrats");
-                    } catch (innerErr) {
-                        console.error("Création contrat avec PDF :", innerErr.response || innerErr);
-                        setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
-                        setIsSubmitting(false);
-                    }
-                };
-                
-                fileReader.onerror = () => {
-                    setError("Erreur lors de la lecture du fichier PDF.");
-                    setIsSubmitting(false);
-                };
-            } else {
-                // Sans fichier PDF, envoi direct de l'objet
-                await ContratService.create(contratData);
+            
+            // Ajouter les missions et articles de manière appropriée
+            if (form.missionIds && form.missionIds.length > 0) {
+                contratData.missionIds = form.missionIds;
+            }
+            
+            if (form.articleIds && form.articleIds.length > 0) {
+                contratData.articleIds = form.articleIds;
+            }
+            
+            // Le fichier PDF sera ajouté séparément dans le FormData par le service
+            // NE PAS ajouter le fichier directement à l'objet contratData
+            
+            console.log("📤 Envoi du contrat:", form.referenceContrat, "avec fichier:", !!form.documentPdf, "données:", contratData);
+            
+            // Envoi des données avec le service approprié et gestion du timeout
+            const timeoutDuration = 15000; // 15 secondes
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), timeoutDuration);
+              try {
+                // Passer le contratData et le fichier PDF séparément au service
+                await ContratService.create(contratData, form.documentPdf);
+                clearTimeout(timeoutId);
+                console.log("✅ Contrat créé avec succès!");
                 navigate("/contrats");
+            } catch (apiError) {
+                clearTimeout(timeoutId);
+                if (apiError.name === "AbortError") {
+                    throw new Error("La requête a pris trop de temps. Vérifiez votre connexion et réessayez.");
+                }
+                throw apiError;
             }
         } catch (err) {
-            console.error("Création contrat :", err.response || err);
-            setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
+            console.error("❌ Échec de création du contrat:", err);
+            let errorMessage = "Impossible de créer le contrat.";
+            
+            if (err.response) {
+                // Erreur de serveur avec message
+                errorMessage += ` Erreur ${err.response.status}: ${err.response.data?.message || "Vérifiez les données et réessayez."}`;
+            } else if (err.code === "ERR_NETWORK") {
+                errorMessage += " Le serveur n'est pas accessible. Vérifiez votre connexion.";
+            } else {
+                errorMessage += " " + (err.message || "Vérifiez les données et réessayez.");
+            }
+            
+            setError(errorMessage);
             setIsSubmitting(false);
         }
-    };
-
-    if (loading && !articlesList.length && !devisList.length) {
+    };    if (loading) {
         return (
             <Container className="d-flex justify-content-center align-items-center" style={{ minHeight: "50vh" }}>
                 <div className="text-center">
@@ -144,6 +204,16 @@ export default function CreateContrat() {
                 </div>
             </Container>
         );
+    }
+    
+    // Vérification des données requises
+    const missingData = [];
+    if (!devisList.length) missingData.push("devis");
+    if (!missionsList.length) missingData.push("missions");
+    if (!articlesList.length) missingData.push("articles juridiques");
+    
+    if (missingData.length > 0) {
+        console.warn("Données manquantes:", missingData);
     }
 
     return (
@@ -161,11 +231,19 @@ export default function CreateContrat() {
                         </Button>
                     </div>
                 </Card.Header>
-                
-                <Card.Body>
+                  <Card.Body>
                     {error && (
                         <Alert variant="danger" className="mb-4">
                             {error}
+                        </Alert>
+                    )}
+                    
+                    {missingData.length > 0 && (
+                        <Alert variant="warning" className="mb-4">
+                            <strong>Attention:</strong> Certaines données requises n'ont pas pu être chargées ({missingData.join(", ")}). 
+                            <Button variant="link" className="p-0 mx-2" onClick={() => window.location.reload()}>
+                                Rafraîchir la page
+                            </Button>
                         </Alert>
                     )}
 
@@ -185,18 +263,16 @@ export default function CreateContrat() {
                                 </Form.Group>
                             </Col>
                             
-                            <Col md={6} className="mb-3">
-                                <Form.Group controlId="dateSignature">
+                            <Col md={6} className="mb-3">                                <Form.Group controlId="dateSignature">
                                     <Form.Label>
                                         <FontAwesomeIcon icon={faCalendarAlt} className="me-1" />
-                                        Date de signature<span className="text-danger">*</span>
+                                        Date de signature (optionnelle)
                                     </Form.Label>
                                     <Form.Control
                                         type="date"
                                         name="dateSignature"
                                         value={form.dateSignature}
                                         onChange={handleChange}
-                                        required
                                     />
                                 </Form.Group>
                             </Col>
@@ -219,18 +295,15 @@ export default function CreateContrat() {
                                     />
                                 </Form.Group>
                             </Col>
-                            
-                            <Col md={6} className="mb-3">
-                                <Form.Group controlId="devisId">
+                              <Col md={6} className="mb-3">                                <Form.Group controlId="devisId">
                                     <Form.Label>
                                         <FontAwesomeIcon icon={faFileInvoice} className="me-1" />
-                                        Devis associé<span className="text-danger">*</span>
+                                        Devis associé (optionnel)
                                     </Form.Label>
                                     <Form.Select
                                         name="devisId"
                                         value={form.devisId}
                                         onChange={handleChange}
-                                        required
                                     >
                                         <option value="">— Sélectionner un devis —</option>
                                         {devisList.map(d => (

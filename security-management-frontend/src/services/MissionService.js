@@ -2,16 +2,24 @@ import api from "./api";
 
 const PATH = "/missions";
 
+console.log("MissionService initialization - API endpoint:", PATH);
+
 const MissionService = {
     /**
      * Récupérer toutes les missions
      */
-    getAll: () => api.get(PATH),
+    getAll: () => {
+        console.log("MissionService.getAll called");
+        return api.get(PATH);
+    },
 
     /**
      * Récupérer toutes les missions (alias pour getAll)
      */
-    getAllMissions: () => api.get(PATH),    /**
+    getAllMissions: () => {
+        console.log("MissionService.getAllMissions called");
+        return api.get(PATH);
+    },/**
      * Récupérer une mission par son ID
      */
     getById: (id) => api.get(`${PATH}/${id}`),
