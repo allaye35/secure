@@ -1,0 +1,10 @@
+{
+  "referenceDevis": "DEV-TEST-NOUVEAU",
+  "description": "Devis pour services de sécurité événementielle",
+  "statut": "ACCEPTE_PAR_ENTREPRISE",
+  "dateCreation": "2025-05-17",
+  "dateValidite": "2025-06-17",
+  "conditionsGenerales": "Paiement à 30 jours après réception de la facture",
+  "entrepriseId": 1,
+  "clientId": 1
+}

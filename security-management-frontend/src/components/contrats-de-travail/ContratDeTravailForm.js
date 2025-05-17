@@ -9,11 +9,13 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faFileContract, faUserTie, faBuilding, faBriefcase, faSave, 
     faTimes, faCalendarAlt, faEuroSign, faClipboardList,
-    faInfoCircle, faFileUpload, faQuestionCircle, faClock
+    faInfoCircle, faFileUpload, faQuestionCircle, faClock,
+    faArrowRight, faArrowLeft, faCheck, faUsers, faClipboardCheck
 } from "@fortawesome/free-solid-svg-icons";
 import Select from 'react-select';
 import ArticleContratTravailService from "../../services/ArticleContratTravailService";
 import FicheDePaieService from "../../services/FicheDePaieService";
+import "../../styles/ContratDeTravailForm.css";
 
 export default function ContratDeTravailForm({
     title, data, setData, onSubmit, error, isLoading,
@@ -300,26 +302,31 @@ export default function ContratDeTravailForm({
     const selectedMission = missions?.find(m => m.id === Number(data.missionId));
     
     return (
-        <Container fluid className="py-4 bg-light">
-            <Card className="shadow-sm border-0">
-                <Card.Header className="bg-primary text-white py-3">
-                    <h3 className="mb-0">
-                        <FontAwesomeIcon icon={faFileContract} className="me-2" />
-                        {title} un contrat de travail
-                    </h3>
-                </Card.Header>
-                <Card.Body className="p-4">
+        <Container fluid className="contrat-form-container">
+            <div className="form-header">
+                <h3 className="form-title">
+                    <FontAwesomeIcon icon={faFileContract} className="icon" />
+                    {title} un contrat de travail
+                </h3>
+            </div>
+            <Card className="form-body shadow-sm border-0">
+                <Card.Body className="p-0">
                     {error && (
-                        <Alert variant="danger" className="mb-4">
-                            <FontAwesomeIcon icon={faTimes} className="me-2" />
-                            {error}
+                        <Alert variant="danger" className="m-4">
+                            <div className="d-flex align-items-center">
+                                <FontAwesomeIcon icon={faTimes} className="me-3 fa-lg text-danger" />
+                                <div>
+                                    <h5 className="mb-1">Une erreur est survenue</h5>
+                                    <p className="mb-0">{error}</p>
+                                </div>
+                            </div>
                         </Alert>
                     )}
                     
                     {isLoading && (
-                        <div className="text-center py-4">
-                            <Spinner animation="border" variant="primary" />
-                            <p className="mt-3">Chargement des données...</p>
+                        <div className="text-center py-5">
+                            <Spinner animation="border" variant="primary" size="lg" />
+                            <p className="mt-3 text-muted">Chargement des données en cours...</p>
                         </div>
                     )}
                     
@@ -328,12 +335,12 @@ export default function ContratDeTravailForm({
                         activeKey={activeStep}
                         onSelect={(k) => setActiveStep(k)}
                         id="contract-form-tabs"
-                        className="mb-4"
+                        className="mb-3 step-tabs"
                     >
                         <Tab eventKey="informations" title={
-                            <span>
-                                <Badge bg={touchedFields.referenceContrat ? "primary" : "secondary"} className="me-2">1</Badge>
-                                Informations générales
+                            <span className="d-flex align-items-center">
+                                <Badge bg={touchedFields.referenceContrat ? "primary" : "secondary"} className="step-badge">1</Badge>
+                                <span>Informations générales</span>
                             </span>
                         }>
                             <Card className="border-0 shadow-sm">

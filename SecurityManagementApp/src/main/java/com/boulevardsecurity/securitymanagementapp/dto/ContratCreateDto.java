@@ -18,7 +18,7 @@ public class ContratCreateDto {
     /** Préavis (en mois) en cas de non reconduction */
     private Integer preavisMois;
     /** Fichier PDF signé (bytes) */
-    private byte[] documentPdf;
+    private String     pdfPath;
     /** Devis accepté (obligatoire) */
     private Long devisId;
     /** Missions liées au contrat */

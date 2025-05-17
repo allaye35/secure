@@ -1,24 +1,72 @@
+/* Styles pour le formulaire de création de contrat de travail */
 .contrat-form-container {
     max-width: 1200px;
-    margin: 2rem auto;
-    background-color: #fff;
-    border-radius: 0.75rem;
-    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.08);
+    margin: 0 auto;
     font-family: 'Segoe UI', sans-serif;
+    overflow: hidden;
+    padding: 30px 0;
+}
+
+.form-header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+    padding: 25px;
+    border-radius: 10px 10px 0 0;
+    margin-bottom: 0;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
+    position: relative;
     overflow: hidden;
 }
 
-.contrat-form-container h2 { margin-bottom:1rem; color:#004085; }
-.contrat-form-container label {
-    display:block; margin:0.75rem 0; font-weight:500;
+.form-header::before {
+    content: "";
+    position: absolute;
+    top: 0;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M11 18c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm48 25c3.866 0 7-3.134 7-7s-3.134-7-7-7-7 3.134-7 7 3.134 7 7 7zm-43-7c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm63 31c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM34 90c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zm56-76c1.657 0 3-1.343 3-3s-1.343-3-3-3-3 1.343-3 3 1.343 3 3 3zM12 86c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm28-65c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm23-11c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-6 60c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm29 22c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zM32 63c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm57-13c2.76 0 5-2.24 5-5s-2.24-5-5-5-5 2.24-5 5 2.24 5 5 5zm-9-21c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM60 91c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM35 41c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2zM12 60c1.105 0 2-.895 2-2s-.895-2-2-2-2 .895-2 2 .895 2 2 2z' fill='%23ffffff' fill-opacity='0.05' fill-rule='evenodd'/%3E%3C/svg%3E");
+    opacity: 0.3;
+    z-index: 0;
 }
+
+.form-title {
+    position: relative;
+    z-index: 1;
+    font-size: 1.6rem;
+    margin-bottom: 0;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    color: #fff;
+}
+
+.contrat-form-container h2 { 
+    margin-bottom: 1rem; 
+    color: #004085; 
+}
+
+.contrat-form-container label {
+    display: block; 
+    margin: 0.75rem 0; 
+    font-weight: 500;
+    color: #495057;
+}
+
 .contrat-form-container input,
 .contrat-form-container select,
 .contrat-form-container textarea {
-    width:100%; padding:0.6rem 1rem; border:1px solid #ccc;
-    border-radius:0.25rem; font-size:0.95rem;
+    width: 100%; 
+    padding: 0.6rem 1rem; 
+    border: 1px solid #ced4da;
+    border-radius: 6px; 
+    font-size: 0.95rem;
+    transition: all 0.3s;
 }
-.contrat-form-container textarea { min-height:4rem; resize:vertical; }
+
+.contrat-form-container textarea { 
+    min-height: 4rem; 
+    resize: vertical; 
+}
 .btn.submit-btn {
     margin-top:1rem; background:#17a2b8; color:#fff;
     border:none; padding:0.6rem 1.2rem; border-radius:0.25rem;
@@ -172,4 +220,235 @@
     .card-body {
         padding: 1rem;
     }
+}
+
+.form-body {
+  background: #ffffff;
+  border-radius: 0 0 10px 10px;
+  padding: 0;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+}
+
+.step-tabs .nav-link {
+  position: relative;
+  border: none;
+  padding: 15px 20px;
+  font-weight: 500;
+  color: #6c757d;
+  border-radius: 0;
+  transition: all 0.3s ease;
+}
+
+.step-tabs .nav-link.active {
+  color: #007bff;
+  background-color: transparent;
+  border-bottom: 3px solid #007bff;
+}
+
+.step-tabs .nav-link:hover:not(.active) {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.step-badge {
+  width: 28px;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  font-size: 0.8rem;
+  margin-right: 8px;
+  font-weight: 600;
+}
+
+.form-section {
+  border: none;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.03);
+  border-radius: 10px;
+  transition: transform 0.2s, box-shadow 0.2s;
+  margin-bottom: 20px;
+}
+
+.form-section:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+}
+
+.form-section-header {
+  background: linear-gradient(to right, #f8f9fa, #ffffff);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+  padding: 15px 20px;
+  border-radius: 10px 10px 0 0;
+}
+
+.form-section-title {
+  margin: 0;
+  font-weight: 600;
+  font-size: 1.1rem;
+  color: #3a3a3a;
+  display: flex;
+  align-items: center;
+}
+
+.form-section-body {
+  padding: 20px;
+}
+
+.section-icon {
+  margin-right: 12px;
+  background: rgba(0, 123, 255, 0.1);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.form-control:focus, .form-select:focus {
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  border-color: #80bdff;
+}
+
+.form-label .required {
+  color: #dc3545;
+  margin-left: 3px;
+}
+
+.card-info {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+.action-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 30px;
+}
+
+.btn-next, .btn-prev, .btn-save {
+  padding: 10px 25px;
+  font-weight: 500;
+  border-radius: 6px;
+  transition: all 0.3s;
+}
+
+.btn-next:hover, .btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.btn-prev:hover {
+  background: #f8f9fa;
+  transform: translateY(-2px);
+}
+
+.form-summary {
+  background-color: #f8f9fa;
+  border-radius: 10px;
+  padding: 20px;
+  margin-top: 20px;
+}
+
+.summary-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin-bottom: 15px;
+  color: #212529;
+}
+
+.entity-card {
+  background-color: #f8f9fa;
+  border-radius: 8px;
+  padding: 15px;
+  margin-top: 10px;
+  border: 1px solid #e9ecef;
+  transition: all 0.2s ease;
+}
+
+.entity-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.05);
+}
+
+.entity-card p {
+  margin-bottom: 5px;
+  font-size: 0.9rem;
+}
+
+.clauses-preview .card, .preview-card {
+  border: 1px solid #e9ecef;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.3s;
+}
+
+.clauses-preview .card:hover, .preview-card:hover {
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+  transform: translateY(-2px);
+}
+
+.tab-content > .tab-pane {
+  transition: opacity 0.3s;
+}
+
+.tab-content > .active {
+  animation: fadeIn 0.5s;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* Style pour React Select */
+.react-select-container .react-select__control {
+  min-height: 42px;
+  border-color: #ced4da;
+  border-radius: 6px;
+}
+
+.react-select-container .react-select__control:hover {
+  border-color: #80bdff;
+}
+
+.react-select-container .react-select__control--is-focused {
+  box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.15);
+  border-color: #80bdff;
+}
+
+.react-select-container .react-select__menu {
+  border-radius: 6px;
+  box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+}
+
+.react-select-container .react-select__option {
+  padding: 10px 15px;
+}
+
+.react-select-container .react-select__multi-value {
+  background-color: rgba(0, 123, 255, 0.1);
+  border-radius: 4px;
+}
+
+.react-select-container .react-select__multi-value__label {
+  color: #007bff;
+  font-size: 0.85rem;
+}
+
+.react-select-container .react-select__multi-value__remove:hover {
+  background-color: #dc3545;
+  color: white;
+}
+
+/* Styles responsifs */
+@media (max-width: 768px) {
+  .action-buttons {
+    flex-direction: column;
+    gap: 10px;
+  }
+  
+  .btn-prev, .btn-next, .btn-save {
+    width: 100%;
+  }
 }

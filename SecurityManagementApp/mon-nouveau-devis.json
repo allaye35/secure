@@ -1,0 +1,16 @@
+{
+  "referenceDevis": "DEV-2025-SECU-001",
+  "description": "Devis pour services de sécurité et gardiennage",
+  "statut": "VALIDE_PAR_CLIENT",
+  "dateCreation": "2025-05-17",
+  "dateValidite": "2025-06-30",
+  "conditionsGenerales": "Paiement à 15 jours après réception de la facture",
+  "entrepriseId": 1,
+  "clientId": 1,
+  "montantHT": 5000.00,
+  "montantTVA": 1000.00,
+  "montantTTC": 6000.00,
+  "typeMission": "GARDIENNAGE",
+  "nombreAgents": 2,
+  "quantite": 40
+}

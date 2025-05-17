@@ -28,7 +28,7 @@ public class ContratMapper {
                 .dureeMois(c.getDureeMois())
                 .taciteReconduction(c.getTaciteReconduction())
                 .preavisMois(c.getPreavisMois())
-                .documentPdf(c.getDocumentPdf())
+                .pdfUrl(c.getPdfPath())
                 .devisId(c.getDevis() != null ? c.getDevis().getId() : null)
                 .missionIds(c.getMissions().stream()
                         .map(Mission::getId)
@@ -58,7 +58,7 @@ public class ContratMapper {
                 .dureeMois(dto.getDureeMois())
                 .taciteReconduction(dto.getTaciteReconduction())
                 .preavisMois(dto.getPreavisMois())
-                .documentPdf(dto.getDocumentPdf())
+                .pdfPath(dto.getPdfPath())
                 .devis(d)
                 .build();
 
@@ -106,8 +106,8 @@ public class ContratMapper {
             entity.setTaciteReconduction(dto.getTaciteReconduction());
         if (dto.getPreavisMois() != null)
             entity.setPreavisMois(dto.getPreavisMois());
-        if (dto.getDocumentPdf() != null)
-            entity.setDocumentPdf(dto.getDocumentPdf());
+        if (dto.getPdfPath() != null)
+            entity.setPdfPath(dto.getPdfPath());
 
         if (dto.getDevisId() != null
                 && (entity.getDevis() == null || !entity.getDevis().getId().equals(dto.getDevisId()))) {
