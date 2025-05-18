@@ -1,0 +1,16 @@
+{
+  "referenceDevis": "DEV-2025-0519-001",
+  "description": "Devis pour services de sécurité événementielle et gardiennage",
+  "statut": "VALIDE_PAR_CLIENT",
+  "dateCreation": "2025-05-18",
+  "dateValidite": "2025-08-18",
+  "conditionsGenerales": "Paiement à 30 jours après réception de la facture. Intervention sous 24h.",
+  "entrepriseId": 1,
+  "clientId": 1,
+  "montantHT": 8500.00,
+  "montantTVA": 1700.00,
+  "montantTTC": 10200.00,
+  "typeMission": "EVENEMENTIEL",
+  "nombreAgents": 4,
+  "quantite": 80
+}

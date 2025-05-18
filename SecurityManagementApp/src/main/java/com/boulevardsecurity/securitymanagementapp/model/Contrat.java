@@ -54,6 +54,4 @@ public class Contrat {
     @Column(nullable = true)
     private Integer preavisMois;
 
-    @Column(name = "pdf_path")
-    private String pdfPath;
 }

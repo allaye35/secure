@@ -87,6 +87,8 @@
 /* Styles pour l'impression */
 .print-container {
   max-width: 100%;
+  position: relative;
+  font-family: Arial, sans-serif;
 }
 
 .print-section {
@@ -152,20 +154,55 @@
 
 /* Styles spécifiques pour l'impression */
 @media print {
+  html, body {
+    height: 100%;
+    width: 100%;
+    margin: 0 !important;
+    padding: 0 !important;
+    overflow: visible !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+  }
+  
   .contrat-detail-container {
-    padding: 0;
+    padding: 0 !important;
   }
   
   .contrat-header {
     background: #007bff !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
   }
   
   .no-print {
     display: none !important;
   }
   
+  .text-primary {
+    color: #007bff !important;
+  }
+  
+  .text-white {
+    color: white !important;
+  }
+  
+  .table th, .table td {
+    padding: 8px !important;
+    border-color: #dee2e6 !important;
+  }
+  
+  .shadow, .shadow-sm {
+    box-shadow: none !important;
+  }
+  
+  .card {
+    border: 1px solid #dee2e6 !important;
+    page-break-inside: avoid !important;
+  }
+  
   .page-break {
-    page-break-before: always;
+    page-break-before: always !important;
   }
 }
 
@@ -259,135 +296,6 @@
   }
   
   .contrat-header {
-    background: #007bff !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  
-  .page-break {
-    page-break-before: always;
-  }
-  
-  .article-card {
-    border: 1px solid #dee2e6 !important;
-    margin-bottom: 1.5rem !important;
-  }
-  
-  .article-card .card-header {
-    background-color: #f8f9fa !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-  
-  .detail-table, .mission-table {
-    width: 100% !important;
-    border-collapse: collapse !important;
-  }
-  
-  .detail-table th, .detail-table td,
-  .mission-table th, .mission-table td {
-    border: 1px solid #dee2e6 !important;
-    padding: 0.5rem !important;
-  }
-  
-  .badge {
-    border: 1px solid #dee2e6 !important;
-    background-color: #f8f9fa !important;
-    color: #212529 !important;
-    -webkit-print-color-adjust: exact !important;
-    print-color-adjust: exact !important;
-  }
-}
-
-/* Styles pour les articles du contrat */
-.article-card {
-  margin-bottom: 1.5rem;
-  break-inside: avoid;
-}
-
-.article-number {
-  font-weight: 700;
-  color: #007bff;
-}
-
-.article-content {
-  white-space: pre-wrap;
-  line-height: 1.6;
-}
-
-/* Styles pour l'impression */
-.print-container {
-  max-width: 100%;
-}
-
-.print-section {
-  margin-bottom: 2rem;
-  page-break-inside: avoid;
-}
-
-.print-section h3 {
-  border-bottom: 2px solid #f0f0f0;
-  padding-bottom: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-/* Styles pour les blocs de signature */
-.signatures {
-  margin-top: 3rem;
-}
-
-.signature-block {
-  width: 45%;
-  padding: 1rem;
-  border: 1px solid #dee2e6;
-  border-radius: 0.25rem;
-}
-
-.signature-title {
-  font-weight: bold;
-  margin-bottom: 0.5rem;
-}
-
-.signature-line {
-  height: 1px;
-  background-color: #000;
-  margin: 4rem 0 1rem;
-}
-
-.signature-info {
-  font-size: 0.875rem;
-  color: #6c757d;
-  text-align: center;
-}
-
-/* Styles pour les blocs d'info */
-.info-box {
-  margin-bottom: 1rem;
-}
-
-.info-label {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.8);
-  margin-bottom: 0.25rem;
-}
-
-.parties-contractantes {
-  margin: 1.5rem 0;
-}
-
-.partie {
-  background-color: rgba(255, 255, 255, 0.1);
-  padding: 1rem;
-  border-radius: 0.5rem;
-  width: 48%;
-}
-
-/* Styles spécifiques pour l'impression */
-@media print {
-  .contrat-detail-container {
-    padding: 0;
-  }
-    .contrat-header {
     background: #007bff !important;
     -webkit-print-color-adjust: exact !important;
     print-color-adjust: exact !important;
@@ -749,7 +657,8 @@
     box-shadow: none !important;
     break-inside: avoid;
   }
-    .partie-card .card-header {
+  
+  .partie-card .card-header {
     background-color: #f8f9fa !important;
     -webkit-print-color-adjust: exact !important;
   }
@@ -757,5 +666,111 @@
   .parties-details h3 {
     color: #007bff !important;
     -webkit-print-color-adjust: exact !important;
+  }
+}
+
+/* Styles pour les boutons d'action */
+.print-button {
+  transition: all 0.3s ease;
+}
+
+.print-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Améliorations pour l'impression */
+@media print {
+  /* Règles générales d'impression */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    background-color: white !important;
+  }
+
+  /* Assurer que les couleurs s'impriment correctement */
+  .contrat-header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    color-adjust: exact !important;
+    color: white !important;
+  }
+
+  /* Gestion correcte des sauts de page */
+  .print-section {
+    page-break-inside: avoid;
+    margin-bottom: 15mm;
+  }
+
+  /* Assurer que les tableaux s'impriment correctement */
+  table { 
+    page-break-inside: auto; 
+    width: 100%;
+  }
+  
+  tr { 
+    page-break-inside: avoid; 
+    page-break-after: auto;
+  }
+  
+  thead { 
+    display: table-header-group;
+  }
+  
+  tfoot { 
+    display: table-footer-group;
+  }
+
+  /* Assurer la visibilité des badges et étiquettes */
+  .badge {
+    border: 1px solid #dee2e6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Amélioration du rendu des cartes */
+  .card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  /* Cacher les éléments non nécessaires pour l'impression */
+  .no-print, 
+  button, 
+  .btn,
+  input[type="button"] {
+    display: none !important;
+  }
+
+  /* S'assurer que le contenu s'adapte à la page */
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Améliorer la visibilité des textes importants */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    margin-top: 20px !important;
+  }
+
+  /* Optimisation pour éviter les coupures entre les sections */
+  .signatures {
+    page-break-inside: avoid;
+    page-break-before: auto;
   }
 }

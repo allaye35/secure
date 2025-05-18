@@ -14,4 +14,10 @@ public interface DevisService {
     DevisDto create(DevisCreateDto dto);
     DevisDto update(Long id, DevisCreateDto dto);
     void delete(Long id);
+    
+    /**
+     * Récupère tous les devis qui ne sont pas liés à un contrat existant
+     * @return Une liste de devis disponibles pour la création de contrats
+     */
+    List<DevisDto> getDevisDisponibles();
 }

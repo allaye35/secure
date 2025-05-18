@@ -1,0 +1,15 @@
+{
+  "titre": "Mission de test 1",
+  "dateDebut": "2025-05-20",
+  "dateFin": "2025-06-20",
+  "heureDebut": "08:00:00",
+  "heureFin": "18:00:00",
+  "statutMission": "PLANIFIEE",
+  "typeMission": "SURVEILLANCE",
+  "description": "Mission créée pour tester la création de contrat avec missions",
+  "nombreAgents": 1,
+  "quantite": 1,
+  "montantHT": 100.00,
+  "montantTVA": 20.00,
+  "montantTTC": 120.00
+}

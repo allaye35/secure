@@ -18,8 +18,6 @@ public class ContratDto {
     private Boolean taciteReconduction;
     private Integer preavisMois;
 
-    private String     pdfUrl;
-    /** Relations (IDs uniquement) */
     private Long devisId;
     private List<Long> missionIds;
     private List<Long> articleIds;

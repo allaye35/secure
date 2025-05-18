@@ -3,14 +3,12 @@ import api from "./api";
 // Le chemin correct sans duplication de "/api" car baseURL contient déjà "http://localhost:8080/api"
 const PATH = "/devis";
 
-console.log("DevisService initialization - API endpoint:", PATH);
-
 const DevisService = {
     /** Récupérer tous les devis */
-    getAll: () => {
-        console.log("DevisService.getAll called");
-        return api.get(PATH);
-    },
+    getAll: () => api.get(PATH),
+    
+    /** Récupérer uniquement les devis disponibles (non liés à un contrat) */
+    getDisponibles: () => api.get(`${PATH}/disponibles`),
     
     /** Récupérer un devis par son ID */
     getById: (id) => api.get(`${PATH}/${id}`),

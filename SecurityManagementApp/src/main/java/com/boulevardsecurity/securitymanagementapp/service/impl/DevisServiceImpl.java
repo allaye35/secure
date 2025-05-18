@@ -55,13 +55,20 @@ public class DevisServiceImpl implements DevisService {
         mapper.updateFromCreateDto(dto, existing);
         Devis saved = repo.save(existing);
         return mapper.toDto(saved);
-    }
-
-    @Override
+    }    @Override
     public void delete(Long id) {
         if (!repo.existsById(id)) {
             throw new IllegalArgumentException("Devis introuvable id=" + id);
         }
         repo.deleteById(id);
+    }
+    
+    @Override
+    public List<DevisDto> getDevisDisponibles() {
+        // Récupérer tous les devis qui n'ont pas de contrat associé
+        return repo.findAll().stream()
+                .filter(devis -> devis.getContrat() == null)
+                .map(mapper::toDto)
+                .collect(Collectors.toList());
     }
 }

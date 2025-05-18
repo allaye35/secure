@@ -1,0 +1,15 @@
+{
+  "titre": "Mission de test 2",
+  "dateDebut": "2025-06-01",
+  "dateFin": "2025-07-01",
+  "heureDebut": "09:00:00",
+  "heureFin": "19:00:00",
+  "statutMission": "PLANIFIEE",
+  "typeMission": "CQP_APS",
+  "description": "Seconde mission créée pour tester la création de contrat avec missions",
+  "nombreAgents": 2,
+  "quantite": 1,
+  "montantHT": 200.00,
+  "montantTVA": 40.00,
+  "montantTTC": 240.00
+}

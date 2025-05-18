@@ -1,18 +1,18 @@
-// src/main/java/com/boulevardsecurity/securitymanagementapp/service/ContratService.java
+// -------------------------------------------------------------
+// ContratService.java
+// -------------------------------------------------------------
 package com.boulevardsecurity.securitymanagementapp.service;
 
-import com.boulevardsecurity.securitymanagementapp.dto.ContratCreateDto;
-import com.boulevardsecurity.securitymanagementapp.dto.ContratDto;
-import org.springframework.web.multipart.MultipartFile;
-
+import com.boulevardsecurity.securitymanagementapp.dto.*;
 import java.util.List;
 import java.util.Optional;
 
 public interface ContratService {
-    ContratDto createContrat(ContratCreateDto dto, MultipartFile pdf);
+    ContratDto createContrat(ContratCreateDto dto);
+    ContratDto updateContrat(Long id, ContratCreateDto dto);
     List<ContratDto> getAllContrats();
     Optional<ContratDto> getContratById(Long id);
-    Optional<ContratDto> getContratByReference(String reference);
-    ContratDto updateContrat(Long id, ContratCreateDto dto, MultipartFile pdf);
+    Optional<ContratDto> getContratByReference(String ref);
+    Optional<ContratDto> getContratByDevisId(Long devisId);
     void deleteContrat(Long id);
 }

@@ -25,8 +25,13 @@ public class DevisController {
     /** Tous les devis */
     @GetMapping
     public ResponseEntity<List<DevisDto>> getAll() {
-
         return ResponseEntity.ok(service.getAll());
+    }
+    
+    /** Devis disponibles pour la création de contrats */
+    @GetMapping("/disponibles")
+    public ResponseEntity<List<DevisDto>> getDevisDisponibles() {
+        return ResponseEntity.ok(service.getDevisDisponibles());
     }
 
     /** Devis par ID */

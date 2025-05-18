@@ -1,47 +1,106 @@
-// src/components/contrats/ContratDetail.jsx
+// filepath: c:\Users\allay\Documents\java_Project_2025\security-management-frontend\src\components\contrats\ContratDetail.jsx
 import React, { useEffect, useState, useRef } from "react";
-import { useParams, useNavigate, Link } from "react-router-dom";
+import { useParams, useNavigate } from "react-router-dom";
 import ContratService from "../../services/ContratService";
 import DevisService from "../../services/DevisService";
 import MissionService from "../../services/MissionService";
 import ArticleService from "../../services/ArticleService";
-import { Container, Row, Col, Card, Table, Button, Badge, Spinner, Alert, ListGroup, Tooltip, OverlayTrigger, ProgressBar } from "react-bootstrap";
+import { Container, Row, Col, Card, Table, Button, Badge, Spinner, Alert, ProgressBar } from "react-bootstrap";
 import { useReactToPrint } from "react-to-print";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faFileContract, faArrowLeft, faPencilAlt, faCalendarAlt, 
     faFileInvoice, faTasks, faFilePdf, faClock, faCheck, faTimes, 
-    faExclamationTriangle, faPlus, faEuroSign, faBuilding,
-    faUserTie, faInfoCircle, faCalendarCheck, faFileSignature,
-    faDownload, faEye, faHandshake, faBell, faArrowRight, 
-    faIdCard, faMoneyBill, faCalendarTimes, faCalendarPlus,
-    faClipboardCheck, faPrint, faFileAlt, faListAlt, faParagraph
+    faExclamationTriangle, faEuroSign, faBuilding,
+    faUserTie, faInfoCircle, faCalendarCheck, 
+    faDownload, faEye, faHandshake,
+    faCalendarTimes, faCalendarPlus,
+    faPrint, faFileAlt, faParagraph
 } from "@fortawesome/free-solid-svg-icons";
 import "../../styles/ContratDetailEnhanced.css";
+import "../../styles/ContratPrintStyles.css";
 
 export default function ContratDetail() {
     const { id } = useParams();
-    const navigate = useNavigate();
-
-    const [contrat, setContrat] = useState(null);
+    const navigate = useNavigate();    const [contrat, setContrat] = useState(null);
     const [devis, setDevis] = useState(null);
     const [missions, setMissions] = useState(null);
     const [articles, setArticles] = useState(null);
+    const [client, setClient] = useState(null);      // on garde l'état
+    const [entreprise, setEntreprise] = useState(null);      // mais plus de fetch dédié
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
       // Référence pour l'impression
     const componentRef = useRef();
-    
-    // Configuration de l'impression - déplacé avant les conditionnels pour respecter les règles des Hooks
+      // État pour suivre si l'impression est en cours
+    const [isPrinting, setIsPrinting] = useState(false);
+      // Fonction pour gérer les erreurs d'impression
+    const handlePrintError = (error) => {
+        console.error("Erreur lors de l'impression:", error);
+        setIsPrinting(false);
+        
+        // Message d'erreur plus détaillé selon le type d'erreur
+        let errorMessage = "Une erreur est survenue lors de l'impression. ";
+        
+        if (error && error.message) {
+            // Ajouter des détails spécifiques selon le message d'erreur
+            if (error.message.includes("timeout")) {
+                errorMessage += "Délai d'attente dépassé. ";
+            } else if (error.message.includes("network") || error.message.includes("connexion")) {
+                errorMessage += "Problème de connexion réseau. ";
+            }
+        }
+        
+        errorMessage += "Veuillez réessayer ou vérifier votre connexion.";
+        setError(errorMessage);
+        
+        // Effacer le message d'erreur après un délai
+        setTimeout(() => setError(""), 8000);  // Message affiché plus longtemps
+        
+        // Log pour diagnostic
+        console.log("État du document au moment de l'erreur:", componentRef.current ? "Disponible" : "Non disponible");
+    };
+      // Configuration de l'impression - déplacé avant les conditionnels pour respecter les règles des Hooks
     const handlePrint = useReactToPrint({
         content: () => componentRef.current,
         documentTitle: `Contrat_${contrat?.referenceContrat || id}`,
+        onBeforeGetContent: () => {
+            setIsPrinting(true);
+            setError(""); // Réinitialisation des erreurs avant impression
+            console.log("Début préparation impression...");
+            return new Promise(resolve => {
+                // Donner du temps pour que les styles soient correctement appliqués
+                setTimeout(() => {
+                    console.log("Contenu prêt pour impression");
+                    resolve();
+                }, 500); // Augmentation du temps d'attente
+            });
+        },
+        onAfterPrint: () => {
+            setIsPrinting(false);
+            console.log("Impression terminée avec succès");
+        },
+        onPrintError: handlePrintError,
+        removeAfterPrint: false, // Conserver l'iframe pour debug si nécessaire
+        copyStyles: true, // Assurer la copie des styles
         pageStyle: `
             @page {
                 size: A4;
                 margin: 10mm;
+                -webkit-print-color-adjust: exact;
+                color-adjust: exact;
+                print-color-adjust: exact;
             }
             @media print {
+                html, body {
+                    height: 100%;
+                    margin: 0 !important;
+                    padding: 0 !important;
+                    overflow: hidden;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
                 .no-print {
                     display: none !important;
                 }
@@ -54,6 +113,7 @@ export default function ContratDetail() {
                 .print-container {
                     width: 100%;
                     padding: 0;
+                    margin: 0;
                 }
                 .print-header {
                     text-align: center;
@@ -69,52 +129,69 @@ export default function ContratDetail() {
                 }
                 .partie-card .card-header {
                     background-color: #f8f9fa !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
                 }
                 .parties-details h3 {
                     color: #007bff !important;
                 }
+                table { page-break-inside: auto }
+                tr { page-break-inside: avoid; page-break-after: auto }
+                thead { display: table-header-group }
+                tfoot { display: table-footer-group }
+                .contrat-header {
+                    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
+                img, .badge {
+                    -webkit-print-color-adjust: exact !important;
+                    print-color-adjust: exact !important;
+                    color-adjust: exact !important;
+                }
             }
         `
-    });
-
-    useEffect(() => {
+    });    useEffect(() => {
         const fetchData = async () => {
             try {
                 setLoading(true);
-                
-                // Charger les détails du contrat
-                const contratResponse = await ContratService.getById(id);
-                const contratData = contratResponse.data;
+
+                /* ----------- CONTRAT ----------- */
+                const { data: contratData } = await ContratService.getById(id);
                 setContrat(contratData);
-                
-                // Charger le devis associé si existant
+
+                /* ----------- DEVIS (+ client / entreprise) ----------- */
                 if (contratData.devisId) {
                     try {
-                        const devisResponse = await DevisService.getById(contratData.devisId);
-                        setDevis(devisResponse.data);
+                        const { data: devisData } = await DevisService.getById(contratData.devisId);
+
+                        setDevis(devisData);
+                        // ⬇️  on récupère directement les infos des parties
+                        setClient(devisData.client);
+                        setEntreprise(devisData.entreprise);
                     } catch (err) {
-                        console.error("Erreur lors du chargement du devis:", err);
+                        console.error("Erreur chargement devis :", err);
                         setDevis(null);
                     }
                 }
-                
-                // Charger les missions liées
-                const missionsResponse = await MissionService.getAllMissions();
-                const missionsFiltrees = missionsResponse.data.filter(m => m.contratId === Number(id));
-                setMissions(missionsFiltrees);
-                
-                // Charger les articles du contrat
+
+                /* ----------- MISSIONS ----------- */
+                const missionsRes = await MissionService.getAllMissions();
+                setMissions(missionsRes.data.filter(m => m.contratId === Number(id)));
+
+                /* ----------- ARTICLES ----------- */
                 try {
-                    const articlesResponse = await ArticleService.getByContratId(id);
-                    setArticles(articlesResponse.data);
+                    const artRes = await ArticleService.getByContratId(id);
+                    setArticles(artRes.data);
                 } catch (err) {
-                    console.error("Erreur lors du chargement des articles:", err);
+                    console.error("Erreur chargement articles :", err);
                     setArticles([]);
                 }
-                
+
                 setLoading(false);
             } catch (err) {
-                console.error("Erreur lors du chargement des données:", err);
+                console.error("Erreur chargement données :", err);
                 setError("Impossible de charger les détails du contrat. Veuillez réessayer ultérieurement.");
                 setLoading(false);
             }
@@ -180,8 +257,7 @@ export default function ContratDetail() {
                     color: "warning",
                     startDate: signatureDate.toLocaleDateString()
                 };
-            } else {
-                return { 
+            } else {                return { 
                     status: "actif", 
                     label: "En cours (durée indéfinie)", 
                     color: "info" 
@@ -250,10 +326,10 @@ export default function ContratDetail() {
                     </Card.Body>
                 </Card>
             </Container>
-        );
-    }
-      const contratStatus = calculateContratStatus();
-
+        );    }
+    
+    const contratStatus = calculateContratStatus();
+    
     return (
         <Container className="contrat-detail-container">
             {/* Barre d'actions - ne sera pas imprimée */}
@@ -268,19 +344,39 @@ export default function ContratDetail() {
                         Retour à la liste
                     </Button>
                 </div>
-                <div className="d-flex">
+                
+                {/* Afficher un avertissement si des erreurs de connexion se produisent */}
+                {error && (
+                    <Alert variant="danger" className="mt-2 mb-2 w-100">
+                        <FontAwesomeIcon icon={faExclamationTriangle} className="me-2" />
+                        {error}
+                    </Alert>
+                )}
+                  <div className="d-flex">
                     <Button
-                        variant="success"
-                        className="me-2"
+                        variant={isPrinting ? "secondary" : "success"}
+                        className="me-2 print-button"
                         onClick={handlePrint}
+                        disabled={isPrinting || loading}
+                        title="Imprimer le contrat"
                     >
-                        <FontAwesomeIcon icon={faPrint} className="me-2" />
-                        Imprimer
+                        {isPrinting ? (
+                            <>
+                                <Spinner as="span" animation="border" size="sm" role="status" aria-hidden="true" className="me-2" />
+                                Préparation de l'impression...
+                            </>
+                        ) : (
+                            <>
+                                <FontAwesomeIcon icon={faPrint} className="me-2" />
+                                Imprimer le contrat
+                            </>
+                        )}
                     </Button>
                     <Button 
                         variant="warning" 
-                        className="btn-action" 
+                        className="btn-action"
                         onClick={() => navigate(`/contrats/edit/${id}`)}
+                        title="Modifier ce contrat"
                     >
                         <FontAwesomeIcon icon={faPencilAlt} className="me-2" />
                         Modifier
@@ -325,31 +421,31 @@ export default function ContratDetail() {
                                 </Badge>
                             </div>
                         </div>
-                        
-                        {/* Parties contractantes */}
+                          {/* Parties contractantes */}
                         <div className="mt-4 d-flex justify-content-between flex-wrap parties-contractantes">
-                            {devis && devis.entreprise && (
+                            {/* Prestataire - depuis le devis ou directement depuis entreprise */}
+                            {(devis?.entreprise || entreprise) && (
                                 <div className="partie text-white">
                                     <h5 className="mb-2">
                                         <FontAwesomeIcon icon={faBuilding} className="me-2" />
                                         Prestataire
                                     </h5>
                                     <div className="ps-4">
-                                        <h4>{devis.entreprise.nom}</h4>
-                                        {devis.entreprise.formeJuridique && (
-                                            <div>Forme juridique: {devis.entreprise.formeJuridique}</div>
+                                        <h4>{devis?.entreprise?.nom || entreprise?.nom}</h4>
+                                        {(devis?.entreprise?.formeJuridique || entreprise?.formeJuridique) && (
+                                            <div>Forme juridique: {devis?.entreprise?.formeJuridique || entreprise?.formeJuridique}</div>
                                         )}
-                                        {devis.entreprise.siret && 
-                                            <div>SIRET: {devis.entreprise.siret}</div>
+                                        {(devis?.entreprise?.siret || entreprise?.siret) && 
+                                            <div>SIRET: {devis?.entreprise?.siret || entreprise?.siret}</div>
                                         }
-                                        {devis.entreprise.numeroTva && 
-                                            <div>N° TVA: {devis.entreprise.numeroTva}</div>
+                                        {(devis?.entreprise?.numeroTva || entreprise?.numeroTva) && 
+                                            <div>N° TVA: {devis?.entreprise?.numeroTva || entreprise?.numeroTva}</div>
                                         }
-                                        {devis.entreprise.adresse && (
+                                        {(devis?.entreprise?.adresse || entreprise?.adresse) && (
                                             <div>
-                                                {devis.entreprise.adresse}
-                                                {devis.entreprise.codePostal && devis.entreprise.ville && (
-                                                    <span>, {devis.entreprise.codePostal} {devis.entreprise.ville}</span>
+                                                {devis?.entreprise?.adresse || entreprise?.adresse}
+                                                {(devis?.entreprise?.codePostal || entreprise?.codePostal) && (devis?.entreprise?.ville || entreprise?.ville) && (
+                                                    <span>, {devis?.entreprise?.codePostal || entreprise?.codePostal} {devis?.entreprise?.ville || entreprise?.ville}</span>
                                                 )}
                                             </div>
                                         )}
@@ -357,47 +453,48 @@ export default function ContratDetail() {
                                 </div>
                             )}
                             
-                            {devis && devis.client && (
+                            {/* Client - depuis le devis ou directement depuis client */}
+                            {(devis?.client || client) && (
                                 <div className="partie text-white">
                                     <h5 className="mb-2">
                                         <FontAwesomeIcon icon={faUserTie} className="me-2" />
                                         Client
                                     </h5>
                                     <div className="ps-4">
-                                        <h4>{devis.client.nom} {devis.client.prenom && devis.client.prenom}</h4>
-                                        {devis.client.type && (
-                                            <div>Type: {devis.client.type === "PROFESSIONNEL" ? "Professionnel" : "Particulier"}</div>
+                                        <h4>{devis?.client?.nom || client?.nom} {devis?.client?.prenom || client?.prenom}</h4>
+                                        {(devis?.client?.type || client?.type) && (
+                                            <div>Type: {(devis?.client?.type || client?.type) === "PROFESSIONNEL" ? "Professionnel" : "Particulier"}</div>
                                         )}
-                                        {devis.client.siret && 
-                                            <div>SIRET: {devis.client.siret}</div>
+                                        {(devis?.client?.siret || client?.siret) && 
+                                            <div>SIRET: {devis?.client?.siret || client?.siret}</div>
                                         }
-                                        {devis.client.adresse && (
+                                        {(devis?.client?.adresse || client?.adresse) && (
                                             <div>
-                                                {devis.client.adresse}
-                                                {devis.client.codePostal && devis.client.ville && (
-                                                    <span>, {devis.client.codePostal} {devis.client.ville}</span>
+                                                {devis?.client?.adresse || client?.adresse}
+                                                {(devis?.client?.codePostal || client?.codePostal) && (devis?.client?.ville || client?.ville) && (
+                                                    <span>, {devis?.client?.codePostal || client?.codePostal} {devis?.client?.ville || client?.ville}</span>
                                                 )}
                                             </div>
                                         )}
-                                        {devis.client.email && 
-                                            <div>Email: {devis.client.email}</div>
-                                        }                                        {devis.client.telephone && 
-                                            <div>Tél: {devis.client.telephone}</div>
+                                        {(devis?.client?.email || client?.email) && 
+                                            <div>Email: {devis?.client?.email || client?.email}</div>
+                                        }
+                                        {(devis?.client?.telephone || client?.telephone) && 
+                                            <div>Tél: {devis?.client?.telephone || client?.telephone}</div>
                                         }
                                     </div>
                                 </div>
                             )}
                         </div>
-                        
-                        {/* Infos complémentaires */}
+                          {/* Infos complémentaires */}
                         <div className="mt-3 d-flex flex-wrap contrat-meta-infos">
-                            {devis && devis.montantTotal && (
+                            {(devis?.montantTotal || contrat?.montantTotal) && (
                                 <div className="info-box me-3">
                                     <div className="info-label">Montant total</div>
                                     <div className="info-value">
                                         <Badge bg="success" className="info-badge">
                                             <FontAwesomeIcon icon={faEuroSign} className="info-icon me-1" />
-                                            {devis.montantTotal} €
+                                            {devis?.montantTotal || contrat?.montantTotal} €
                                         </Badge>
                                     </div>
                                 </div>
@@ -492,10 +589,8 @@ export default function ContratDetail() {
                                     </Table>
                                 </div>
                             </Col>
-                        </Row>
-
-                        {/* Section Informations Détaillées sur le Prestataire et le Client */}
-                        {devis && (devis.entreprise || devis.client) && (
+                        </Row>                        {/* Section Informations Détaillées sur le Prestataire et le Client */}
+                        {((devis && (devis.entreprise || devis.client)) || entreprise || client) && (
                             <Row className="mb-4">
                                 <Col>
                                     <div className="print-section parties-details">
@@ -505,8 +600,8 @@ export default function ContratDetail() {
                                         </h3>
                                         
                                         <Row>
-                                            {/* Informations du Prestataire */}
-                                            {devis.entreprise && (
+                                            {/* Informations du Prestataire - depuis le devis ou directement*/}
+                                            {(devis?.entreprise || entreprise) && (
                                                 <Col md={6} className="mb-4 mb-md-0">
                                                     <Card className="h-100 partie-card">
                                                         <Card.Header className="bg-light">
@@ -520,54 +615,54 @@ export default function ContratDetail() {
                                                                 <tbody>
                                                                     <tr>
                                                                         <th>Nom</th>
-                                                                        <td>{devis.entreprise.nom}</td>
+                                                                        <td>{devis?.entreprise?.nom || entreprise?.nom}</td>
                                                                     </tr>
-                                                                    {devis.entreprise.siret && (
+                                                                    {(devis?.entreprise?.siret || entreprise?.siret) && (
                                                                         <tr>
                                                                             <th>SIRET</th>
-                                                                            <td>{devis.entreprise.siret}</td>
+                                                                            <td>{devis?.entreprise?.siret || entreprise?.siret}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.formeJuridique && (
+                                                                    {(devis?.entreprise?.formeJuridique || entreprise?.formeJuridique) && (
                                                                         <tr>
                                                                             <th>Forme juridique</th>
-                                                                            <td>{devis.entreprise.formeJuridique}</td>
+                                                                            <td>{devis?.entreprise?.formeJuridique || entreprise?.formeJuridique}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.adresse && (
+                                                                    {(devis?.entreprise?.adresse || entreprise?.adresse) && (
                                                                         <tr>
                                                                             <th>Adresse</th>
-                                                                            <td>{devis.entreprise.adresse}</td>
+                                                                            <td>{devis?.entreprise?.adresse || entreprise?.adresse}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.codePostal && (
+                                                                    {(devis?.entreprise?.codePostal || entreprise?.codePostal) && (
                                                                         <tr>
                                                                             <th>Code postal</th>
-                                                                            <td>{devis.entreprise.codePostal}</td>
+                                                                            <td>{devis?.entreprise?.codePostal || entreprise?.codePostal}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.ville && (
+                                                                    {(devis?.entreprise?.ville || entreprise?.ville) && (
                                                                         <tr>
                                                                             <th>Ville</th>
-                                                                            <td>{devis.entreprise.ville}</td>
+                                                                            <td>{devis?.entreprise?.ville || entreprise?.ville}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.email && (
+                                                                    {(devis?.entreprise?.email || entreprise?.email) && (
                                                                         <tr>
                                                                             <th>Email</th>
-                                                                            <td>{devis.entreprise.email}</td>
+                                                                            <td>{devis?.entreprise?.email || entreprise?.email}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.telephone && (
+                                                                    {(devis?.entreprise?.telephone || entreprise?.telephone) && (
                                                                         <tr>
                                                                             <th>Téléphone</th>
-                                                                            <td>{devis.entreprise.telephone}</td>
+                                                                            <td>{devis?.entreprise?.telephone || entreprise?.telephone}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.entreprise.numeroTva && (
+                                                                    {(devis?.entreprise?.numeroTva || entreprise?.numeroTva) && (
                                                                         <tr>
                                                                             <th>N° TVA</th>
-                                                                            <td>{devis.entreprise.numeroTva}</td>
+                                                                            <td>{devis?.entreprise?.numeroTva || entreprise?.numeroTva}</td>
                                                                         </tr>
                                                                     )}
                                                                 </tbody>
@@ -577,8 +672,8 @@ export default function ContratDetail() {
                                                 </Col>
                                             )}
                                             
-                                            {/* Informations du Client */}
-                                            {devis.client && (
+                                            {/* Informations du Client - depuis le devis ou directement */}
+                                            {(devis?.client || client) && (
                                                 <Col md={6}>
                                                     <Card className="h-100 partie-card">
                                                         <Card.Header className="bg-light">
@@ -592,58 +687,58 @@ export default function ContratDetail() {
                                                                 <tbody>
                                                                     <tr>
                                                                         <th>Nom</th>
-                                                                        <td>{devis.client.nom}</td>
+                                                                        <td>{devis?.client?.nom || client?.nom}</td>
                                                                     </tr>
-                                                                    {devis.client.prenom && (
+                                                                    {(devis?.client?.prenom || client?.prenom) && (
                                                                         <tr>
                                                                             <th>Prénom</th>
-                                                                            <td>{devis.client.prenom}</td>
+                                                                            <td>{devis?.client?.prenom || client?.prenom}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.type && (
+                                                                    {(devis?.client?.type || client?.type) && (
                                                                         <tr>
                                                                             <th>Type</th>
                                                                             <td>
                                                                                 <Badge bg="info">
-                                                                                    {devis.client.type === "PROFESSIONNEL" ? "Professionnel" : "Particulier"}
+                                                                                    {(devis?.client?.type || client?.type) === "PROFESSIONNEL" ? "Professionnel" : "Particulier"}
                                                                                 </Badge>
                                                                             </td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.siret && (
+                                                                    {(devis?.client?.siret || client?.siret) && (
                                                                         <tr>
                                                                             <th>SIRET</th>
-                                                                            <td>{devis.client.siret}</td>
+                                                                            <td>{devis?.client?.siret || client?.siret}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.adresse && (
+                                                                    {(devis?.client?.adresse || client?.adresse) && (
                                                                         <tr>
                                                                             <th>Adresse</th>
-                                                                            <td>{devis.client.adresse}</td>
+                                                                            <td>{devis?.client?.adresse || client?.adresse}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.codePostal && (
+                                                                    {(devis?.client?.codePostal || client?.codePostal) && (
                                                                         <tr>
                                                                             <th>Code postal</th>
-                                                                            <td>{devis.client.codePostal}</td>
+                                                                            <td>{devis?.client?.codePostal || client?.codePostal}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.ville && (
+                                                                    {(devis?.client?.ville || client?.ville) && (
                                                                         <tr>
                                                                             <th>Ville</th>
-                                                                            <td>{devis.client.ville}</td>
+                                                                            <td>{devis?.client?.ville || client?.ville}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.email && (
+                                                                    {(devis?.client?.email || client?.email) && (
                                                                         <tr>
                                                                             <th>Email</th>
-                                                                            <td>{devis.client.email}</td>
+                                                                            <td>{devis?.client?.email || client?.email}</td>
                                                                         </tr>
                                                                     )}
-                                                                    {devis.client.telephone && (
+                                                                    {(devis?.client?.telephone || client?.telephone) && (
                                                                         <tr>
                                                                             <th>Téléphone</th>
-                                                                            <td>{devis.client.telephone}</td>
+                                                                            <td>{devis?.client?.telephone || client?.telephone}</td>
                                                                         </tr>
                                                                     )}
                                                                 </tbody>
@@ -720,11 +815,9 @@ export default function ContratDetail() {
                                                     <th>Statut</th>
                                                 </tr>
                                             </thead>
-                                            <tbody>
-                                                {missions.map(mission => {
+                                            <tbody>                                                {missions.map(mission => {
                                                     const isCompleted = new Date(mission.dateFinMission) < new Date();
                                                     const isPending = new Date(mission.dateDebutMission) > new Date();
-                                                    const status = isCompleted ? "completed" : isPending ? "pending" : "active";
                                                     const statusColor = isCompleted ? "secondary" : isPending ? "warning" : "success";
                                                     const statusText = isCompleted ? "Terminée" : isPending ? "À venir" : "En cours";
                                                     

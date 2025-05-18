@@ -1,1 +1,0 @@
-Ceci est un fichier de test pour simuler un PDF dans le cadre des tests d'upload.

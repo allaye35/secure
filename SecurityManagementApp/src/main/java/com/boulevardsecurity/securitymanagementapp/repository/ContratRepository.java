@@ -9,4 +9,5 @@ import java.util.Optional;
 @Repository
 public interface ContratRepository extends JpaRepository<Contrat, Long> {
     Optional<Contrat> findByReferenceContrat(String referenceContrat);
+    Optional<Contrat> findByDevisId(Long devisId);
 }
