@@ -75,19 +75,44 @@ export default function ClientList() {
 
     return () => (mounted = false);             // clean up
   }, [currentPage, itemsPerPage, searchTerm, sortField, sortDirection, filterType]);
+  // Fonction pour normaliser les données des clients
+  const normalizeClientData = (client) => {
+    return {
+      ...client,
+      // Ajouter des valeurs par défaut pour les champs qui pourraient être undefined
+      id: client.id,
+      nom: client.nom || '',
+      prenom: client.prenom || '',
+      email: client.email || '',
+      telephone: client.telephone || '',
+      adresse: client.adresse || '',
+      numeroRue: client.numeroRue || '',
+      codePostal: client.codePostal || '',
+      ville: client.ville || '',
+      pays: client.pays || 'France',
+      role: client.role || 'USER',
+      typeClient: client.typeClient || 'CLIENT',
+      siege: client.siege || '',
+      representant: client.representant || '',
+      numeroSiret: client.numeroSiret || '',
+      modeContactPrefere: client.modeContactPrefere || '',
+      username: client.username || ''
+    };
+  };
 
   // Fonction utilitaire pour appliquer les filtres et le tri
   const applyFiltersAndSort = (clientsList) => {
-    let result = [...clientsList];
+    // Normaliser les données avant de les utiliser
+    let result = clientsList.map(client => normalizeClientData(client));
     
     // Filtrage par terme de recherche
     if (searchTerm) {
       result = result.filter(client => 
-        client.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.prenom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.email?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        client.telephone?.includes(searchTerm) ||
-        (client.username && client.username.toLowerCase().includes(searchTerm.toLowerCase()))
+        client.nom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.prenom.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        client.telephone.includes(searchTerm) ||
+        client.username.toLowerCase().includes(searchTerm.toLowerCase())
       );
     }
     
