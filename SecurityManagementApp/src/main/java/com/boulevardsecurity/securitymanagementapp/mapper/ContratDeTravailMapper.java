@@ -46,7 +46,6 @@ public class ContratDeTravailMapper {
                                 .map(ArticleContratTravail::getId)
                                 .collect(Collectors.toList())
                 )
-                .documentPdf(c.getDocumentPdf())
                 .createdAt(c.getCreatedAt())
                 .updatedAt(c.getUpdatedAt())
                 .build();
@@ -63,7 +62,6 @@ public class ContratDeTravailMapper {
                 .description(dto.getDescription())
                 .salaireDeBase(dto.getSalaireDeBase())
                 .periodiciteSalaire(dto.getPeriodiciteSalaire())
-                .documentPdf(dto.getDocumentPdf())
                 .build();
 
         linkAgentEntrepriseMission(dto, entity);
@@ -92,7 +90,6 @@ public class ContratDeTravailMapper {
         if (dto.getDescription()        != null) entity.setDescription(dto.getDescription());
         if (dto.getSalaireDeBase()      != null) entity.setSalaireDeBase(dto.getSalaireDeBase());
         if (dto.getPeriodiciteSalaire() != null) entity.setPeriodiciteSalaire(dto.getPeriodiciteSalaire());
-        if (dto.getDocumentPdf()        != null) entity.setDocumentPdf(dto.getDocumentPdf());
 
         linkAgentEntrepriseMission(dto, entity);
 

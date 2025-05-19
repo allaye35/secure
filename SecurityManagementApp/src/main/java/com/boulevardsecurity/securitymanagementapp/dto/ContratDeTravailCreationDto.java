@@ -43,5 +43,4 @@ public class ContratDeTravailCreationDto {
     @Builder.Default
     private List<Long> articleContratTravailIds = new ArrayList<>();
     private Long missionId;                // facultatif
-    private byte[] documentPdf;            // facultatif
 }
