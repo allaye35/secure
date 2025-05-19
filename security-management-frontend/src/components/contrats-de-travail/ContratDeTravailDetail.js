@@ -9,6 +9,7 @@ import { usePDF } from "react-to-pdf";
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import "../../styles/ContratDetail.css"; // Utilisation du fichier CSS dédié
+import "../../styles/ContratDetailPrint.css"; // Ajout du fichier CSS pour l'impression
 
 const ContratDeTravailDetail = () => {
     const { id } = useParams();
@@ -20,16 +21,147 @@ const ContratDeTravailDetail = () => {
     const [loading, setLoading] = useState(true);    const [error, setError] = useState(null);
     const [showPdfPreview, setShowPdfPreview] = useState(false);
     const [exportInProgress, setExportInProgress] = useState(false);
+    
+    // Nouveaux états pour les options d'impression et d'export
+    const [showExportOptions, setShowExportOptions] = useState(false);
+    const [exportOptions, setExportOptions] = useState({
+        includeArticles: true,
+        includeFichesDePaie: true,
+        includeHeader: true,
+        includeFooter: true,
+        pageLayout: 'portrait'
+    });
+    const [showExportLoader, setShowExportLoader] = useState(false);
       // Options pour l'export PDF
     const { toPDF, targetRef } = usePDF({
         filename: `contrat-de-travail-${id}.pdf`,
-        page: { margin: 20 },
+        page: { 
+            margin: 20,
+            orientation: exportOptions.pageLayout 
+        },
         method: 'save'
     });
     
+    // Gérer le changement des options d'export
+    const handleExportOptionChange = (e) => {
+        const { name, checked, value, type } = e.target;
+        setExportOptions(prev => ({
+            ...prev,
+            [name]: type === 'checkbox' ? checked : value
+        }));
+    };
+    
     // Fonction pour imprimer le contrat
     const handlePrint = () => {
-        toPDF();
+        window.print();
+    };
+    
+    // Fonction pour ouvrir/fermer les options d'export
+    const toggleExportOptions = () => {
+        setShowExportOptions(prev => !prev);
+    };
+
+    // Fonction pour exporter la page en PDF avec html2canvas et jsPDF
+    const exportToPDF = () => {
+        setExportInProgress(true);
+        setShowExportLoader(true);
+        
+        // Cacher temporairement les éléments non inclus dans l'export
+        if (!exportOptions.includeArticles) {
+            document.querySelectorAll('.articles-section').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        if (!exportOptions.includeFichesDePaie) {
+            document.querySelectorAll('.fiches-paie-section').forEach(el => {
+                el.style.display = 'none';
+            });
+        }
+        
+        const element = targetRef.current;
+        const fileName = `contrat-travail-${contrat?.referenceContrat || id}.pdf`;
+        
+        const pdfOptions = {
+            margin: 10,
+            filename: fileName,
+            image: { type: 'jpeg', quality: 0.98 },
+            html2canvas: { scale: 2, useCORS: true, logging: false },
+            jsPDF: { 
+                unit: 'mm', 
+                format: 'a4', 
+                orientation: exportOptions.pageLayout
+            }
+        };
+        
+        html2canvas(element, {
+            scale: 2,
+            useCORS: true,
+            logging: false,
+            allowTaint: true
+        }).then(canvas => {
+            const imgData = canvas.toDataURL('image/jpeg', 0.98);
+            const pdf = new jsPDF(
+                exportOptions.pageLayout, 
+                'mm', 
+                'a4'
+            );
+            const pdfWidth = pdf.internal.pageSize.getWidth();
+            const pdfHeight = pdf.internal.pageSize.getHeight();
+            const imgWidth = canvas.width;
+            const imgHeight = canvas.height;
+            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
+            const imgX = (pdfWidth - imgWidth * ratio) / 2;
+            const imgY = 20;
+            
+            // Ajouter un en-tête si demandé
+            if (exportOptions.includeHeader) {
+                pdf.setFontSize(12);
+                pdf.setTextColor(100, 100, 100);
+                pdf.text("BOULEVARD SÉCURITÉ", pdfWidth / 2, 10, { align: "center" });
+                pdf.setFontSize(10);
+                pdf.text(`Document généré le ${new Date().toLocaleDateString()}`, pdfWidth / 2, 15, { align: "center" });
+            }
+            
+            pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
+            
+            // Ajouter un pied de page si demandé
+            if (exportOptions.includeFooter) {
+                const pageCount = pdf.internal.getNumberOfPages();
+                for (let i = 1; i <= pageCount; i++) {
+                    pdf.setPage(i);
+                    pdf.setFontSize(10);
+                    pdf.setTextColor(150, 150, 150);
+                    pdf.text(
+                        `Page ${i} / ${pageCount} - Contrat Réf. ${contrat?.referenceContrat || id}`,
+                        pdfWidth / 2,
+                        pdfHeight - 10,
+                        { align: "center" }
+                    );
+                }
+            }
+            
+            pdf.save(fileName);
+            
+            // Restaurer l'affichage des éléments cachés
+            document.querySelectorAll('.articles-section, .fiches-paie-section').forEach(el => {
+                el.style.display = '';
+            });
+            
+            setExportInProgress(false);
+            setShowExportLoader(false);
+        }).catch(err => {
+            console.error("Erreur lors de l'export PDF:", err);
+            
+            // Restaurer l'affichage des éléments cachés en cas d'erreur
+            document.querySelectorAll('.articles-section, .fiches-paie-section').forEach(el => {
+                el.style.display = '';
+            });
+            
+            setExportInProgress(false);
+            setShowExportLoader(false);
+            alert("Une erreur s'est produite lors de l'export en PDF.");
+        });
     };
 
     useEffect(() => {
@@ -127,79 +259,120 @@ const ContratDeTravailDetail = () => {
         } else {
             alert("Aucun document PDF disponible pour ce contrat.");
         }
-    };    // Fonction pour exporter la page en PDF avec html2canvas et jsPDF
-    const exportToPDF = () => {
-        setExportInProgress(true);
-        const element = targetRef.current;
-        const fileName = `contrat-travail-${contrat?.referenceContrat || id}.pdf`;
-        
-        const pdfOptions = {
-            margin: 10,
-            filename: fileName,
-            image: { type: 'jpeg', quality: 0.98 },
-            html2canvas: { scale: 2 },
-            jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-        };
-        
-        html2canvas(element, {
-            scale: 2,
-            useCORS: true,
-            logging: false
-        }).then(canvas => {
-            const imgData = canvas.toDataURL('image/jpeg', 0.98);
-            const pdf = new jsPDF('p', 'mm', 'a4');
-            const pdfWidth = pdf.internal.pageSize.getWidth();
-            const pdfHeight = pdf.internal.pageSize.getHeight();
-            const imgWidth = canvas.width;
-            const imgHeight = canvas.height;
-            const ratio = Math.min(pdfWidth / imgWidth, pdfHeight / imgHeight);
-            const imgX = (pdfWidth - imgWidth * ratio) / 2;
-            const imgY = 20;
-            
-            pdf.addImage(imgData, 'JPEG', imgX, imgY, imgWidth * ratio, imgHeight * ratio);
-            pdf.save(fileName);
-            setExportInProgress(false);
-        }).catch(err => {
-            console.error("Erreur lors de l'export PDF:", err);
-            setExportInProgress(false);
-            alert("Une erreur s'est produite lors de l'export en PDF.");
-        });
     };    // Toutes les fonctions d'ajout et de toggle d'articles ont été retirées
     
     return (
         <div className="contrat-detail modern">
+            {/* Loader pour l'export PDF */}
+            {showExportLoader && (
+                <div className="export-loader">
+                    <div className="export-loader-spinner"></div>
+                    <div className="export-loader-text">Génération du PDF en cours...</div>
+                </div>
+            )}
+            
             <div className="contrat-header">
                 <h2 className="title">📄 Contrat de Travail: {contrat.referenceContrat}</h2>
                 
-                <div className="action-buttons">
+                <div className="pdf-action-buttons">
                     <button 
-                        className="btn btn-print action-btn" 
+                        className="pdf-action-button options"
+                        onClick={toggleExportOptions}
+                        title="Options d'impression et d'export"
+                    >
+                        <span className="button-icon">⚙️</span> Options
+                    </button>
+                    
+                    <button 
+                        className="pdf-action-button print" 
                         onClick={handlePrint}
                         disabled={exportInProgress}
                         title="Imprimer le contrat"
                     >
-                        <span className="btn-icon">🖨️</span> Imprimer
+                        <span className="button-icon">🖨️</span> Imprimer
                     </button>
-                      <button 
-                        className="btn btn-export action-btn" 
+                      
+                    <button 
+                        className="pdf-action-button export" 
                         onClick={exportToPDF}
                         disabled={exportInProgress}
                         title="Exporter en PDF"
                     >
-                        <span className="btn-icon">📥</span> Exporter en PDF
+                        <span className="button-icon">📥</span> Exporter en PDF
                         {exportInProgress && <span className="spinner"></span>}
                     </button>
                     
                     {contrat.documentPdf && (
                         <button
-                            className="btn pdf-button action-btn"
+                            className="pdf-action-button download"
                             onClick={handleViewPdf}
                         >
-                            <span className="btn-icon">📑</span> {showPdfPreview ? 'Masquer le PDF' : 'PDF Original'}
+                            <span className="button-icon">📑</span> {showPdfPreview ? 'Masquer le PDF' : 'PDF Original'}
                         </button>
                     )}
                 </div>
             </div>
+            
+            {/* Options d'export */}
+            {showExportOptions && (
+                <div className="export-options not-printable">
+                    <div className="options-title">Options d'impression et d'export PDF</div>
+                    <div className="options-grid">
+                        <div className="option-item">
+                            <input 
+                                type="checkbox" 
+                                id="includeArticles" 
+                                name="includeArticles"
+                                checked={exportOptions.includeArticles}
+                                onChange={handleExportOptionChange}
+                            />
+                            <label htmlFor="includeArticles">Inclure les articles</label>
+                        </div>
+                        <div className="option-item">
+                            <input 
+                                type="checkbox" 
+                                id="includeFichesDePaie" 
+                                name="includeFichesDePaie"
+                                checked={exportOptions.includeFichesDePaie}
+                                onChange={handleExportOptionChange}
+                            />
+                            <label htmlFor="includeFichesDePaie">Inclure les fiches de paie</label>
+                        </div>
+                        <div className="option-item">
+                            <input 
+                                type="checkbox" 
+                                id="includeHeader" 
+                                name="includeHeader"
+                                checked={exportOptions.includeHeader}
+                                onChange={handleExportOptionChange}
+                            />
+                            <label htmlFor="includeHeader">Inclure l'en-tête</label>
+                        </div>
+                        <div className="option-item">
+                            <input 
+                                type="checkbox" 
+                                id="includeFooter" 
+                                name="includeFooter"
+                                checked={exportOptions.includeFooter}
+                                onChange={handleExportOptionChange}
+                            />
+                            <label htmlFor="includeFooter">Inclure le pied de page</label>
+                        </div>
+                    </div>
+                    <div className="layout-selector">
+                        <label htmlFor="pageLayout">Orientation de la page: </label>
+                        <select 
+                            id="pageLayout"
+                            name="pageLayout"
+                            value={exportOptions.pageLayout}
+                            onChange={handleExportOptionChange}
+                        >
+                            <option value="portrait">Portrait</option>
+                            <option value="landscape">Paysage</option>
+                        </select>
+                    </div>
+                </div>
+            )}
             
             <div className="contrat-status">
                 <span className={`status-badge ${contrat.dateFin ? (new Date(contrat.dateFin) < new Date() ? 'expired' : 'active') : 'active'}`}>
@@ -231,7 +404,16 @@ const ContratDeTravailDetail = () => {
                 </div>
             )}
               {/* Zone pour l'impression/export PDF */}
-            <div className="printable-content" ref={targetRef}>            {/* Informations générales du contrat - Style amélioré */}
+            <div className="printable-content" ref={targetRef}>
+                {/* En-tête spécifique à l'impression */}
+                <div className="print-header">
+                    <div className="print-title">CONTRAT DE TRAVAIL</div>
+                    <div className="print-subtitle">Référence: {contrat.referenceContrat}</div>
+                </div>
+                
+                <div className="print-date">
+                    Document généré le {new Date().toLocaleDateString()} à {new Date().toLocaleTimeString()}
+                </div>            {/* Informations générales du contrat - Style amélioré */}
             <div className="info-section" style={{ 
                 backgroundColor: '#fff',
                 borderRadius: '8px',
@@ -584,7 +766,7 @@ const ContratDeTravailDetail = () => {
                 </div>
             )}
 
-            {/* Articles du contrat - Version plus conviviale quand vide */}            <div className="info-section">
+            {/* Articles du contrat - Version plus conviviale quand vide */}            <div className="info-section articles-section">
                 <div className="section-header" style={{ marginBottom: '20px' }}>
                     <h3>Articles du contrat ({articles.length})</h3>
                 </div>
@@ -678,7 +860,7 @@ const ContratDeTravailDetail = () => {
                     </div>
                 )}
             </div>            {/* Fiches de paie - Version améliorée */}
-            <div className="info-section">
+            <div className="info-section fiches-paie-section">
                 <h3 style={{
                     color: '#2c3e50',
                     borderBottom: '2px solid #ecf0f1',

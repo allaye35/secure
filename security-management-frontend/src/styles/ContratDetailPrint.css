@@ -1,0 +1,253 @@
+/* Styles spécifiques pour l'impression et le PDF */
+@media print {
+    body * {
+        visibility: hidden;
+    }
+    
+    .printable-content,
+    .printable-content * {
+        visibility: visible;
+    }
+    
+    .printable-content {
+        position: absolute;
+        left: 0;
+        top: 0;
+        width: 100%;
+        background-color: white !important;
+    }
+    
+    .contrat-detail {
+        padding: 0 !important;
+        margin: 0 !important;
+        background-color: white !important;
+        box-shadow: none !important;
+        max-width: 100% !important;
+    }
+    
+    .info-section {
+        margin-bottom: 15px !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        border: 1px solid #ddd !important;
+        box-shadow: none !important;
+    }
+    
+    .contrat-header {
+        margin-bottom: 15px !important;
+    }
+    
+    .action-buttons, 
+    .actions-container, 
+    .contrat-status,
+    .not-printable {
+        display: none !important;
+    }
+    
+    .articles-list .article-item {
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 10px !important;
+    }
+    
+    .table-wrapper table {
+        page-break-inside: avoid;
+    }
+    
+    h1, h2, h3, h4, h5, h6 {
+        page-break-after: avoid;
+    }
+    
+    .info-block {
+        page-break-inside: avoid;
+    }
+}
+
+/* Classes pour les options d'impression/export */
+.export-options {
+    background: #f8f9fa;
+    border: 1px solid #dee2e6;
+    border-radius: 6px;
+    padding: 15px;
+    margin-top: 15px;
+    margin-bottom: 20px;
+}
+
+.options-title {
+    font-weight: 600;
+    margin-bottom: 10px;
+    font-size: 14px;
+    color: #495057;
+}
+
+.options-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 10px;
+}
+
+.option-item {
+    display: flex;
+    align-items: center;
+}
+
+.option-item input {
+    margin-right: 8px;
+}
+
+.option-item label {
+    font-size: 14px;
+    cursor: pointer;
+}
+
+/* Styles pour le sélecteur de mise en page */
+.layout-selector {
+    margin-top: 10px;
+}
+
+.layout-selector select {
+    padding: 5px 10px;
+    border: 1px solid #ced4da;
+    border-radius: 4px;
+    background-color: white;
+}
+
+/* Styles spécifiques pour la version imprimée/exportée */
+.print-header {
+    text-align: center;
+    margin-bottom: 20px;
+    padding-bottom: 20px;
+    border-bottom: 2px solid #eaedf2;
+}
+
+.print-header .print-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-bottom: 5px;
+    color: #2c3e50;
+}
+
+.print-header .print-subtitle {
+    font-size: 16px;
+    color: #5a6268;
+}
+
+.print-date {
+    text-align: right;
+    font-style: italic;
+    font-size: 12px;
+    color: #6c757d;
+    margin-bottom: 20px;
+}
+
+.print-footer {
+    margin-top: 30px;
+    padding-top: 15px;
+    border-top: 1px solid #eaedf2;
+    text-align: center;
+    font-size: 12px;
+    color: #6c757d;
+}
+
+.print-page-break {
+    page-break-after: always;
+    break-after: page;
+}
+
+/* Loader pour l'export PDF */
+.export-loader {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(255, 255, 255, 0.8);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    z-index: 1000;
+}
+
+.export-loader-text {
+    margin-top: 20px;
+    font-weight: 600;
+    color: #3498db;
+}
+
+.export-loader-spinner {
+    width: 50px;
+    height: 50px;
+    border: 5px solid #f3f3f3;
+    border-top: 5px solid #3498db;
+    border-radius: 50%;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Boutons améliorés pour l'impression et l'export */
+.pdf-action-buttons {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    margin-bottom: 15px;
+}
+
+.pdf-action-button {
+    display: flex;
+    align-items: center;
+    padding: 8px 15px;
+    border-radius: 5px;
+    border: none;
+    cursor: pointer;
+    font-weight: 500;
+    transition: all 0.3s ease;
+    background-color: #fff;
+    color: #333;
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-action-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.pdf-action-button.print {
+    background-color: #28a745;
+    color: white;
+}
+
+.pdf-action-button.export {
+    background-color: #007bff;
+    color: white;
+}
+
+.pdf-action-button.options {
+    background-color: #6c757d;
+    color: white;
+}
+
+.pdf-action-button.download {
+    background-color: #fd7e14;
+    color: white;
+}
+
+.button-icon {
+    margin-right: 8px;
+    font-size: 16px;
+}
+
+/* Responsive fixes */
+@media (max-width: 768px) {
+    .pdf-action-buttons {
+        flex-direction: column;
+    }
+    
+    .options-grid {
+        grid-template-columns: 1fr;
+    }
+}
