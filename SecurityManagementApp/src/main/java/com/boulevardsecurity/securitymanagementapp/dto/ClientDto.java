@@ -9,9 +9,8 @@ import lombok.*;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
-public class ClientDto {
-
-    private Long id;
+public class ClientDto {    private Long id;
+    private String username;
     private Role role;                // CLIENT / ADMIN / etc.
     private TypeClient typeClient;    // PARTICULIER ou ENTREPRISE
 

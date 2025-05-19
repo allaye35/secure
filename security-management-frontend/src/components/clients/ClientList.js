@@ -35,13 +35,12 @@ export default function ClientList() {
   useEffect(() => {
     let mounted = true;                         // évite le setState après un unmount
     setLoading(true);
-    
-    // Dans un environnement réel, l'API devrait supporter la pagination côté serveur
+      // Dans un environnement réel, l'API devrait supporter la pagination côté serveur
     // Ici, nous simulons avec une gestion côté client
     ClientService.getAll()
-      .then(res => {
+      .then(allClients => {
         if (mounted) {
-          const allClients = res.data;
+          console.log("Clients reçus:", allClients);
           
           // Extraire les types de clients uniques pour le filtre
           const types = new Set();
@@ -146,13 +145,10 @@ export default function ClientList() {
     try {
       setLoading(true);
       await ClientService.delete(id);
-      
-      // Rafraîchir la liste après suppression
+        // Rafraîchir la liste après suppression
       ClientService.getAll()
-        .then(res => {
-          const allClients = res.data;
-          
-          // Re-appliquer les filtres et tri
+        .then(allClients => {
+                    // Re-appliquer les filtres et tri
           let filteredClients = applyFiltersAndSort(allClients);
           
           // Ajuster la page courante si nécessaire
@@ -198,8 +194,7 @@ export default function ClientList() {
     setSortField(field);
     setSortDirection(newDirection);
   };
-  
-  // Gestion de la recherche
+    // Gestion de la recherche
   const handleSearchChange = (e) => {
     setSearchTerm(e.target.value);
     setCurrentPage(1); // Retour à la première page
@@ -213,6 +208,11 @@ export default function ClientList() {
     setSortDirection('asc');
     setCurrentPage(1);
   };
+  
+  // Afficher le console.log pour le débogage
+  useEffect(() => {
+    console.log("État actuel des clients:", clients);
+  }, [clients]);
   
   // Fonction pour afficher l'icône de tri appropriée
   const renderSortIcon = (field) => {
