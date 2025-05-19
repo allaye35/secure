@@ -93,16 +93,9 @@ export default function ContratDeTravailCreate() {
                 agentDeSecuriteId: parseInt(data.agentDeSecuriteId) || null,
                 entrepriseId: parseInt(data.entrepriseId) || null,
                 missionId: parseInt(data.missionId) || null
-            };
-
-            // Ajouter les IDs des clauses si sélectionnées
+            };            // Ajouter les IDs des clauses si sélectionnées
             if (data.clauseIds && data.clauseIds.length > 0) {
                 jsonData.clauseIds = data.clauseIds.map(id => parseInt(id));
-            }
-            
-            // Ajouter les IDs des articles si sélectionnés
-            if (data.articleIds && data.articleIds.length > 0) {
-                jsonData.articleIds = data.articleIds.map(id => parseInt(id));
             }
             
             // Ajouter les IDs des fiches de paie si sélectionnées
