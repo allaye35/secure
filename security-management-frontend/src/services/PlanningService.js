@@ -3,10 +3,9 @@ import api from "./api";
 
 const PATH = "/plannings";
 
-const PlanningService = {
-  // CRUD
-  getAllPlannings: ()          => api.get(PATH),
-  getPlanningById: id          => api.get(`${PATH}/${id}`),
+const PlanningService = {  // CRUD
+  getAllPlannings: ()          => api.get(PATH).then(response => response.data),
+  getPlanningById: id          => api.get(`${PATH}/${id}`).then(response => response.data),
   createPlanning: obj          => api.post(PATH, obj),
   updatePlanning: (id, obj)    => api.put(`${PATH}/${id}`, obj),
   deletePlanning: id           => api.delete(`${PATH}/${id}`),

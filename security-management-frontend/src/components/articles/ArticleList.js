@@ -120,13 +120,12 @@ export default function ArticleList() {
     const handleRefresh = () => {
         setRefreshTrigger(prev => prev + 1);
     };
-    
-    // Filtrer les articles par recherche et contrat
+      // Filtrer les articles par recherche et contrat
     const filteredArticles = articles.filter(article => {
         const matchesSearch = 
             article.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             (article.numero?.toString() || "").toLowerCase().includes(searchTerm.toLowerCase()) ||
-            contrats[article.contratId]?.referenceContrat?.toLowerCase().includes(searchTerm.toLowerCase());
+            (contrats[article.contratId]?.referenceContrat || "")?.toLowerCase().includes(searchTerm.toLowerCase());
             
         const matchesContratFilter = filteredContratId === null || article.contratId === filteredContratId;
         
@@ -149,10 +148,9 @@ export default function ArticleList() {
             case 'titre':
                 valA = a.titre || '';
                 valB = b.titre || '';
-                break;
-            case 'contrat':
-                valA = contrats[a.contratId]?.referenceContrat || '';
-                valB = contrats[b.contratId]?.referenceContrat || '';
+                break;            case 'contrat':
+                valA = (contrats[a.contratId]?.referenceContrat || '') || '';
+                valB = (contrats[b.contratId]?.referenceContrat || '') || '';
                 break;
             default:
                 valA = a.id;
@@ -163,11 +161,10 @@ export default function ArticleList() {
         if (valA > valB) return sortDirection === 'asc' ? 1 : -1;
         return 0;
     });
-    
-    // Générer la liste des contrats pour le filtre
+      // Générer la liste des contrats pour le filtre
     const contratOptions = Object.entries(contrats).map(([id, c]) => ({
         id: id,
-        label: c.referenceContrat || `Contrat #${id}`
+        label: c?.referenceContrat || `Contrat #${id}`
     }));
     
     // Générer un rapport CSV exportable
@@ -177,12 +174,11 @@ export default function ArticleList() {
         const csvRows = [
             headers.join(','),
             ...sortedArticles.map(a => {
-                const c = contrats[a.contratId];
-                return [
+                const c = contrats[a.contratId];                return [
                     a.id,
                     a.numero || '',
                     `"${(a.titre || '').replace(/"/g, '""')}"`,
-                    `"${(c?.referenceContrat || a.contratId || '').replace(/"/g, '""')}"`
+                    `"${((c?.referenceContrat || a.contratId || '').toString()).replace(/"/g, '""')}"`
                 ].join(',');
             })
         ];
@@ -254,9 +250,8 @@ export default function ArticleList() {
                         {/* Filtre contrats */}
                         <Dropdown className="me-2">
                             <Dropdown.Toggle variant="outline-secondary" id="dropdown-contrat">
-                                <FontAwesomeIcon icon={faFilter} className="me-2" />
-                                {filteredContratId ? 
-                                    `Contrat: ${contrats[filteredContratId]?.referenceContrat || filteredContratId}` : 
+                                <FontAwesomeIcon icon={faFilter} className="me-2" />                                {filteredContratId ? 
+                                    `Contrat: ${(contrats[filteredContratId]?.referenceContrat || filteredContratId)}` : 
                                     'Tous les contrats'}
                             </Dropdown.Toggle>
                             <Dropdown.Menu>

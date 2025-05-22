@@ -4,7 +4,13 @@ import axios from "axios";
 const API_URL = `${process.env.REACT_APP_API_BASE}/geolocalisations-gps`;
 
 const getAllGeolocalisations = async () => {
-  return await axios.get(API_URL);
+  try {
+    const response = await axios.get(API_URL);
+    return response;
+  } catch (error) {
+    console.error("Erreur lors de la récupération des geolocalisations:", error);
+    throw error;
+  }
 };
 
 const getGeolocalisationById = async (id) => {
@@ -29,4 +35,6 @@ export default {
   createGeolocalisation,
   updateGeolocalisation,
   deleteGeolocalisation,
+  // Alias pour getAllGeolocalisations pour correspondre à la convention des autres services
+  getAll: () => getAllGeolocalisations().then(response => response.data)
 };

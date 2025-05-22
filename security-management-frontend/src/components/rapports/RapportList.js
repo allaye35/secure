@@ -23,14 +23,14 @@ export default function RapportList() {
     const [sortDirection, setSortDirection] = useState('desc');
     const [showDeleteModal, setShowDeleteModal] = useState(false);
     const [rapportToDelete, setRapportToDelete] = useState(null);
-    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });
-
-    // 🔄 recharge la liste des rapports
+    const [notification, setNotification] = useState({ show: false, message: '', type: 'success' });    // 🔄 recharge la liste des rapports
     const refreshRapports = () => {
         setLoading(true);
         RapportService.getAllRapports()
             .then(res => {
-                const unique = new Map(res.data.map(r => [r.id, r]));
+                // Vérifier si les données sont dans res.data (API structurée) ou directement dans res
+                const data = res.data || res;
+                const unique = new Map(data.map(r => [r.id, r]));
                 setRapports(Array.from(unique.values()));
                 setLoading(false);
             })
@@ -44,12 +44,10 @@ export default function RapportList() {
     // 1) on récupère d'abord tous les rapports…
     useEffect(() => {
         refreshRapports();
-    }, []);
-
-    // 2) …et en même temps on charge toutes les missions
+    }, []);    // 2) …et en même temps on charge toutes les missions
     useEffect(() => {
         MissionService.getAllMissions()
-            .then(res => setMissions(res.data))
+            .then(data => setMissions(data))
             .catch(err => console.error("Erreur lors du chargement des missions:", err));
     }, []);
 
@@ -123,15 +121,15 @@ export default function RapportList() {
         }
         
         return sortDirection === 'asc' ? comparison : -comparison;
-    });
-
-    // Télécharger en CSV
+    });    // Télécharger en CSV
     const exportToCSV = () => {
         const headers = ['ID', 'Date', 'Agent', 'Mission', 'Status', 'Description'];
-        
-        const csvData = sortedRapports.map(r => {
-            const mission = missions.find(m => m.id === r.missionId);
-            const missionTitle = mission ? mission.titre : `Mission #${r.missionId}`;
+          const csvData = sortedRapports.map(r => {
+            // Vérification que missions est un tableau avant de chercher
+            const missionsArray = Array.isArray(missions) ? missions : [];
+            // Vérification que r.missionId existe avant d'utiliser find
+            const mission = r.missionId ? missionsArray.find(m => m && m.id === r.missionId) : null;
+            const missionTitle = mission && mission.titre ? mission.titre : `Mission #${r.missionId || 'N/A'}`;
             
             return [
                 r.id,
@@ -300,10 +298,11 @@ export default function RapportList() {
                                         <th className="text-center">Actions</th>
                                     </tr>
                                 </thead>
-                                <tbody>
-                                    {sortedRapports.length > 0 ? sortedRapports.map((r) => {
+                                <tbody>                                    {sortedRapports.length > 0 ? sortedRapports.map((r) => {
                                         // retrouve l'objet mission correspondant
-                                        const mission = missions.find(m => m.id === r.missionId);
+                                        // vérifie que missions est un tableau avant d'appeler find
+                                        const missionsArray = Array.isArray(missions) ? missions : [];
+                                        const mission = r.missionId ? missionsArray.find(m => m && m.id === r.missionId) : null;
                                         return (
                                             <tr key={r.id}>
                                                 <td><Badge bg="secondary">#{r.id}</Badge></td>
@@ -319,9 +318,8 @@ export default function RapportList() {
                                                 <td>
                                                     <div>{r.agentNom}</div>
                                                     <small className="text-muted">{r.agentEmail}</small>
-                                                </td>
-                                                <td>
-                                                    {mission
+                                                </td>                                                <td>
+                                                    {mission && mission.titre
                                                         ? (
                                                             <>
                                                                 <div>{mission.titre}</div>

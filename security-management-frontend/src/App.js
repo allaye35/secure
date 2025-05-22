@@ -316,8 +316,12 @@ export default function App() {
                 <Route path="/tarifs"            element={<TarifMissionList />} />
                 <Route path="/tarifs/create"     element={<TarifMissionForm />} />
                 <Route path="/tarifs/edit/:id"   element={<TarifMissionForm />} />
-                <Route path="/tarifs/:id"        element={<TarifMissionDetail />} />
-                </Route>
+                <Route path="/tarifs/:id"        element={<TarifMissionDetail />} />                </Route>
+                <Route path="/contrats" element={<ContratList />} />
+                <Route path="/contrats/create" element={<CreateContrat />} />
+                <Route path="/contrats/edit/:id" element={<EditContrat />} />
+                <Route path="/contrats/:id" element={<ContratDetail />} />
+            
             </Routes>
         </BrowserRouter>
     );

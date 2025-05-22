@@ -1,4 +1,4 @@
-// src/components/sites/SiteList.jsx
+// src/components/sites/SiteList.js
 import React, { useEffect, useState } from "react";
 import { Link, useNavigate }           from "react-router-dom";
 import SiteService                     from "../../services/SiteService";
@@ -12,11 +12,11 @@ export default function SiteList() {
     const [searchTerm, setSearchTerm] = useState('');
     const [isLoading, setIsLoading] = useState(true);
     const nav = useNavigate();
-
+    
     useEffect(() => {
         setIsLoading(true);
         SiteService.getAllSites()
-            .then(({ data }) => {
+            .then((data) => {
                 setSites(data);
                 setFilteredSites(data);
                 setIsLoading(false);

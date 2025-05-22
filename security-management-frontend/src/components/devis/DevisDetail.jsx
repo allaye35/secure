@@ -70,31 +70,91 @@ export default function DevisDetail() {
                     <span className="label">Client :</span>
                     <span>{devis.clientId || "—"}</span>
                 </div>
-            </div>
-
-            <div className="field">
+            </div>            <div className="field">
                 <span className="label">Conditions générales :</span>
                 <p>{devis.conditionsGenerales || "—"}</p>
             </div>
 
+            {/* Affichage des totaux calculés */}
+            <div className="totals-section">
+                <h3>Montants totaux</h3>
+                <div className="field-group">
+                    <div className="field">
+                        <span className="label">Montant total HT :</span>
+                        <span className="amount">{devis.montantTotalHT?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+                    </div>
+                    <div className="field">
+                        <span className="label">TVA totale :</span>
+                        <span className="amount">{devis.montantTotalTVA?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+                    </div>
+                    <div className="field">
+                        <span className="label">Montant total TTC :</span>
+                        <span className="amount highlight">{devis.montantTotalTTC?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</span>
+                    </div>
+                </div>
+                <div className="field-group">
+                    <div className="field">
+                        <span className="label">Nombre total d'agents :</span>
+                        <span>{devis.nombreTotalAgents}</span>
+                    </div>
+                    <div className="field">
+                        <span className="label">Nombre total d'heures :</span>
+                        <span>{devis.nombreTotalHeures}</span>
+                    </div>
+                </div>
+            </div>
+
             <div className="field">
                 <span className="label">Missions liées :</span>
-                {devis.missionIds?.length > 0
+                {(devis.missions && devis.missions.length > 0)
                     ? (
-                        <ul>
-                            {devis.missionIds.map(mid => (
-                                <li key={mid}>
-                                    <button
-                                        className="link"
-                                        onClick={() => navigate(`/missions/${mid}`)}
-                                    >
-                                        Mission #{mid}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
+                        <div className="missions-list">
+                            <table className="missions-table">
+                                <thead>
+                                    <tr>
+                                        <th>ID</th>
+                                        <th>Titre</th>
+                                        <th>Type</th>
+                                        <th>Statut</th>
+                                        <th>Période</th>
+                                        <th>Agents</th>
+                                        <th>Heures</th>
+                                        <th>Montant HT</th>
+                                        <th>Montant TTC</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    {devis.missions.map(mission => (
+                                        <tr key={mission.id}>
+                                            <td>{mission.id}</td>
+                                            <td>{mission.titre || "—"}</td>
+                                            <td>{mission.typeMission || "—"}</td>
+                                            <td>{mission.statutMission || "—"}</td>
+                                            <td>
+                                                {mission.dateDebut ? new Date(mission.dateDebut).toLocaleDateString() : "—"} 
+                                                {" → "}
+                                                {mission.dateFin ? new Date(mission.dateFin).toLocaleDateString() : "—"}
+                                            </td>
+                                            <td>{mission.nombreAgents}</td>
+                                            <td>{mission.quantite}</td>
+                                            <td>{mission.montantHT?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</td>
+                                            <td>{mission.montantTTC?.toLocaleString(undefined, {minimumFractionDigits: 2, maximumFractionDigits: 2})} €</td>
+                                            <td>
+                                                <button
+                                                    className="btn-link"
+                                                    onClick={() => navigate(`/missions/${mission.id}`)}
+                                                >
+                                                    Détails
+                                                </button>
+                                            </td>
+                                        </tr>
+                                    ))}
+                                </tbody>
+                            </table>
+                        </div>
                     )
-                    : <em>Aucune</em>
+                    : <em>Aucune mission associée à ce devis</em>
                 }
             </div>
 

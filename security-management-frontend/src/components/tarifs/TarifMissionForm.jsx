@@ -48,21 +48,18 @@ export default function TarifMissionForm() {
         setLoading(true);
 
         // Récupérer toutes les missions disponibles
-        setMissionsLoading(true);
-        MissionService.getAll()
-            .then(({ data }) => {
+        setMissionsLoading(true);        MissionService.getAll()
+            .then((data) => {
                 setAllMissions(data);
                 setMissionsLoading(false);
             })
             .catch(err => {
                 console.error("Erreur lors du chargement des missions:", err);
                 setMissionsLoading(false);
-            });
-
-        // Si en mode édition, charger le tarif existant
+            });        // Si en mode édition, charger le tarif existant
         if (isEdit) {
             TarifMissionService.getById(id)
-                .then(({ data }) => {
+                .then((data) => {
                     setDto({
                         typeMission:     data.typeMission,
                         prixUnitaireHT:  data.prixUnitaireHT,

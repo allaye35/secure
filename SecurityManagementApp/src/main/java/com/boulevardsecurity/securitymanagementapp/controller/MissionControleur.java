@@ -89,7 +89,7 @@ public class MissionControleur {
 
     /* ────────────── Mise à jour ────────────── */
 
-    @PatchMapping("/{id}")
+    @PutMapping("/{id}")
     public ResponseEntity<?> majMission(
             @PathVariable Long id,
             @Valid @RequestBody MissionCreateDto missionDto,

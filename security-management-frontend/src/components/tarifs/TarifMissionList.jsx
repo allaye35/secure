@@ -40,11 +40,9 @@ export default function TarifMissionList() {
     const [showStats, setShowStats] = useState(false);
     const [suggestions, setSuggestions] = useState([]);
     const [autoCompleteVisible, setAutoCompleteVisible] = useState(false);
-    const navigate = useNavigate();
-
-    useEffect(() => {
+    const navigate = useNavigate();    useEffect(() => {
         TarifMissionService.getAll()
-            .then(({ data }) => {
+            .then((data) => {
                 setTarifs(data);
                 setFilteredTarifs(data);
             })
@@ -240,13 +238,11 @@ export default function TarifMissionList() {
         
         setSuccess("Export CSV effectué avec succès");
         setTimeout(() => setSuccess(""), 3000);
-    };
-
-    // Fonction pour rafraîchir les données
+    };    // Fonction pour rafraîchir les données
     const refreshData = () => {
         setLoading(true);
         TarifMissionService.getAll()
-            .then(({ data }) => {
+            .then((data) => {
                 setTarifs(data);
                 setFilteredTarifs(data);
                 setSuccess("Données rafraîchies avec succès");

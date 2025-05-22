@@ -98,16 +98,22 @@ export default function ContratList() {
                 const devisMapData = {};
                 devisResults.forEach(r => { if (r) devisMapData[r.id] = r.dto; });
                 setDevisMap(devisMapData);
-                
-                // Chargement parallèle des missions pour chaque contrat
+                  // Chargement parallèle des missions pour chaque contrat
                 const missionsResults = await Promise.all(list.map(c =>
                     MissionService.getByContratId(c.id)
-                        .then(r => ({ contratId: c.id, missions: r.data }))
+                        .then(r => ({ 
+                            contratId: c.id, 
+                            missions: Array.isArray(r.data) ? r.data : [] 
+                        }))
                         .catch(() => ({ contratId: c.id, missions: [] }))
                 ));
                 
                 const missionsMapData = {};
-                missionsResults.forEach(r => { missionsMapData[r.contratId] = r.missions; });
+                missionsResults.forEach(r => { 
+                    if (r && r.contratId) {
+                        missionsMapData[r.contratId] = r.missions || [];
+                    }
+                });
                 setMissionsMap(missionsMapData);
                 
                 setLoading(false);
@@ -168,16 +174,17 @@ export default function ContratList() {
                 contrat.dateSignature && new Date(contrat.dateSignature) <= dateMax
             );
         }
-        
-        // Filtrage par présence de missions
+          // Filtrage par présence de missions
         if (filters.avecMissions === "avec") {
-            results = results.filter(contrat => 
-                (missionsMap[contrat.id] && missionsMap[contrat.id].length > 0)
-            );
+            results = results.filter(contrat => {
+                const missions = missionsMap[contrat.id];
+                return missions && Array.isArray(missions) && missions.length > 0;
+            });
         } else if (filters.avecMissions === "sans") {
-            results = results.filter(contrat => 
-                !missionsMap[contrat.id] || missionsMap[contrat.id].length === 0
-            );
+            results = results.filter(contrat => {
+                const missions = missionsMap[contrat.id];
+                return !missions || !Array.isArray(missions) || missions.length === 0;
+            });
         }
         
         // Tri des résultats
@@ -211,10 +218,11 @@ export default function ContratList() {
                 case 'duree':
                     compareValueA = a.dureeMois || 0;
                     compareValueB = b.dureeMois || 0;
-                    break;
-                case 'missions':
-                    compareValueA = (missionsMap[a.id] || []).length;
-                    compareValueB = (missionsMap[b.id] || []).length;
+                    break;                case 'missions':
+                    const missionsA = missionsMap[a.id];
+                    const missionsB = missionsMap[b.id];
+                    compareValueA = (Array.isArray(missionsA) ? missionsA.length : 0);
+                    compareValueB = (Array.isArray(missionsB) ? missionsB.length : 0);
                     break;
                 default:
                     compareValueA = a.id;
@@ -280,10 +288,10 @@ export default function ContratList() {
     
     // Extraire les statistiques sur les contrats
     const getContratStats = () => {
-        const total = filteredContrats.length;
-        const withMissions = filteredContrats.filter(c => 
-            missionsMap[c.id] && missionsMap[c.id].length > 0
-        ).length;
+        const total = filteredContrats.length;        const withMissions = filteredContrats.filter(c => {
+            const missions = missionsMap[c.id];
+            return missions && Array.isArray(missions) && missions.length > 0;
+        }).length;
         const withoutMissions = total - withMissions;
         const averageDuration = total > 0 ? 
             filteredContrats.reduce((sum, c) => sum + (c.dureeMois || 0), 0) / total : 0;
@@ -315,7 +323,7 @@ export default function ContratList() {
         const date = new Date(dateString);
         return date.toLocaleDateString();
     };      const getMissionBadge = (contratId) => {
-        const missions = missionsMap[contratId] || [];
+        const missions = Array.isArray(missionsMap[contratId]) ? missionsMap[contratId] : [];
         
         if (missions.length === 0) {
             return (
@@ -643,11 +651,10 @@ export default function ContratList() {
                         <>
                             {/* Mode d'affichage en grille */}
                             {viewMode === 'grid' ? (
-                                <Row>
-                                    {currentContrats.map((c, index) => {
+                                <Row>                                    {currentContrats.map((c, index) => {
                                         const devis = devisMap[c.devisId];
-                                        const missions = missionsMap[c.id] || [];
-                                        const hasMissions = missions.length > 0;
+                                        const missions = Array.isArray(missionsMap[c.id]) ? missionsMap[c.id] : [];
+                                        const hasMissions = Array.isArray(missions) && missions.length > 0;
                                         
                                         return (
                                             <Col xl={3} lg={4} md={6} sm={12} key={c.id} className="contrat-grid-item">
@@ -700,22 +707,21 @@ export default function ContratList() {
                                                                 ) : "—"}
                                                             </span>
                                                         </div>
-                                                        
-                                                        {missions.length > 0 && (
+                                                          {Array.isArray(missions) && missions.length > 0 && (
                                                             <div className="mt-3">
                                                                 <h6 className="text-muted mb-2">Dernière mission:</h6>
                                                                 <div className="mission-list-item">
-                                                                    <div className="fw-bold text-truncate">{missions[0].titreMission}</div>
+                                                                    <div className="fw-bold text-truncate">{missions[0]?.titreMission || 'Mission sans titre'}</div>
                                                                     <div className="d-flex justify-content-between align-items-center mt-1">
                                                                         <small className="text-muted">
-                                                                            {missions[0].dateDebut && new Date(missions[0].dateDebut).toLocaleDateString()}
+                                                                            {missions[0]?.dateDebut && new Date(missions[0].dateDebut).toLocaleDateString()}
                                                                         </small>
                                                                         <Badge bg={
-                                                                            missions[0].statut === "EN_COURS" ? "success" : 
-                                                                            missions[0].statut === "PLANIFIEE" ? "info" : 
-                                                                            missions[0].statut === "TERMINEE" ? "secondary" : "warning"
+                                                                            missions[0]?.statut === "EN_COURS" ? "success" : 
+                                                                            missions[0]?.statut === "PLANIFIEE" ? "info" : 
+                                                                            missions[0]?.statut === "TERMINEE" ? "secondary" : "warning"
                                                                         } pill>
-                                                                            {missions[0].statut?.replace(/_/g, " ") || "Non défini"}
+                                                                            {missions[0]?.statut?.replace(/_/g, " ") || "Non défini"}
                                                                         </Badge>
                                                                     </div>
                                                                 </div>
@@ -1045,17 +1051,15 @@ export default function ContratList() {
                                         </div>
                                     )}
                                 </Card.Body>
-                            </Card>
-                            
-                            <h5 className="mb-3 d-flex align-items-center">
+                            </Card>                            <h5 className="mb-3 d-flex align-items-center">
                                 <FontAwesomeIcon icon={faTasks} className="me-2 text-primary" />
                                 Liste des missions 
                                 <Badge bg="primary" pill className="ms-2">
-                                    {missionsMap[selectedContrat.id]?.length || 0}
+                                    {selectedContrat && Array.isArray(missionsMap[selectedContrat.id]) ? missionsMap[selectedContrat.id].length : 0}
                                 </Badge>
                             </h5>
                               
-                            {missionsMap[selectedContrat.id] && missionsMap[selectedContrat.id].length > 0 ? (
+                            {selectedContrat && Array.isArray(missionsMap[selectedContrat.id]) && missionsMap[selectedContrat.id].length > 0 ? (
                                 <div className="table-responsive">
                                     <Table hover bordered striped className="align-middle shadow-sm mb-0" style={{ tableLayout: 'fixed' }}>
                                         <thead className="table-light">
@@ -1067,9 +1071,10 @@ export default function ContratList() {
                                                 <th className="text-center">Statut</th>
                                                 <th className="text-center" style={{width: '120px'}}>Actions</th>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            {missionsMap[selectedContrat.id].map(mission => {
+                                        </thead>                                        <tbody>
+                                            {selectedContrat && Array.isArray(missionsMap[selectedContrat.id]) && missionsMap[selectedContrat.id].map(mission => {
+                                                if (!mission) return null;
+                                                
                                                 // Calcul du statut réel basé sur les dates (en cas de données incomplètes)
                                                 const today = new Date();
                                                 const dateDebut = mission.dateDebut ? new Date(mission.dateDebut) : null;

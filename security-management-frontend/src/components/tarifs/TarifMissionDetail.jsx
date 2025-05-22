@@ -13,12 +13,10 @@ export default function TarifMissionDetail() {
     const navigate = useNavigate();
     const [tarif, setTarif] = useState(null);
     const [error, setError] = useState("");
-    const [loading, setLoading] = useState(true);
-
-    useEffect(() => {
+    const [loading, setLoading] = useState(true);    useEffect(() => {
         setLoading(true);
         TarifMissionService.getById(id)
-            .then(({ data }) => {
+            .then((data) => {
                 setTarif(data);
                 setLoading(false);
             })

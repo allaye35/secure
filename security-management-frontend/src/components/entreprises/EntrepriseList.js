@@ -26,10 +26,10 @@ export default function EntrepriseList() {
             DevisService.getAll(),
             ContratDeTravailService.getAll()
         ])
-        .then(([entreprisesRes, devisRes, contratsRes]) => {
-            setEntreprises(entreprisesRes.data);
-            setAllDevis(devisRes.data);
-            setAllContrats(contratsRes.data);
+        .then(([entreprisesData, devisData, contratsRes]) => {
+            setEntreprises(entreprisesData || []);
+            setAllDevis(devisData || []);
+            setAllContrats(contratsRes?.data || []);
             setDataLoaded(true);
             setLoading(false);
         })
@@ -54,12 +54,10 @@ export default function EntrepriseList() {
                 setLoading(false);
                 alert("Erreur lors de la suppression de l'entreprise");
             });
-    };
-
-    // Filtrer les entreprises en fonction du terme de recherche
-    const filteredEntreprises = entreprises.filter(e => 
-        e.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-        e.siretPrestataire?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    };    // Filtrer les entreprises en fonction du terme de recherche
+    const filteredEntreprises = (entreprises || []).filter(e => 
+        e?.nom?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        e?.siretPrestataire?.toLowerCase().includes(searchTerm.toLowerCase()) ||
         e.ville?.toLowerCase().includes(searchTerm.toLowerCase())
     );
 

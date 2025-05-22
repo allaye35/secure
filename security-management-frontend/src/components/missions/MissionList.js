@@ -13,10 +13,10 @@ export default function MissionList() {
     const [filteredMissions, setFilteredMissions] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const navigate = useNavigate();
-
+    
     useEffect(() => {
         MissionService.getAllMissions()
-            .then(({ data }) => {
+            .then(data => {
                 if (Array.isArray(data)) {
                     setMissions(data);
                     setFilteredMissions(data);
@@ -50,7 +50,7 @@ export default function MissionList() {
             })
             .catch(() => alert("Échec de la suppression."));
     };
-
+    
     // Action générique : on demande un ID
     const askAndCall = (label, fn, missionId) => {
         const target = window.prompt(`${label} – saisir l'ID :`);
@@ -60,7 +60,7 @@ export default function MissionList() {
                 alert(`${label} réalisé !`);
                 // Refresh data after operation
                 MissionService.getAllMissions()
-                    .then(({ data }) => {
+                    .then(data => {
                         if (Array.isArray(data)) {
                             setMissions(data);
                             setFilteredMissions(data.filter(mission =>
@@ -117,6 +117,29 @@ export default function MissionList() {
         });
         
         setFilteredMissions(sortedData);
+    };
+
+    // Cette fonction détermine si le menu doit s'ouvrir vers le haut ou vers le bas
+    const getDropDirection = (index) => {
+        // Si l'élément est dans le dernier tiers de la liste, ouvrir vers le haut
+        const threshold = Math.floor(filteredMissions.length * 0.67);
+        return index >= threshold ? 'up' : 'down';
+    };
+
+    // Fonction pour rafraîchir les données après une action
+    const refreshData = () => {
+        MissionService.getAllMissions()
+            .then(data => {
+                if (Array.isArray(data)) {
+                    setMissions(data);
+                    setFilteredMissions(data.filter(mission =>
+                        mission.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        mission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                        mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase())
+                    ));
+                }
+            });
     };
 
     if (loading) return (
@@ -190,7 +213,7 @@ export default function MissionList() {
                                             Aucune mission trouvée
                                         </td>
                                     </tr>
-                                ) : filteredMissions.map(m => (
+                                ) : filteredMissions.map((m, index) => (
                                     <tr key={m.id}>
                                         <td>{m.id}</td>
                                         <td>
@@ -217,40 +240,126 @@ export default function MissionList() {
                                             )}
                                         </td>
                                         <td>
-                                            <Dropdown>
-                                                <Dropdown.Toggle variant="light" size="sm" id={`dropdown-mission-${m.id}`}>
+                                            <Dropdown 
+                                                drop={getDropDirection(index)} 
+                                                align="end"
+                                            >
+                                                <Dropdown.Toggle 
+                                                    variant="light" 
+                                                    size="sm" 
+                                                    id={`dropdown-mission-${m.id}`}
+                                                >
                                                     Actions
                                                 </Dropdown.Toggle>
-                                                <Dropdown.Menu>
-                                                    <Dropdown.Item onClick={() => navigate(`/missions/${m.id}`)}>
-                                                        <i className="bi bi-eye"></i> Détails
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => navigate(`/missions/edit/${m.id}`)}>
-                                                        <i className="bi bi-pencil"></i> Éditer
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Divider />
-                                                    <Dropdown.Item onClick={() => handleDelete(m.id)} className="text-danger">
+                                                <Dropdown.Menu 
+                                                    className="dropdown-menu-compact" 
+                                                    style={{ maxHeight: '80vh', overflowY: 'auto', width: '280px' }}
+                                                    popperConfig={{ 
+                                                        strategy: 'fixed',
+                                                        modifiers: [
+                                                            {
+                                                                name: 'preventOverflow',
+                                                                options: {
+                                                                    boundary: 'viewport',
+                                                                    padding: 8
+                                                                }
+                                                            }
+                                                        ]
+                                                    }}
+                                                >
+                                                    {/* Actions principales */}
+                                                    <Dropdown.Header>Actions principales</Dropdown.Header>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item onClick={() => navigate(`/missions/${m.id}`)} className="w-50 py-2">
+                                                            <i className="bi bi-eye"></i> Détails
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => navigate(`/missions/edit/${m.id}`)} className="w-50 py-2">
+                                                            <i className="bi bi-pencil"></i> Éditer
+                                                        </Dropdown.Item>
+                                                    </div>
+                                                    <Dropdown.Item onClick={() => handleDelete(m.id)} className="text-danger py-2">
                                                         <i className="bi bi-trash"></i> Supprimer
                                                     </Dropdown.Item>
+                                                    
+                                                    {/* Gestion des agents */}
                                                     <Dropdown.Divider />
-                                                    <Dropdown.Item onClick={() => askAndCall("Affecter un agent", MissionService.assignAgents, m.id)}>
-                                                        <i className="bi bi-person-plus"></i> Affecter agent
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => askAndCall("Retirer un agent", (mid, aid) => MissionService.retirerAgent(mid, aid), m.id)}>
-                                                        <i className="bi bi-person-dash"></i> Retirer agent
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => askAndCall("Associer planning", MissionService.assignPlanning, m.id)}>
-                                                        <i className="bi bi-calendar-plus"></i> Associer planning
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => askAndCall("Associer site", MissionService.assignSite, m.id)}>
-                                                        <i className="bi bi-geo-alt"></i> Associer site
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => askAndCall("Associer contrat", (mid, cid) => MissionService.assignContrat(mid, cid), m.id)}>
-                                                        <i className="bi bi-file-earmark-text"></i> Associer contrat
-                                                    </Dropdown.Item>
-                                                    <Dropdown.Item onClick={() => askAndCall("Associer facture", (mid, fid) => MissionService.assignFacture(mid, fid), m.id)}>
-                                                        <i className="bi bi-receipt"></i> Associer facture
-                                                    </Dropdown.Item>
+                                                    <Dropdown.Header>Gestion des agents</Dropdown.Header>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item onClick={() => askAndCall("Affecter un agent", MissionService.assignAgents, m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-person-plus"></i> Affecter
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => askAndCall("Retirer un agent", (mid, aid) => MissionService.retirerAgent(mid, aid), m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-person-dash"></i> Retirer
+                                                        </Dropdown.Item>
+                                                    </div>
+                                                    
+                                                    {/* Planification et localisation */}
+                                                    <Dropdown.Divider />
+                                                    <Dropdown.Header>Planification/Localisation</Dropdown.Header>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer planning", MissionService.assignPlanning, m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-calendar-plus"></i> Planning
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer site", MissionService.assignSite, m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-geo-alt"></i> Site
+                                                        </Dropdown.Item>
+                                                    </div>
+                                                    
+                                                    {/* Documents et finance */}
+                                                    <Dropdown.Divider />
+                                                    <Dropdown.Header>Documents et finance</Dropdown.Header>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer contrat", (mid, cid) => MissionService.assignContrat(mid, cid), m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-file-earmark-text"></i> Contrat
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer contrat de travail", (mid, cid) => MissionService.assignContratTravail(mid, cid), m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-file-earmark-person"></i> Contrat travail
+                                                        </Dropdown.Item>
+                                                    </div>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer facture", (mid, fid) => MissionService.assignFacture(mid, fid), m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-receipt"></i> Facture
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item onClick={() => askAndCall("Associer rapport", (mid, rid) => MissionService.assignRapport(mid, rid), m.id)} className="w-50 py-2">
+                                                            <i className="bi bi-file-text"></i> Rapport
+                                                        </Dropdown.Item>
+                                                    </div>
+                                                    
+                                                    {/* Géolocalisation */}
+                                                    <Dropdown.Divider />
+                                                    <Dropdown.Header>Géolocalisation</Dropdown.Header>
+                                                    <div className="d-flex flex-wrap">
+                                                        <Dropdown.Item 
+                                                            onClick={() => {
+                                                                if (window.confirm("Associer une géolocalisation à cette mission ?")) {
+                                                                    MissionService.associerGeoloc(m.id)
+                                                                        .then(() => {
+                                                                            alert("Géolocalisation associée avec succès");
+                                                                            refreshData();
+                                                                        })
+                                                                        .catch(e => alert("Erreur : " + e.response?.data?.message || e.message));
+                                                                }
+                                                            }} 
+                                                            className="w-50 py-2"
+                                                        >
+                                                            <i className="bi bi-geo-alt-fill"></i> Associer
+                                                        </Dropdown.Item>
+                                                        <Dropdown.Item 
+                                                            onClick={() => {
+                                                                if (window.confirm("Dissocier la géolocalisation de cette mission ?")) {
+                                                                    MissionService.dissocierGeoloc(m.id)
+                                                                        .then(() => {
+                                                                            alert("Géolocalisation dissociée avec succès");
+                                                                            refreshData();
+                                                                        })
+                                                                        .catch(e => alert("Erreur : " + e.response?.data?.message || e.message));
+                                                                }
+                                                            }} 
+                                                            className="w-50 py-2"
+                                                        >
+                                                            <i className="bi bi-geo-alt-fill text-danger"></i> Dissocier
+                                                        </Dropdown.Item>
+                                                    </div>
                                                 </Dropdown.Menu>
                                             </Dropdown>
                                         </td>

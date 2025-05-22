@@ -7,20 +7,19 @@ const SiteService = {
     return api.get("/sites")
       .then(response => {
         console.log("SiteService: getAllSites() - Succès", response.data);
-        return response;
+        return response.data;  // Retourne directement response.data
       })
       .catch(error => {
         console.error("SiteService: getAllSites() - Erreur", error.response || error);
         throw error;
       });
   },
-
   getSiteById: (id) => {
     console.log(`SiteService: getSiteById(${id}) - Récupération du site #${id}`);
     return api.get(`/sites/${id}`)
       .then(response => {
         console.log(`SiteService: getSiteById(${id}) - Succès`, response.data);
-        return response;
+        return response.data;  // Retourne directement response.data
       })
       .catch(error => {
         console.error(`SiteService: getSiteById(${id}) - Erreur`, error.response || error);
