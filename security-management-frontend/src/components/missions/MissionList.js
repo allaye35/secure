@@ -3,7 +3,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MissionService from "../../services/MissionService";
 import "../../styles/MissionList.css";
-import { Table, Button, Badge, Card, Container, Row, Col, Dropdown, Form, InputGroup } from 'react-bootstrap';
+import { Table, Button, Badge, Card, Container, Row, Col, Dropdown, Form, InputGroup, Pagination } from 'react-bootstrap';
 
 export default function MissionList() {
     const [missions, setMissions] = useState([]);
@@ -14,29 +14,47 @@ export default function MissionList() {
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const navigate = useNavigate();
     
+    // Variables pour la pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [missionsPerPage, setMissionsPerPage] = useState(10);
+    const [totalPages, setTotalPages] = useState(0);
+    
     useEffect(() => {
         MissionService.getAllMissions()
             .then(data => {
                 if (Array.isArray(data)) {
                     setMissions(data);
                     setFilteredMissions(data);
+                    setTotalPages(Math.ceil(data.length / missionsPerPage));
                 } else {
                     setError("Format de données inattendu.");
                 }
             })
             .catch(() => setError("Erreur lors du chargement."))
             .finally(() => setLoading(false));
-    }, []);
+    }, [missionsPerPage]);
 
     useEffect(() => {
         const results = missions.filter(mission =>
-            mission.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            mission.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            mission.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
             mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase())
+            mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+            (mission.site?.nom?.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         setFilteredMissions(results);
-    }, [searchTerm, missions]);
+        setTotalPages(Math.ceil(results.length / missionsPerPage));
+        setCurrentPage(1); // Réinitialiser à la première page après une recherche
+    }, [searchTerm, missions, missionsPerPage]);
+
+    // Calculer les index de début et de fin pour la pagination
+    const indexOfLastMission = currentPage * missionsPerPage;
+    const indexOfFirstMission = indexOfLastMission - missionsPerPage;
+    // Obtenir les missions à afficher pour la page actuelle
+    const currentMissions = filteredMissions.slice(indexOfFirstMission, indexOfLastMission);
+
+    // Fonction pour changer de page
+    const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const formatDate = d => d ? new Date(d).toLocaleDateString() : "-";
     const formatTime = t => t ? t.slice(0, 5) : "-";
@@ -117,6 +135,7 @@ export default function MissionList() {
         });
         
         setFilteredMissions(sortedData);
+        setCurrentPage(1); // Réinitialiser à la première page après un tri
     };
 
     // Cette fonction détermine si le menu doit s'ouvrir vers le haut ou vers le bas
@@ -140,6 +159,96 @@ export default function MissionList() {
                     ));
                 }
             });
+    };
+
+    // Générer les éléments de pagination
+    const renderPaginationItems = () => {
+        const items = [];
+        
+        // Premier élément (première page)
+        items.push(
+            <Pagination.First 
+                key="first" 
+                onClick={() => paginate(1)} 
+                disabled={currentPage === 1}
+            />
+        );
+        
+        // Élément précédent
+        items.push(
+            <Pagination.Prev 
+                key="prev" 
+                onClick={() => paginate(currentPage - 1)} 
+                disabled={currentPage === 1}
+            />
+        );
+        
+        // Afficher les numéros de page
+        let startPage = Math.max(1, currentPage - 2);
+        let endPage = Math.min(totalPages, startPage + 4);
+        
+        // Ajuster si on est près de la fin
+        if (endPage - startPage < 4) {
+            startPage = Math.max(1, endPage - 4);
+        }
+        
+        // Première page si on n'est pas au début
+        if (startPage > 1) {
+            items.push(
+                <Pagination.Item key={1} onClick={() => paginate(1)}>
+                    1
+                </Pagination.Item>
+            );
+            if (startPage > 2) {
+                items.push(<Pagination.Ellipsis key="ellipsis-start" />);
+            }
+        }
+        
+        // Pages intermédiaires
+        for (let i = startPage; i <= endPage; i++) {
+            items.push(
+                <Pagination.Item 
+                    key={i} 
+                    active={i === currentPage} 
+                    onClick={() => paginate(i)}
+                >
+                    {i}
+                </Pagination.Item>
+            );
+        }
+        
+        // Dernière page si on n'est pas à la fin
+        if (endPage < totalPages) {
+            if (endPage < totalPages - 1) {
+                items.push(<Pagination.Ellipsis key="ellipsis-end" />);
+            }
+            items.push(
+                <Pagination.Item 
+                    key={totalPages} 
+                    onClick={() => paginate(totalPages)}
+                >
+                    {totalPages}
+                </Pagination.Item>
+            );
+        }
+        
+        // Éléments suivant et dernier
+        items.push(
+            <Pagination.Next 
+                key="next" 
+                onClick={() => paginate(currentPage + 1)} 
+                disabled={currentPage === totalPages}
+            />
+        );
+        items.push(
+            <Pagination.Last 
+                key="last" 
+                onClick={() => paginate(totalPages)} 
+                disabled={currentPage === totalPages}
+            />
+        );
+        
+        return items;
     };
 
     if (loading) return (
@@ -188,6 +297,19 @@ export default function MissionList() {
                                 />
                             </InputGroup>
                         </Col>
+                        <Col md={3} className="ms-auto">
+                            <Form.Group>
+                                <Form.Select 
+                                    value={missionsPerPage} 
+                                    onChange={(e) => setMissionsPerPage(Number(e.target.value))}
+                                >
+                                    <option value="5">5 missions par page</option>
+                                    <option value="10">10 missions par page</option>
+                                    <option value="20">20 missions par page</option>
+                                    <option value="50">50 missions par page</option>
+                                </Form.Select>
+                            </Form.Group>
+                        </Col>
                     </Row>
                     
                     <div className="table-responsive">
@@ -207,13 +329,13 @@ export default function MissionList() {
                                 </tr>
                             </thead>
                             <tbody>
-                                {filteredMissions.length === 0 ? (
+                                {currentMissions.length === 0 ? (
                                     <tr>
                                         <td colSpan="10" className="text-center">
                                             Aucune mission trouvée
                                         </td>
                                     </tr>
-                                ) : filteredMissions.map((m, index) => (
+                                ) : currentMissions.map((m, index) => (
                                     <tr key={m.id}>
                                         <td>{m.id}</td>
                                         <td>
@@ -368,6 +490,20 @@ export default function MissionList() {
                             </tbody>
                         </Table>
                     </div>
+                    
+                    {/* Pagination */}
+                    <Row className="mt-3">
+                        <Col md={6}>
+                            <div className="text-muted">
+                                Affichage de {indexOfFirstMission + 1} à {Math.min(indexOfLastMission, filteredMissions.length)} sur {filteredMissions.length} missions
+                            </div>
+                        </Col>
+                        <Col md={6} className="d-flex justify-content-end">
+                            <Pagination className="mb-0">
+                                {renderPaginationItems()}
+                            </Pagination>
+                        </Col>
+                    </Row>
                 </Card.Body>
             </Card>
         </Container>
