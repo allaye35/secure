@@ -1,0 +1,14 @@
+{
+  "titre": "Mission mise à jour via fichier JSON",
+  "description": "Test de mise à jour de mission",
+  "dateDebut": "2025-07-01",
+  "dateFin": "2025-07-15",
+  "heureDebut": "09:00:00",
+  "heureFin": "19:00:00",
+  "statutMission": "EN_COURS",
+  "typeMission": "CQP_APS",
+  "nombreAgents": 3,
+  "quantite": 2,
+  "tarifMissionId": 1,
+  "siteId": 7
+}

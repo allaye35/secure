@@ -13,6 +13,9 @@ import java.util.Set;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class MissionCreateDto {
+    /* ───── ID uniquement utilisé pour la mise à jour (null pour création) ───── */
+    private Long id;
+    
     /* ───── données métier ───── */
     private String         titre;
     private String         description;

@@ -4,5 +4,6 @@ public enum StatutMission {
     PLANIFIEE,
     EN_COURS,
     TERMINEE,
-    ANNULEE
+    ANNULEE,
+    EN_ATTENTE_DE_VALIDATION_DEVIS
 }

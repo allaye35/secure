@@ -28,10 +28,10 @@ public class Mission {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @EqualsAndHashCode.Include
-    private Long id;
-
+    private Long id;    @Column(nullable = true)
     private String titre;
 
+    @Column(nullable = true)
     private String description;
 
     @Column(nullable = true)
@@ -45,10 +45,8 @@ public class Mission {
 
     @Column(nullable = true)
     private LocalTime heureFin;
-
-
     @Enumerated(EnumType.STRING)
-    @Column(name = "statut_mission")
+    @Column(name = "statut_mission", nullable = true)
     private StatutMission statutMission;
 
     @ManyToMany(fetch = FetchType.EAGER)
@@ -68,13 +66,11 @@ public class Mission {
 
     // Mission.java
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "site_id")
-//    @JsonIgnoreProperties(value = { "missions" }, allowSetters = true)
+    @JoinColumn(name = "site_id", nullable = true)
     private Site site;
 
-
     @ManyToOne(fetch = FetchType.EAGER)
-    @JoinColumn(name = "geolocalisation_id")
+    @JoinColumn(name = "geolocalisation_id", nullable = true)
     private GeolocalisationGPS geolocalisationGPS;
 
     // Relation avec RapportIntervention (une mission peut avoir plusieurs rapports)
@@ -84,9 +80,8 @@ public class Mission {
 //    @JsonIgnore
     @Builder.Default
     private List<RapportIntervention> rapports = new ArrayList<>();
-
-
     @Enumerated(EnumType.STRING)
+    @Column(nullable = true)
     private TypeMission typeMission;
 
     @OneToMany(mappedBy = "mission", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
@@ -98,22 +93,25 @@ public class Mission {
     // RELATION AVEC Contrat (pour la copie éventuelle)
     // ----------------------------------------------
     @ManyToOne
-    @JoinColumn(name = "contrat_id")
+    @JoinColumn(name = "contrat_id", nullable = true)
     private Contrat contrat;
 
-    @Column(nullable = false)
+    @Column(nullable = true)
     private Integer nombreAgents;
 
-    @Column(nullable = false)
-    private Integer quantite;
-
-    // --- tarif et chiffrage calculé ---
-    @ManyToOne(fetch = FetchType.EAGER, optional = false)
-    @JoinColumn(name = "tarif_mission_id")
+    @Column(nullable = true)
+    private Integer quantite;    // --- tarif et chiffrage calculé ---
+    @ManyToOne(fetch = FetchType.EAGER, optional = true)
+    @JoinColumn(name = "tarif_mission_id", nullable = true)
     private TarifMission tarif;
 
+    @Column(nullable = true)
     private BigDecimal montantHT;
+    
+    @Column(nullable = true)
     private BigDecimal montantTVA;
+    
+    @Column(nullable = true)
     private BigDecimal montantTTC;
 
     // --- lien vers le devis parent ---

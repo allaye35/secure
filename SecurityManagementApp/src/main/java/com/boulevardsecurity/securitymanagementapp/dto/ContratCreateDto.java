@@ -2,12 +2,15 @@
 package com.boulevardsecurity.securitymanagementapp.dto;
 
 import lombok.*;
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class ContratCreateDto {
-    /** Référence unique du contrat (ex : “CONTRAT-2025-001”) */
+    
+    
+    /** Référence unique du contrat (ex : "CONTRAT-2025-001") */
     private String referenceContrat;
     /** Date de signature effective */
     private LocalDate dateSignature;
@@ -16,10 +19,22 @@ public class ContratCreateDto {
     /** Tacite reconduction (true = reconduction automatique) */
     private Boolean taciteReconduction;
     /** Préavis (en mois) en cas de non reconduction */
-    private Integer preavisMois;    /** ID du devis associé (optionnel) */
+    private Integer preavisMois;
+    
+    /* ───── informations financières ───── */
+    private BigDecimal montantHT;
+    private BigDecimal montantTVA;
+    private BigDecimal montantTTC;
+    
+    /* ───── relations ───── */
+    /** ID du devis associé (optionnel) */
     private Long devisId;
     /** Missions liées au contrat (optionnel) */
     private List<Long> missionIds;
     /** Articles juridiques liés au contrat (optionnel) */
     private List<Long> articleIds;
+    /** ID du client associé au contrat */
+    private Long clientId;
+    /** ID de l'entreprise associée au contrat */
+    private Long entrepriseId;
 }

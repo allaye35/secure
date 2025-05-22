@@ -1,0 +1,15 @@
+{
+  "titre": "Mission de test via fichier JSON",
+  "description": "Test de creation de mission",
+  "dateDebut": "2025-07-01",
+  "dateFin": "2025-07-10",
+  "heureDebut": "08:00:00",
+  "heureFin": "18:00:00",
+  "statutMission": "PLANIFIEE",
+  "typeMission": "CQP_APS",
+  "nombreAgents": 2,
+  "quantite": 1,
+  "tarifMissionId": 1,
+  "siteId": 7,
+  "geolocalisationId": 1
+}

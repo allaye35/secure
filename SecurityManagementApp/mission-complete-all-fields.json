@@ -1,0 +1,22 @@
+{
+  "titre": "Mission complète avec tous les champs",
+  "description": "Mission de sécurité avancée avec tous les détails et relations possibles",
+  "dateDebut": "2025-06-15",
+  "dateFin": "2025-07-15",
+  "heureDebut": "08:00:00",
+  "heureFin": "20:00:00",
+  "statutMission": "PLANIFIEE",
+  "typeMission": "SURVEILLANCE",
+  "nombreAgents": 3,
+  "quantite": 10,
+  "tarifMissionId": 1,
+  "siteId": 1,
+  "geolocalisationId": 1,
+  "agentIds": [1, 2, 3],
+  "planningId": 1,
+  "contratId": 1,
+  "montantHT": 1500.00,
+  "montantTVA": 300.00,
+  "montantTTC": 1800.00,
+  "commentaires": "Mission complète créée avec tous les champs et relations possibles"
+}

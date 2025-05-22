@@ -46,16 +46,16 @@ public class DevisServiceImpl implements DevisService {
         Devis saved = repo.save(ent);
         return mapper.toDto(saved);
     }
-
     @Override
     public DevisDto update(Long id, DevisCreateDto dto) {
         Devis existing = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Devis introuvable id=" + id));
-        // Mets à jour les champs (partiels) à partir du DTO de création
+        // Mets à jour tous les champs de façon inconditionnelle à partir du DTO de création
         mapper.updateFromCreateDto(dto, existing);
         Devis saved = repo.save(existing);
         return mapper.toDto(saved);
-    }    @Override
+    }
+    @Override
     public void delete(Long id) {
         if (!repo.existsById(id)) {
             throw new IllegalArgumentException("Devis introuvable id=" + id);

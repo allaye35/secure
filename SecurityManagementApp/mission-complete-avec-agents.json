@@ -1,0 +1,16 @@
+{
+  "titre": "Mission complète avec agents",
+  "description": "Mission de test avec tous les champs requis et des agents assignés",
+  "dateDebut": "2025-06-01",
+  "dateFin": "2025-06-15",
+  "heureDebut": "08:00:00",
+  "heureFin": "20:00:00",
+  "statutMission": "PLANIFIEE",
+  "typeMission": "CQP_APS",
+  "nombreAgents": 3,
+  "quantite": 1,
+  "tarifMissionId": 1,
+  "siteId": 7,
+  "geolocalisationId": 1,
+  "agentIds": [2, 5, 7]
+}

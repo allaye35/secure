@@ -59,16 +59,19 @@ public class ServiceMissionImpl implements IMissionService {
         // Géolocalisation facultative
         if (adresseSite != null && !adresseSite.isBlank()) {
             mission.setGeolocalisationGPS(creerEtSauverGeoloc(adresseSite));
+        }        // Tarifs / devis
+        if (dto.getTarifMissionId() != null) {
+            TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
+                    .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
+            mission.setTarif(tarif);
+            appliquerChiffrage(mission, tarif);
         }
-
-        // Tarifs / devis
-        TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
-                .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
-        Devis devis = repDevis.findById(dto.getDevisId())
-                .orElseThrow(() -> new NoSuchElementException("Devis introuvable id=" + dto.getDevisId()));
-        mission.setTarif(tarif);
-        mission.setDevis(devis);
-        appliquerChiffrage(mission, tarif);
+        
+        if (dto.getDevisId() != null) {
+            Devis devis = repDevis.findById(dto.getDevisId())
+                    .orElseThrow(() -> new NoSuchElementException("Devis introuvable id=" + dto.getDevisId()));
+            mission.setDevis(devis);
+        }
 
         Mission sauvegardee = repMission.save(mission);
         notifierAgentsNouvelleMission(sauvegardee);
@@ -94,10 +97,13 @@ public class ServiceMissionImpl implements IMissionService {
         notifierAgentsMajMission(sauvegardee);
         return mappeur.toDto(sauvegardee);
     }
-    @Override public MissionDto majMission(Long id, MissionCreateDto dto){ return majMission(id,dto,null); }
+    @Override
+    public MissionDto majMission(Long id, MissionCreateDto dto){
+        return majMission(id,dto,null); }
 
     /* ─────────────── Suppression ─────────────── */
-    @Override public void supprimerMission(Long id){
+    @Override
+    public void supprimerMission(Long id){
         Mission m = trouverMission(id);
         notifierAgentsSuppression(m);
         repMission.delete(m);
@@ -232,9 +238,13 @@ public class ServiceMissionImpl implements IMissionService {
         GeolocalisationGPS geo = GeolocalisationGPS.builder()
                 .position(pt).gps_precision(5f).build();
         repGeoloc.save(geo);
-        return geo;
-    }
-    private void appliquerChiffrage(Mission m, TarifMission t){
+        return geo;    }    private void appliquerChiffrage(Mission m, TarifMission t){
+        // Vérifier si la mission et le tarif sont valides
+        if (m == null || t == null || m.getQuantite() == null || m.getNombreAgents() == null) {
+            // Ne pas effectuer de calcul si des données essentielles sont manquantes
+            return;
+        }
+        
         // Utilise le service de tarification pour calculer le montant HT en tenant compte des majorations
         BigDecimal ht = tarificationService.montantHT(m);
         // Calcule la TVA en utilisant le taux du tarif mission
@@ -243,16 +253,23 @@ public class ServiceMissionImpl implements IMissionService {
         m.setMontantHT(ht);
         m.setMontantTVA(tva);
         m.setMontantTTC(tarificationService.ttc(ht, tva));
-    }
-
-    /* ─────────────── Notifications ─────────────── */
+    }    /* ─────────────── Notifications ─────────────── */
     private void notifierAgentsNouvelleMission(Mission m){
-        m.getAgents().forEach(a -> envoyerNotif(a,
-                "[Nouvelle mission] "+m.getTitre(),
-                "Bonjour "+a.getNom()+",\nUne nouvelle mission vous est attribuée."));
+        if (m != null && m.getAgents() != null && !m.getAgents().isEmpty() && m.getTitre() != null) {
+            m.getAgents().forEach(a -> envoyerNotif(a,
+                    "[Nouvelle mission] "+m.getTitre(),
+                    "Bonjour "+a.getNom()+",\nUne nouvelle mission vous est attribuée."));
+        }
     }
     private void notifierAgentsMajMission(Mission m){
-        String dates = m.getDateDebut()+" → "+m.getDateFin();
+        if (m == null || m.getAgents() == null || m.getAgents().isEmpty()) {
+            return;
+        }
+        
+        String dates = (m.getDateDebut() != null ? m.getDateDebut().toString() : "N/A") + 
+                       " → " + 
+                       (m.getDateFin() != null ? m.getDateFin().toString() : "N/A");
+                       
         m.getAgents().forEach(a -> envoyerNotif(a,
                 "[Mise à jour] "+m.getTitre(),
                 "Bonjour "+a.getNom()+",\nLa mission a été mise à jour (« "+dates+" »)."));
