@@ -14,7 +14,7 @@ const MissionService = {
     getAllMissions: () => api.get(PATH).then(response => response.data),    /**
      * Récupérer une mission par son ID
      */
-    getById: (id) => api.get(`${PATH}/${id}`).then(response => response.data),
+    getById: (id) => api.get(`${PATH}/${id}`),
       /**
      * Alias pour getById (pour compatibilité avec le code existant) - Avec gestion d'erreurs améliorée
      */
