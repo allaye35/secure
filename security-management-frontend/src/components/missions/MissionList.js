@@ -2,6 +2,12 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MissionService from "../../services/MissionService";
+import AgentService from "../../services/AgentService";
+import SiteService from "../../services/SiteService";
+import PlanningService from "../../services/PlanningService";
+import ContratService from "../../services/ContratService";
+import FactureService from "../../services/FactureService";
+import ActionSelectionModal from "./ActionSelectionModal";
 import "../../styles/MissionList.css";
 import { Table, Button, Badge, Card, Container, Row, Col, Dropdown, Form, InputGroup, Pagination } from 'react-bootstrap';
 
@@ -18,6 +24,20 @@ export default function MissionList() {
     const [currentPage, setCurrentPage] = useState(1);
     const [missionsPerPage, setMissionsPerPage] = useState(10);
     const [totalPages, setTotalPages] = useState(0);
+    
+    // État pour la fenêtre modale de sélection
+    const [modalConfig, setModalConfig] = useState({
+        show: false,
+        title: '',
+        fetchItems: null,
+        onSelect: null,
+        displayOption: null,
+        placeHolder: '',
+        itemType: ''
+    });
+    
+    // ID de la mission actuellement sélectionnée pour les actions
+    const [selectedMissionId, setSelectedMissionId] = useState(null);
     
     useEffect(() => {
         MissionService.getAllMissions()
@@ -36,11 +56,11 @@ export default function MissionList() {
 
     useEffect(() => {
         const results = missions.filter(mission =>
-            mission.titre?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            (mission.site?.nom?.toLowerCase().includes(searchTerm.toLowerCase()))
+            (mission.titre?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (mission.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (mission.statutMission?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            (mission.typeMission?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+            ((mission.site?.nom?.toLowerCase() || '')).includes(searchTerm.toLowerCase())
         );
         setFilteredMissions(results);
         setTotalPages(Math.ceil(results.length / missionsPerPage));
@@ -57,7 +77,130 @@ export default function MissionList() {
     const paginate = (pageNumber) => setCurrentPage(pageNumber);
 
     const formatDate = d => d ? new Date(d).toLocaleDateString() : "-";
-    const formatTime = t => t ? t.slice(0, 5) : "-";
+    const formatTime = t => t ? (typeof t === 'string' && t.length >= 5 ? t.slice(0, 5) : t) : "-";
+
+    // Fermer la modal de sélection
+    const handleCloseModal = () => {
+        setModalConfig(prev => ({ ...prev, show: false }));
+    };
+
+    // Fonctions pour ouvrir les modales de sélection pour différentes actions
+    const openAgentSelectionModal = (missionId, action) => {
+        setSelectedMissionId(missionId);
+        setModalConfig({
+            show: true,
+            title: action === 'assign' ? 'Affecter un agent à la mission' : 'Retirer un agent de la mission',
+            fetchItems: action === 'assign' ? 
+                AgentService.getAllAgents :
+                () => MissionService.getMissionById(missionId).then(mission => mission.agents || []),
+            onSelect: (agentId) => {
+                if (action === 'assign') {
+                    MissionService.assignAgents(missionId, agentId)
+                        .then(() => {
+                            handleCloseModal();
+                            refreshData();
+                            alert("Agent affecté avec succès à la mission");
+                        })
+                        .catch(error => alert(`Erreur lors de l'affectation de l'agent: ${error.message}`));
+                } else {
+                    MissionService.retirerAgent(missionId, agentId)
+                        .then(() => {
+                            handleCloseModal();
+                            refreshData();
+                            alert("Agent retiré avec succès de la mission");
+                        })
+                        .catch(error => alert(`Erreur lors du retrait de l'agent: ${error.message}`));
+                }
+            },
+            displayOption: (agent) => `${agent.nom} ${agent.prenom} ${agent.numCarteProf ? `(N° ${agent.numCarteProf})` : ''}`,
+            placeHolder: action === 'assign' ? 'Sélectionnez un agent à affecter' : 'Sélectionnez un agent à retirer',
+            itemType: 'agent'
+        });
+    };
+
+    const openPlanningSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        setModalConfig({
+            show: true,
+            title: 'Associer un planning à la mission',
+            fetchItems: PlanningService.getAllPlannings,
+            onSelect: (planningId) => {
+                MissionService.assignPlanning(missionId, planningId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Planning associé avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association du planning: ${error.message}`));
+            },
+            displayOption: (planning) => `${planning.titre || 'Planning sans titre'} (${formatDate(planning.dateDebut)} - ${formatDate(planning.dateFin)})`,
+            placeHolder: 'Sélectionnez un planning',
+            itemType: 'planning'
+        });
+    };
+
+    const openSiteSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        setModalConfig({
+            show: true,
+            title: 'Associer un site à la mission',
+            fetchItems: SiteService.getAllSites,
+            onSelect: (siteId) => {
+                MissionService.assignSite(missionId, siteId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Site associé avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association du site: ${error.message}`));
+            },
+            displayOption: (site) => `${site.nom} (${site.adresse || 'Adresse non spécifiée'})`,
+            placeHolder: 'Sélectionnez un site',
+            itemType: 'site'
+        });
+    };
+
+    const openContratSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        setModalConfig({
+            show: true,
+            title: 'Associer un contrat à la mission',
+            fetchItems: ContratService.getAll,
+            onSelect: (contratId) => {
+                MissionService.assignContrat(missionId, contratId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Contrat associé avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association du contrat: ${error.message}`));
+            },
+            displayOption: (contrat) => `${contrat.referenceContrat || `Contrat #${contrat.id}`} (Client: ${contrat.client?.nom || 'Non spécifié'})`,
+            placeHolder: 'Sélectionnez un contrat',
+            itemType: 'contrat'
+        });
+    };
+
+    const openFactureSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        setModalConfig({
+            show: true,
+            title: 'Associer une facture à la mission',
+            fetchItems: FactureService.getAll,
+            onSelect: (factureId) => {
+                MissionService.associerFacture(missionId, factureId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Facture associée avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association de la facture: ${error.message}`));
+            },
+            displayOption: (facture) => `${facture.reference || `Facture #${facture.id}`} (${facture.montantTotal ? `${facture.montantTotal.toFixed(2)}€` : 'Montant non spécifié'})`,
+            placeHolder: 'Sélectionnez une facture',
+            itemType: 'facture'
+        });
+    };
 
     const handleDelete = id => {
         if (!window.confirm("Confirmer la suppression ?")) return;
@@ -69,80 +212,35 @@ export default function MissionList() {
             .catch(() => alert("Échec de la suppression."));
     };
     
-    // Action générique : on demande un ID
+    // Cette fonction détermine si le menu doit s'ouvrir vers le haut ou vers le bas
+    const getDropDirection = (index) => {
+        // Si l'élément est dans le dernier tiers de la liste, ouvrir vers le haut
+        const threshold = Math.floor(filteredMissions.length * 0.67);
+        return index >= threshold ? 'up' : 'down';
+    };    // Action générique : on demande un ID (pour les cas où un modal spécifique n'est pas encore implémenté)
     const askAndCall = (label, fn, missionId) => {
         const target = window.prompt(`${label} – saisir l'ID :`);
         if (!target) return;
         fn(missionId, parseInt(target, 10))
             .then(() => {
                 alert(`${label} réalisé !`);
-                // Refresh data after operation
-                MissionService.getAllMissions()
-                    .then(data => {
-                        if (Array.isArray(data)) {
-                            setMissions(data);
-                            setFilteredMissions(data.filter(mission =>
-                                mission.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                mission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase())
-                            ));
-                        }
-                    });
+                refreshData();
             })
             .catch(e => alert("Erreur : " + e.response?.data?.message || e.message));
     };
 
-    const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'en cours':
-                return <Badge bg="primary">En cours</Badge>;
-            case 'terminé':
-            case 'termine':
-            case 'terminée':
-            case 'terminee':
-                return <Badge bg="success">Terminé</Badge>;
-            case 'planifié':
-            case 'planifie':
-            case 'planifiée':
-            case 'planifiee':
-                return <Badge bg="info">Planifié</Badge>;
-            case 'annulé':
-            case 'annule':
-            case 'annulée':
-            case 'annulee':
-                return <Badge bg="danger">Annulé</Badge>;
-            default:
-                return <Badge bg="secondary">{status || 'Non défini'}</Badge>;
-        }
+    const openContratTravailSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        // Note: à implémenter si un service pour les contrats de travail existe
+        // Pour l'instant, on utilise askAndCall
+        askAndCall("Associer contrat de travail", (mid, cid) => MissionService.assignContratTravail(mid, cid), missionId);
     };
 
-    const requestSort = (key) => {
-        let direction = 'ascending';
-        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
-            direction = 'descending';
-        }
-        setSortConfig({ key, direction });
-        
-        const sortedData = [...filteredMissions].sort((a, b) => {
-            if (a[key] < b[key]) {
-                return sortConfig.direction === 'ascending' ? -1 : 1;
-            }
-            if (a[key] > b[key]) {
-                return sortConfig.direction === 'ascending' ? 1 : -1;
-            }
-            return 0;
-        });
-        
-        setFilteredMissions(sortedData);
-        setCurrentPage(1); // Réinitialiser à la première page après un tri
-    };
-
-    // Cette fonction détermine si le menu doit s'ouvrir vers le haut ou vers le bas
-    const getDropDirection = (index) => {
-        // Si l'élément est dans le dernier tiers de la liste, ouvrir vers le haut
-        const threshold = Math.floor(filteredMissions.length * 0.67);
-        return index >= threshold ? 'up' : 'down';
+    const openRapportSelectionModal = (missionId) => {
+        setSelectedMissionId(missionId);
+        // Note: à implémenter si un service pour les rapports existe
+        // Pour l'instant, on utilise askAndCall
+        askAndCall("Associer rapport", (mid, rid) => MissionService.assignRapport(mid, rid), missionId);
     };
 
     // Fonction pour rafraîchir les données après une action
@@ -152,10 +250,11 @@ export default function MissionList() {
                 if (Array.isArray(data)) {
                     setMissions(data);
                     setFilteredMissions(data.filter(mission =>
-                        mission.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        mission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase())
+                        (mission.titre?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                        (mission.description?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                        (mission.statutMission?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                        (mission.typeMission?.toLowerCase() || '').includes(searchTerm.toLowerCase()) ||
+                        ((mission.site?.nom?.toLowerCase() || '')).includes(searchTerm.toLowerCase())
                     ));
                 }
             });
@@ -249,6 +348,51 @@ export default function MissionList() {
         );
         
         return items;
+    };
+
+    const getStatusBadge = (status) => {
+        switch (status?.toLowerCase()) {
+            case 'en cours':
+                return <Badge bg="primary">En cours</Badge>;
+            case 'terminé':
+            case 'termine':
+            case 'terminée':
+            case 'terminee':
+                return <Badge bg="success">Terminé</Badge>;
+            case 'planifié':
+            case 'planifie':
+            case 'planifiée':
+            case 'planifiee':
+                return <Badge bg="info">Planifié</Badge>;
+            case 'annulé':
+            case 'annule':
+            case 'annulée':
+            case 'annulee':
+                return <Badge bg="danger">Annulé</Badge>;
+            default:
+                return <Badge bg="secondary">{status || 'Non défini'}</Badge>;
+        }
+    };
+
+    const requestSort = (key) => {
+        let direction = 'ascending';
+        if (sortConfig.key === key && sortConfig.direction === 'ascending') {
+            direction = 'descending';
+        }
+        setSortConfig({ key, direction });
+        
+        const sortedData = [...filteredMissions].sort((a, b) => {
+            if (a[key] < b[key]) {
+                return sortConfig.direction === 'ascending' ? -1 : 1;
+            }
+            if (a[key] > b[key]) {
+                return sortConfig.direction === 'ascending' ? 1 : -1;
+            }
+            return 0;
+        });
+        
+        setFilteredMissions(sortedData);
+        setCurrentPage(1); // Réinitialiser à la première page après un tri
     };
 
     if (loading) return (
@@ -407,10 +551,10 @@ export default function MissionList() {
                                                     <Dropdown.Divider />
                                                     <Dropdown.Header>Gestion des agents</Dropdown.Header>
                                                     <div className="d-flex flex-wrap">
-                                                        <Dropdown.Item onClick={() => askAndCall("Affecter un agent", MissionService.assignAgents, m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openAgentSelectionModal(m.id, 'assign')} className="w-50 py-2">
                                                             <i className="bi bi-person-plus"></i> Affecter
                                                         </Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => askAndCall("Retirer un agent", (mid, aid) => MissionService.retirerAgent(mid, aid), m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openAgentSelectionModal(m.id, 'remove')} className="w-50 py-2">
                                                             <i className="bi bi-person-dash"></i> Retirer
                                                         </Dropdown.Item>
                                                     </div>
@@ -419,10 +563,10 @@ export default function MissionList() {
                                                     <Dropdown.Divider />
                                                     <Dropdown.Header>Planification/Localisation</Dropdown.Header>
                                                     <div className="d-flex flex-wrap">
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer planning", MissionService.assignPlanning, m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openPlanningSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-calendar-plus"></i> Planning
                                                         </Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer site", MissionService.assignSite, m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openSiteSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-geo-alt"></i> Site
                                                         </Dropdown.Item>
                                                     </div>
@@ -430,19 +574,18 @@ export default function MissionList() {
                                                     {/* Documents et finance */}
                                                     <Dropdown.Divider />
                                                     <Dropdown.Header>Documents et finance</Dropdown.Header>
-                                                    <div className="d-flex flex-wrap">
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer contrat", (mid, cid) => MissionService.assignContrat(mid, cid), m.id)} className="w-50 py-2">
+                                                    <div className="d-flex flex-wrap">                                                        <Dropdown.Item onClick={() => openContratSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-file-earmark-text"></i> Contrat
                                                         </Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer contrat de travail", (mid, cid) => MissionService.assignContratTravail(mid, cid), m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openContratTravailSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-file-earmark-person"></i> Contrat travail
                                                         </Dropdown.Item>
                                                     </div>
                                                     <div className="d-flex flex-wrap">
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer facture", (mid, fid) => MissionService.assignFacture(mid, fid), m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openFactureSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-receipt"></i> Facture
                                                         </Dropdown.Item>
-                                                        <Dropdown.Item onClick={() => askAndCall("Associer rapport", (mid, rid) => MissionService.assignRapport(mid, rid), m.id)} className="w-50 py-2">
+                                                        <Dropdown.Item onClick={() => openRapportSelectionModal(m.id)} className="w-50 py-2">
                                                             <i className="bi bi-file-text"></i> Rapport
                                                         </Dropdown.Item>
                                                     </div>
@@ -506,6 +649,18 @@ export default function MissionList() {
                     </Row>
                 </Card.Body>
             </Card>
+            
+            {/* Modal de sélection */}
+            <ActionSelectionModal
+                show={modalConfig.show}
+                handleClose={handleCloseModal}
+                title={modalConfig.title}
+                fetchItems={modalConfig.fetchItems}
+                onSelect={modalConfig.onSelect}
+                displayOption={modalConfig.displayOption}
+                placeHolder={modalConfig.placeHolder}
+                itemType={modalConfig.itemType}
+            />
         </Container>
     );
 }
