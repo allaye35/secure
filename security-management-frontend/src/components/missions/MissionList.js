@@ -6,7 +6,9 @@ import AgentService from "../../services/AgentService";
 import SiteService from "../../services/SiteService";
 import PlanningService from "../../services/PlanningService";
 import ContratService from "../../services/ContratService";
+import ContratDeTravailService from "../../services/ContratDeTravailService";
 import FactureService from "../../services/FactureService";
+import RapportService from "../../services/RapportService";
 import ActionSelectionModal from "./ActionSelectionModal";
 import "../../styles/MissionList.css";
 import { Table, Button, Badge, Card, Container, Row, Col, Dropdown, Form, InputGroup, Pagination } from 'react-bootstrap';
@@ -227,20 +229,44 @@ export default function MissionList() {
                 refreshData();
             })
             .catch(e => alert("Erreur : " + e.response?.data?.message || e.message));
-    };
-
-    const openContratTravailSelectionModal = (missionId) => {
+    };    const openContratTravailSelectionModal = (missionId) => {
         setSelectedMissionId(missionId);
-        // Note: à implémenter si un service pour les contrats de travail existe
-        // Pour l'instant, on utilise askAndCall
-        askAndCall("Associer contrat de travail", (mid, cid) => MissionService.assignContratTravail(mid, cid), missionId);
-    };
-
-    const openRapportSelectionModal = (missionId) => {
+        setModalConfig({
+            show: true,
+            title: 'Associer un contrat de travail à la mission',
+            fetchItems: () => ContratDeTravailService.getAll().then(response => response.data),
+            onSelect: (contratTravailId) => {
+                MissionService.assignContratTravail(missionId, contratTravailId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Contrat de travail associé avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association du contrat de travail: ${error.message}`));
+            },
+            displayOption: (contrat) => `${contrat.reference || `Contrat #${contrat.id}`} - ${contrat.agent ? `${contrat.agent.nom} ${contrat.agent.prenom}` : 'Pas d\'agent'} (${formatDate(contrat.dateDebut)} - ${formatDate(contrat.dateFin)})`,
+            placeHolder: 'Sélectionnez un contrat de travail',
+            itemType: 'contrat de travail'
+        });
+    };const openRapportSelectionModal = (missionId) => {
         setSelectedMissionId(missionId);
-        // Note: à implémenter si un service pour les rapports existe
-        // Pour l'instant, on utilise askAndCall
-        askAndCall("Associer rapport", (mid, rid) => MissionService.assignRapport(mid, rid), missionId);
+        setModalConfig({
+            show: true,
+            title: 'Associer un rapport à la mission',
+            fetchItems: () => RapportService.getAllRapports().then(response => response.data),
+            onSelect: (rapportId) => {
+                MissionService.assignRapport(missionId, rapportId)
+                    .then(() => {
+                        handleCloseModal();
+                        refreshData();
+                        alert("Rapport associé avec succès à la mission");
+                    })
+                    .catch(error => alert(`Erreur lors de l'association du rapport: ${error.message}`));
+            },
+            displayOption: (rapport) => `${rapport.titre || 'Sans titre'} (${formatDate(rapport.dateCreation) || 'Date non spécifiée'}) - ${rapport.description?.substring(0, 30)}${rapport.description?.length > 30 ? '...' : ''}`,
+            placeHolder: 'Sélectionnez un rapport',
+            itemType: 'rapport'
+        });
     };
 
     // Fonction pour rafraîchir les données après une action

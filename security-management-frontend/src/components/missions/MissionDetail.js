@@ -1,5 +1,5 @@
 // src/components/missions/MissionDetail.js
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useParams, Link } from "react-router-dom";
 import MissionService from "../../services/MissionService";
 import { Card, Container, Row, Col, Badge, ListGroup, Button, Table } from 'react-bootstrap';
@@ -8,18 +8,47 @@ export default function MissionDetail() {
     const { id } = useParams();
     const [mission, setMission] = useState(null);
     const [error, setError] = useState("");
+    const [loading, setLoading] = useState(true);
     
-    useEffect(() => {
+    // Fonction pour charger les données de la mission
+    const loadMissionData = useCallback(() => {
+        setLoading(true);
         MissionService.getMissionById(id)
             .then((data) => {
                 console.log("Mission récupérée:", data);
                 setMission(data);
+                setLoading(false);
             })
             .catch((err) => {
                 console.error("Erreur lors du chargement de la mission:", err);
                 setError("Impossible de charger la mission: " + (err.message || "Erreur serveur"));
+                setLoading(false);
             });
     }, [id]);
+    
+    useEffect(() => {
+        loadMissionData();
+    }, [loadMissionData]);
+    
+    // Fonction pour retirer un agent de la mission
+    const handleRemoveAgent = (agentId) => {
+        if (!window.confirm(`Êtes-vous sûr de vouloir retirer cet agent de la mission ?`)) {
+            return;
+        }
+        
+        setLoading(true);
+        MissionService.retirerAgent(id, agentId)
+            .then(() => {
+                // Recharger les données après le retrait
+                loadMissionData();
+                alert("Agent retiré avec succès de la mission");
+            })
+            .catch((err) => {
+                console.error("Erreur lors du retrait de l'agent:", err);
+                setError("Impossible de retirer l'agent: " + (err.message || "Erreur serveur"));
+                setLoading(false);
+            });
+    };
     
     const formatDate = d => d ? new Date(d).toLocaleDateString() : "-";
     const formatTime = t => {
@@ -95,9 +124,7 @@ export default function MissionDetail() {
             default:
                 return <Badge bg="primary">{type}</Badge>;
         }
-    };
-
-    if (error) return (
+    };    if (error) return (
         <Container className="mt-4">
             <div className="alert alert-danger" role="alert">
                 {error}
@@ -105,12 +132,20 @@ export default function MissionDetail() {
         </Container>
     );
     
-    if (!mission) return (
+    if (loading) return (
         <Container className="mt-4">
             <div className="d-flex justify-content-center">
                 <div className="spinner-border text-primary" role="status">
                     <span className="visually-hidden">Chargement...</span>
                 </div>
+            </div>
+        </Container>
+    );
+    
+    if (!mission) return (
+        <Container className="mt-4">
+            <div className="alert alert-warning" role="alert">
+                Aucune information disponible pour cette mission.
             </div>
         </Container>
     );
@@ -283,11 +318,14 @@ export default function MissionDetail() {
                                                     <td>{agent.nom}</td>
                                                     <td>{agent.prenom}</td>
                                                     <td>{agent.numCarteProf || "-"}</td>
-                                                    <td>
-                                                        <Link to={`/agents/${agent.id}`} className="btn btn-sm btn-outline-primary me-1">
+                                                    <td>                                                        <Link to={`/agents/${agent.id}`} className="btn btn-sm btn-outline-primary me-1">
                                                             <i className="bi bi-eye"></i> Détails
                                                         </Link>
-                                                        <Button variant="outline-danger" size="sm">
+                                                        <Button 
+                                                            variant="outline-danger" 
+                                                            size="sm"
+                                                            onClick={() => handleRemoveAgent(agent.id)}
+                                                        >
                                                             <i className="bi bi-trash"></i> Retirer
                                                         </Button>
                                                     </td>
