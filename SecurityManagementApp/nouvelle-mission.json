@@ -1,0 +1,12 @@
+{
+  "titre": "Mission test PowerShell",
+  "description": "Mission de test pour association à un devis",
+  "dateDebut": "2025-05-25",
+  "dateFin": "2025-06-05",
+  "heureDebut": "09:00:00",
+  "heureFin": "17:00:00",
+  "typeMission": "SURVEILLANCE",
+  "nombreAgents": 2,
+  "quantite": 80,
+  "tarifId": 1
+}

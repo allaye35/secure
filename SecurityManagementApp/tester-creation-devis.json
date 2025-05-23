@@ -1,0 +1,10 @@
+{
+  "referenceDevis": "DEV-2025-TEST",
+  "description": "Devis de test avec missions existantes",
+  "statut": "BROUILLON",
+  "entrepriseId": 1,
+  "clientId": 1,
+  "dateValidite": "2025-12-31",
+  "conditionsGenerales": "Conditions générales du devis de test",
+  "missionExistanteIds": [1, 2]
+}

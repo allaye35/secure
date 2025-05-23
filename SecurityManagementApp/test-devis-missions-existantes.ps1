@@ -1,11 +1,11 @@
 #!/usr/bin/env pwsh
-# Script de test simplifié pour la création de devis via l'API
+# Script de test simplifié pour la création de devis via l'API avec missions existantes
 
 # Configuration
 $baseUrl = "http://localhost:8080/api/devis"
 $contentType = "application/json"
 
-Write-Host "`n===== Test de création de devis =====" -ForegroundColor Cyan
+Write-Host "`n===== Test de création de devis avec missions existantes =====" -ForegroundColor Cyan
 
 # Création d'un nouveau devis
 Write-Host "`nCréation d'un nouveau devis:" -ForegroundColor Green
@@ -17,8 +17,7 @@ $nouveauDevis = @{
   clientId = 1
   dateValidite = (Get-Date).AddMonths(1).ToString('yyyy-MM-dd')
   conditionsGenerales = "Conditions générales de test"
-  missionExistanteIds = @(1, 2) # IDs des missions existantes à associer
-}
+  missionExistanteIds = @(1, 2)
 }
 
 # Afficher le contenu du devis qui sera envoyé

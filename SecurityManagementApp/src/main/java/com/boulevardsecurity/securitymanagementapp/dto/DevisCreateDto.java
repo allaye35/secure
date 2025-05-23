@@ -24,14 +24,13 @@ public class DevisCreateDto {
     private Long entrepriseId;
 
     @NotNull
-    private Long clientId;
-
-    @NotNull
+    private Long clientId;    @NotNull
     @FutureOrPresent
     private LocalDate dateValidite;
-
+    
     private String conditionsGenerales;
     
+    /** Liste des IDs de missions existantes à associer au devis (aucune création de mission) */
     @Builder.Default
-    private List<MissionCreateDto> missions = new ArrayList<>();
+    private List<Long> missionExistanteIds = new ArrayList<>();
 }

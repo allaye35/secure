@@ -1,0 +1,10 @@
+{
+  "referenceDevis": "DEV-2025-TEST-002",
+  "description": "Devis complet avec missions existantes à associer",
+  "statut": "EN_ATTENTE",
+  "entrepriseId": 1,
+  "clientId": 1,
+  "dateValidite": "2025-12-31",
+  "conditionsGenerales": "Toutes les prestations sont soumises aux conditions générales de Boulevard Security.\n1. Paiement à 30 jours.\n2. TVA applicable selon la réglementation en vigueur.\n3. Les prix sont garantis pendant la durée de validité du devis.",
+  "missionExistanteIds": [1, 2]
+}

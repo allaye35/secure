@@ -34,15 +34,12 @@ public class DevisDto {
     @Builder.Default
     private Integer     nombreTotalAgents = 0;
     @Builder.Default
-    private Integer     nombreTotalHeures = 0;
-
-    /* ------- relations (ID only) ------- */
+    private Integer     nombreTotalHeures = 0;    /* ------- relations (ID only) ------- */
     private Long        entrepriseId;
     private Long        clientId;
     private Long        contratId;
-    private List<Long>  missionIds;
     
-    /* ------- détails des missions associées ------- */
+    /** Détails complets des missions associées (incluant toutes les informations) */
     @Builder.Default
     private List<MissionDto> missions = new ArrayList<>();
 }
