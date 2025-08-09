@@ -3,18 +3,12 @@ import api from "./api";
 const PATH = "/missions";
 
 const MissionService = {
-    /**
-     * Récupérer toutes les missions
-     */
-    getAll: () => api.get(PATH),
+  
 
     /**
      * Récupérer toutes les missions (alias pour getAll)
      */
     getAllMissions: () => api.get(PATH),    /**
-     * Récupérer une mission par son ID
-     */
-    getById: (id) => api.get(`${PATH}/${id}`),
     
     /**
      * Alias pour getById (pour compatibilité avec le code existant)
