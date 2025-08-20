@@ -17,23 +17,38 @@ export default function MissionList() {
     useEffect(() => {
         MissionService.getAllMissions()
             .then(({ data }) => {
+                console.log("Données reçues du backend:", data);
                 if (Array.isArray(data)) {
                     setMissions(data);
                     setFilteredMissions(data);
+                } else if (data && Array.isArray(data.content)) {
+                    // Si la réponse est paginée
+                    setMissions(data.content);
+                    setFilteredMissions(data.content);
                 } else {
-                    setError("Format de données inattendu.");
+                    console.error("Format de données inattendu:", data);
+                    setError("Format de données inattendu reçu du serveur.");
                 }
             })
-            .catch(() => setError("Erreur lors du chargement."))
+            .catch((error) => {
+                console.error("Erreur lors du chargement des missions:", error);
+                if (error.response) {
+                    setError(`Erreur ${error.response.status}: ${error.response.data?.message || "Erreur du serveur"}`);
+                } else if (error.request) {
+                    setError("Erreur de connexion au serveur. Vérifiez que le backend est démarré.");
+                } else {
+                    setError("Erreur lors du chargement des missions.");
+                }
+            })
             .finally(() => setLoading(false));
     }, []);
 
     useEffect(() => {
         const results = missions.filter(mission =>
-            mission.titre.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.statutMission?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            mission.typeMission?.toLowerCase().includes(searchTerm.toLowerCase())
+            (mission.titre && mission.titre.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (mission.description && mission.description.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (mission.statutMission && mission.statutMission.toLowerCase().includes(searchTerm.toLowerCase())) ||
+            (mission.typeMission && mission.typeMission.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         setFilteredMissions(results);
     }, [searchTerm, missions]);
@@ -75,28 +90,20 @@ export default function MissionList() {
             .catch(e => alert("Erreur : " + e.response?.data?.message || e.message));
     };
 
+    // Mapping des constantes Enum -> libellé FR + couleur
+    const STATUT_META = {
+        PLANIFIEE: { label: 'Planifiée', color: 'info' },
+        EN_ATTENTE_DE_VALIDATION_DEVIS: { label: 'En attente validation devis', color: 'secondary' },
+        EN_COURS: { label: 'En cours', color: 'primary' },
+        TERMINEE: { label: 'Terminée', color: 'success' },
+        ANNULEE: { label: 'Annulée', color: 'danger' }
+    };
+
     const getStatusBadge = (status) => {
-        switch (status?.toLowerCase()) {
-            case 'en cours':
-                return <Badge bg="primary">En cours</Badge>;
-            case 'terminé':
-            case 'termine':
-            case 'terminée':
-            case 'terminee':
-                return <Badge bg="success">Terminé</Badge>;
-            case 'planifié':
-            case 'planifie':
-            case 'planifiée':
-            case 'planifiee':
-                return <Badge bg="info">Planifié</Badge>;
-            case 'annulé':
-            case 'annule':
-            case 'annulée':
-            case 'annulee':
-                return <Badge bg="danger">Annulé</Badge>;
-            default:
-                return <Badge bg="secondary">{status || 'Non défini'}</Badge>;
-        }
+        if (!status) return <Badge bg="secondary">Non défini</Badge>;
+        const meta = STATUT_META[status];
+        if (!meta) return <Badge bg="secondary">{status}</Badge>;
+        return <Badge bg={meta.color}>{meta.label}</Badge>;
     };
 
     const requestSort = (key) => {

@@ -1,66 +1,31 @@
+// src/services/MissionService.js
 import api from "./api";
 
 const PATH = "/missions";
 
 const MissionService = {
-  
+  getAllMissions: () => api.get(PATH),
+  getMissionById: (id) => api.get(`${PATH}/${id}`),
+  getByDevis: (devisId) => api.get(`${PATH}/devis/${devisId}`),
+  getByContratId: (contratId) => api.get(`${PATH}/contrat/${contratId}`),
+  getMissionsByClient: (clientId) => api.get(`${PATH}/client/${clientId}`),
+  getActivesByClient: (clientId) => api.get(`${PATH}/client/${clientId}/actives`),
 
-    /**
-     * Récupérer toutes les missions (alias pour getAll)
-     */
-    getAllMissions: () => api.get(PATH),    /**
-    
-    /**
-     * Alias pour getById (pour compatibilité avec le code existant)
-     */
-    getMissionById: (id) => api.get(`${PATH}/${id}`),
+  // 👇 NOUVEAU : missions sans devis (global)
+  getSansDevis: () => api.get(`${PATH}/sans-devis`),
 
-    /**
-     * Obtenir les missions associées à un devis
-     */
-    getByDevis: (devisId) => api.get(`${PATH}/devis/${devisId}`),
-    
-    /**
-     * Récupérer les missions associées à un contrat
-     */
-    getByContratId: (contratId) => api.get(`${PATH}/contrat/${contratId}`),
-    
-    /**
-     * Récupérer les missions associées à un client
-     */
-    getMissionsByClient: (clientId) => api.get(`${PATH}/client/${clientId}`),
-    
-    /**
-     * Récupérer les missions actives d'un client (alternative à l'API du client)
-     */
-    getActivesByClient: (clientId) => api.get(`${PATH}/client/${clientId}/actives`),
-    
-    /**
-     * Créer une nouvelle mission
-     */
-    createMission: (missionData) => api.post(PATH, missionData),
-    
-    /**
-     * Mettre à jour une mission
-     */
-    update: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
-    
-    /**
-     * Mettre à jour une mission (alias pour update)
-     */
-    updateMission: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
-    
-    /**
-     * Associer une mission à une facture
-     */
-    associerFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`),
-
-    /**
-     * Simuler un calcul de montants sans créer une mission
-     * Cette fonction permet d'obtenir les montants calculés par le backend
-     * en fonction des paramètres de la mission (tarif, quantité, etc.)
-     */
-    simulateCalculation: (missionData) => api.post(`${PATH}/simuler-calcul`, missionData)
+  createMission: (missionData) => api.post(PATH, missionData),
+  update: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
+  updateMission: (id, missionData) => api.put(`${PATH}/${id}`, missionData),
+  deleteMission: (id) => api.delete(`${PATH}/${id}`),
+  associerFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`),
+  simulateCalculation: (missionData) => api.post(`${PATH}/simuler-calcul`, missionData),
+  assignAgents: (missionId, agentId) => api.put(`${PATH}/${missionId}/agents/${agentId}`),
+  retirerAgent: (missionId, agentId) => api.delete(`${PATH}/${missionId}/agents/${agentId}`),
+  assignPlanning: (missionId, planningId) => api.put(`${PATH}/${missionId}/planning/${planningId}`),
+  assignSite: (missionId, siteId) => api.put(`${PATH}/${missionId}/site/${siteId}`),
+  assignContrat: (missionId, contratId) => api.put(`${PATH}/${missionId}/contrat/${contratId}`),
+  assignFacture: (missionId, factureId) => api.put(`${PATH}/${missionId}/facture/${factureId}`),
 };
 
 export default MissionService;

@@ -23,7 +23,10 @@ const DevisService = {
     delete: (id) => api.delete(`${PATH}/${id}`),
     
     /** Rechercher un devis par sa référence */
-    search: (ref) => api.get(`${PATH}/search`, { params: { reference: ref } })
+    search: (ref) => api.get(`${PATH}/search`, { params: { reference: ref } }),
+
+    /** Ajouter des missions existantes à un devis */
+    addMissions: (devisId, missionIds) => api.post(`${PATH}/${devisId}/missions`, missionIds)
 };
 
 export default DevisService;

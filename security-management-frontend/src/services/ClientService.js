@@ -5,10 +5,10 @@ const PATH = "/clients";
 
 const ClientService = {
     /** Récupérer tous les clients */
-    getAll: () => api.get(PATH).then(response => response.data),
+    getAll: () => api.get(PATH),
     
     /** Récupérer un client par son ID */
-    getById: (id) => api.get(`${PATH}/${id}`).then(response => response.data),
+    getById: (id) => api.get(`${PATH}/${id}`),
     
     /** Rechercher un client par son email */
     getByEmail: (email) => api.get(`${PATH}/email/${email}`).then(response => response.data),

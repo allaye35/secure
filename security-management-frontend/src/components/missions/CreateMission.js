@@ -17,7 +17,7 @@ export default function CreateMission() {
         setLoading(true);
         const [tarifsResponse, devisResponse] = await Promise.all([
           fetch("http://localhost:8080/api/tarifs"),
-          fetch("http://localhost:8080/api/devis")
+          fetch("http://localhost:8080/api/devis/disponibles")
         ]);
         
         const tarifsData = await tarifsResponse.json();
@@ -48,20 +48,20 @@ export default function CreateMission() {
     typeMission: "SURVEILLANCE",
     nombreAgents: 1,
     quantite: 1,
-    tarif: { id: "" },
-    devis: { id: "" },
+    tarifMissionId: "",
+    devisId: "",
   });
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 3) Mise à jour des champs (gère aussi tarif.id et devis.id)
+  // 3) Mise à jour des champs (gère aussi tarifMissionId et devisId)
   const handleChange = e => {
     const { name, value } = e.target;
     if (name === "tarif") {
-      setMission(m => ({ ...m, tarif: { id: value } }));
+      setMission(m => ({ ...m, tarifMissionId: value }));
     } else if (name === "devis") {
-      setMission(m => ({ ...m, devis: { id: value } }));
+      setMission(m => ({ ...m, devisId: value }));
     } else {
       setMission(m => ({ ...m, [name]: value }));
     }
@@ -79,8 +79,8 @@ export default function CreateMission() {
       !mission.description ||
       !mission.dateDebut ||
       !mission.dateFin ||
-      !mission.tarif.id ||
-      !mission.devis.id
+      !mission.tarifMissionId ||
+      !mission.devisId
     ) {
       setError("Tous les champs marqués * sont obligatoires.");
       setIsSubmitting(false);
@@ -263,7 +263,7 @@ export default function CreateMission() {
                   <Form.Label>Tarif <span className="text-danger">*</span></Form.Label>
                   <Form.Select 
                     name="tarif" 
-                    value={mission.tarif.id} 
+                    value={mission.tarifMissionId} 
                     onChange={handleChange} 
                     required
                   >
@@ -282,14 +282,14 @@ export default function CreateMission() {
               <Form.Label>Devis <span className="text-danger">*</span></Form.Label>
               <Form.Select 
                 name="devis" 
-                value={mission.devis.id} 
+                value={mission.devisId} 
                 onChange={handleChange} 
                 required
               >
                 <option value="">— Sélectionner un devis —</option>
                 {devisList.map(d => (
                   <option key={d.id} value={d.id}>
-                    #{d.id} – {d.reference}
+                    #{d.id} – {d.referenceDevis || 'Pas de référence'} - {d.description || 'Sans description'}
                   </option>
                 ))}
               </Form.Select>
