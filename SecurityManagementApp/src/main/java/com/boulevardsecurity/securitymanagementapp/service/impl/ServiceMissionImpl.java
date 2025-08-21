@@ -61,13 +61,18 @@ public class ServiceMissionImpl implements IMissionService {
             mission.setGeolocalisationGPS(creerEtSauverGeoloc(adresseSite));
         }
 
-        // Tarifs / devis
-        TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
-                .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
-        Devis devis = repDevis.findById(dto.getDevisId())
-                .orElseThrow(() -> new NoSuchElementException("Devis introuvable id=" + dto.getDevisId()));
-        mission.setTarif(tarif);
-        mission.setDevis(devis);
+        // --- Tarifs / devis (devis optionnel) ---
+TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
+        .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
+mission.setTarif(tarif);
+
+if (dto.getDevisId() != null) {
+    Devis devis = repDevis.findById(dto.getDevisId())
+            .orElseThrow(() -> new NoSuchElementException("Devis introuvable id=" + dto.getDevisId()));
+    mission.setDevis(devis);
+} else {
+    mission.setDevis(null); // explicite (facultatif)
+}
         appliquerChiffrage(mission, tarif);
 
         Mission sauvegardee = repMission.save(mission);
@@ -366,6 +371,13 @@ public class ServiceMissionImpl implements IMissionService {
         repMission.save(mission);
         return mappeur.toDto(mission);
     }
-
+ /* 👇 NOUVEAU : missions sans devis (global) */
+    @Override
+    public List<MissionDto> missionsSansDevis() {
+        return repMission.findAll().stream()
+                .filter(m -> m.getDevis() == null) // non rattachées à un devis
+                .map(mappeur::toDto)
+                .toList();
+    }
 
 }

@@ -103,4 +103,22 @@ public class DevisController {
                     .body(new ErrorResponseDto(500, "Erreur serveur: " + e.getMessage()));
         }
     }
+
+    /** Ajout de missions existantes à un devis */
+    @PostMapping("/{id}/missions")
+    public ResponseEntity<?> ajouterMissions(
+            @PathVariable Long id,
+            @RequestBody List<Long> missionIds) {
+        try {
+            DevisDto dto = service.ajouterMissions(id, missionIds);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDto(400, e.getMessage()));
+        } catch (Exception e) {
+            log.error("Erreur serveur ajout missions devis", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDto(500, "Erreur serveur: " + e.getMessage()));
+        }
+    }
 }

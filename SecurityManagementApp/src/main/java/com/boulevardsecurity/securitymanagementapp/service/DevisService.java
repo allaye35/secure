@@ -20,4 +20,7 @@ public interface DevisService {
      * @return Une liste de devis disponibles pour la création de contrats
      */
     List<DevisDto> getDevisDisponibles();
+
+    /** Ajoute des missions existantes à un devis et recalcule les totaux */
+    DevisDto ajouterMissions(Long devisId, List<Long> missionIds);
 }

@@ -73,19 +73,19 @@ public class MissionControleur {
 
     /* ────────────── Création ────────────── */
 
-    @PostMapping
-    public ResponseEntity<?> creerMission(
-            @Valid @RequestBody MissionCreateDto missionDto,
-            @RequestParam(value = "adresseSite", required = false) String adresseSite,
-            HttpServletRequest req) {
-
-        try {
-            MissionDto cree = serviceMission.creerMission(missionDto, adresseSite);
-            return ResponseEntity.status(HttpStatus.CREATED).body(cree);
-        } catch (IllegalArgumentException ex) {
-            return erreur(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
-        }
+  @PostMapping
+public ResponseEntity<?> creerMission(@Valid @RequestBody MissionCreateDto missionDto,
+                                      @RequestParam(value = "adresseSite", required = false) String adresseSite,
+                                      HttpServletRequest req) {
+    try {
+        MissionDto cree = serviceMission.creerMission(missionDto, adresseSite);
+        return ResponseEntity.status(HttpStatus.CREATED).body(cree);
+    } catch (NoSuchElementException ex) {               // 👈 ajout
+        return erreur(HttpStatus.NOT_FOUND, ex.getMessage(), req);
+    } catch (IllegalArgumentException ex) {
+        return erreur(HttpStatus.BAD_REQUEST, ex.getMessage(), req);
     }
+}
 
     /* ────────────── Mise à jour ────────────── */
 
@@ -259,4 +259,13 @@ public class MissionControleur {
             return erreur(HttpStatus.NOT_FOUND, ex.getMessage(), req);
         }
     }
+
+   /* 👇 NOUVEAU : toutes les missions non rattachées à un devis */
+    @GetMapping("/sans-devis")
+    public List<MissionDto> missionsSansDevis() {
+        return serviceMission.missionsSansDevis();
+    }
+
+    
+
 }

@@ -5,6 +5,7 @@ import jakarta.validation.constraints.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.util.List;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class DevisCreateDto {
@@ -29,4 +30,7 @@ public class DevisCreateDto {
     private LocalDate dateValidite;
 
     private String conditionsGenerales;
+
+    /* Missions existantes à rattacher (optionnel) */
+    private List<Long> missionIds;
 }
