@@ -79,8 +79,7 @@ export default function CreateMission() {
       !mission.description ||
       !mission.dateDebut ||
       !mission.dateFin ||
-      !mission.tarifMissionId ||
-      !mission.devisId
+      !mission.tarifMissionId
     ) {
       setError("Tous les champs marqués * sont obligatoires.");
       setIsSubmitting(false);
@@ -279,14 +278,13 @@ export default function CreateMission() {
             </Row>
 
             <Form.Group className="mb-4">
-              <Form.Label>Devis <span className="text-danger">*</span></Form.Label>
+              <Form.Label>Devis <span className="text-muted">(optionnel)</span></Form.Label>
               <Form.Select 
                 name="devis" 
                 value={mission.devisId} 
-                onChange={handleChange} 
-                required
+                onChange={handleChange}
               >
-                <option value="">— Sélectionner un devis —</option>
+                <option value="">— Aucun devis associé —</option>
                 {devisList.map(d => (
                   <option key={d.id} value={d.id}>
                     #{d.id} – {d.referenceDevis || 'Pas de référence'} - {d.description || 'Sans description'}

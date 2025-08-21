@@ -40,11 +40,12 @@ export default function ClientList() {
     ClientService.getAll()
       .then(allClients => {
         if (mounted) {
-          console.log("Clients reçus:", allClients);
           
           // Extraire les types de clients uniques pour le filtre
           const types = new Set();
+          console.log("Clients reçus:", allClients);
           allClients.forEach(client => {
+            console.log("Client:", client);
             if (client.typeClient) {
               types.add(client.typeClient);
             }
