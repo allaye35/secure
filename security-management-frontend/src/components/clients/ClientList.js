@@ -38,9 +38,9 @@ export default function ClientList() {
       // Dans un environnement réel, l'API devrait supporter la pagination côté serveur
     // Ici, nous simulons avec une gestion côté client
     ClientService.getAll()
-      .then(allClients => {
+      .then(response => {
+        const allClients = response.data;
         if (mounted) {
-          
           // Extraire les types de clients uniques pour le filtre
           const types = new Set();
           console.log("Clients reçus:", allClients);
@@ -51,16 +51,13 @@ export default function ClientList() {
             }
           });
           setClientTypes(Array.from(types));
-          
           // Appliquer les filtres et le tri
           let filteredClients = applyFiltersAndSort(allClients);
           setTotalItems(filteredClients.length);
-          
           // Pagination
           const indexOfLastItem = currentPage * itemsPerPage;
           const indexOfFirstItem = indexOfLastItem - itemsPerPage;
           const currentItems = filteredClients.slice(indexOfFirstItem, indexOfLastItem);
-          
           setClients(currentItems);
           setLoading(false);
         }
