@@ -2,6 +2,9 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import MissionService from "../../services/MissionService";
+import SiteService from "../../services/SiteService";
+import ContratService from "../../services/ContratService";
+import DevisService from "../../services/DevisService";
 import "../../styles/MissionList.css";
 import { Table, Button, Badge, Card, Container, Row, Col, Dropdown, Form, InputGroup } from 'react-bootstrap';
 
@@ -13,6 +16,9 @@ export default function MissionList() {
     const [filteredMissions, setFilteredMissions] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
     const [currentPage, setCurrentPage] = useState(1);
+    const [siteNames, setSiteNames] = useState({}); // { siteId: nom }
+    const [contratNames, setContratNames] = useState({}); // { contratId: nom }
+    const [devisNames, setDevisNames] = useState({}); // { devisId: nom }
     const missionsPerPage = 10;
     const navigate = useNavigate();
 
@@ -20,17 +26,57 @@ export default function MissionList() {
         MissionService.getAllMissions()
             .then(({ data }) => {
                 console.log("Données reçues du backend:", data);
+                let missionsList = [];
                 if (Array.isArray(data)) {
-                    setMissions(data);
-                    setFilteredMissions(data);
+                    missionsList = data;
                 } else if (data && Array.isArray(data.content)) {
-                    // Si la réponse est paginée
-                    setMissions(data.content);
-                    setFilteredMissions(data.content);
+                    missionsList = data.content;
                 } else {
                     console.error("Format de données inattendu:", data);
                     setError("Format de données inattendu reçu du serveur.");
+                    return;
                 }
+                setMissions(missionsList);
+                setFilteredMissions(missionsList);
+                // Récupérer les noms des sites, contrats et devis pour chaque mission
+                const siteIds = [...new Set(missionsList.map(m => m.siteId).filter(Boolean))];
+                siteIds.forEach(siteId => {
+                    if (!siteNames[siteId]) {
+                        SiteService.getSiteById(siteId)
+                            .then(res => {
+                                setSiteNames(prev => ({ ...prev, [siteId]: res.data.nom || res.data.name || `Site #${siteId}` }));
+                            })
+                            .catch(() => {
+                                setSiteNames(prev => ({ ...prev, [siteId]: `Site #${siteId}` }));
+                            });
+                    }
+                });
+                // Contrats
+                const contratIds = [...new Set(missionsList.map(m => m.contratId || (m.contrat && m.contrat.id)).filter(Boolean))];
+                contratIds.forEach(contratId => {
+                    if (!contratNames[contratId]) {
+                        ContratService.getById(contratId)
+                            .then(res => {
+                                setContratNames(prev => ({ ...prev, [contratId]: res.data.referenceContrat || res.data.nom || `Contrat #${contratId}` }));
+                            })
+                            .catch(() => {
+                                setContratNames(prev => ({ ...prev, [contratId]: `Contrat #${contratId}` }));
+                            });
+                    }
+                });
+                // Devis
+                const devisIds = [...new Set(missionsList.map(m => m.devisId || (m.devis && m.devis.id)).filter(Boolean))];
+                devisIds.forEach(devisId => {
+                    if (!devisNames[devisId]) {
+                        DevisService.getById(devisId)
+                            .then(res => {
+                                setDevisNames(prev => ({ ...prev, [devisId]: res.data.referenceDevis || res.data.nom || `Devis #${devisId}` }));
+                            })
+                            .catch(() => {
+                                setDevisNames(prev => ({ ...prev, [devisId]: `Devis #${devisId}` }));
+                            });
+                    }
+                });
             })
             .catch((error) => {
                 console.error("Erreur lors du chargement des missions:", error);
@@ -228,14 +274,54 @@ export default function MissionList() {
                                         <td><Badge bg="info">{m.typeMission || 'Non défini'}</Badge></td>
                                         <td className="text-center">{m.nombreAgents || '0'}</td>
                                         <td className="fw-bold text-end">{m.montantHT ? `${m.montantHT.toFixed(2)} €` : '-'}</td>
-                                        <td>{m.site?.nom ?? "-"}</td>
+                                        <td>{m.siteId ? (siteNames[m.siteId] || <span className="text-muted">Chargement...</span>) : '-'}</td>
                                         <td>
-                                            {m.contrat && (
-                                                <div><Badge bg="secondary">Contrat:</Badge> {m.contrat.referenceContrat}</div>
-                                            )}
-                                            {m.devis && (
-                                                <div><Badge bg="secondary">Devis:</Badge> {m.devis.referenceDevis}</div>
-                                            )}
+                                            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem', minWidth: 0, maxWidth: 180 }}>
+                                                {/* Contrat */}
+                                                {m.contratId || (m.contrat && m.contrat.id) ? (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', minWidth: 0 }}>
+                                                        <Badge bg="secondary" style={{ whiteSpace: 'nowrap', marginRight: 4 }}>Contrat:</Badge>
+                                                        <span
+                                                            style={{
+                                                                wordBreak: 'break-all',
+                                                                minWidth: 0,
+                                                                maxWidth: 120,
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap',
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'bottom',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            title={contratNames[m.contratId || (m.contrat && m.contrat.id)]}
+                                                        >
+                                                            {contratNames[m.contratId || (m.contrat && m.contrat.id)] || <span className="text-muted">Chargement...</span>}
+                                                        </span>
+                                                    </div>
+                                                ) : null}
+                                                {/* Devis */}
+                                                {m.devisId || (m.devis && m.devis.id) ? (
+                                                    <div style={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', minWidth: 0 }}>
+                                                        <Badge bg="secondary" style={{ whiteSpace: 'nowrap', marginRight: 4 }}>Devis:</Badge>
+                                                        <span
+                                                            style={{
+                                                                wordBreak: 'break-all',
+                                                                minWidth: 0,
+                                                                maxWidth: 120,
+                                                                overflow: 'hidden',
+                                                                textOverflow: 'ellipsis',
+                                                                whiteSpace: 'nowrap',
+                                                                display: 'inline-block',
+                                                                verticalAlign: 'bottom',
+                                                                cursor: 'pointer'
+                                                            }}
+                                                            title={devisNames[m.devisId || (m.devis && m.devis.id)]}
+                                                        >
+                                                            {devisNames[m.devisId || (m.devis && m.devis.id)] || <span className="text-muted">Chargement...</span>}
+                                                        </span>
+                                                    </div>
+                                                ) : null}
+                                            </div>
                                         </td>
                                         <td>
                                             <Dropdown>
