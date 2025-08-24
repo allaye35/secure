@@ -12,6 +12,8 @@ export default function MissionList() {
     const [searchTerm, setSearchTerm] = useState("");
     const [filteredMissions, setFilteredMissions] = useState([]);
     const [sortConfig, setSortConfig] = useState({ key: 'id', direction: 'ascending' });
+    const [currentPage, setCurrentPage] = useState(1);
+    const missionsPerPage = 10;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -51,6 +53,7 @@ export default function MissionList() {
             (mission.typeMission && mission.typeMission.toLowerCase().includes(searchTerm.toLowerCase()))
         );
         setFilteredMissions(results);
+        setCurrentPage(1); // reset page on search
     }, [searchTerm, missions]);
 
     const formatDate = d => d ? new Date(d).toLocaleDateString() : "-";
@@ -144,6 +147,16 @@ export default function MissionList() {
         </Container>
     );
 
+    // Pagination logic
+    const indexOfLastMission = currentPage * missionsPerPage;
+    const indexOfFirstMission = indexOfLastMission - missionsPerPage;
+    const currentMissions = filteredMissions.slice(indexOfFirstMission, indexOfLastMission);
+    const totalPages = Math.ceil(filteredMissions.length / missionsPerPage);
+
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
+    };
+
     return (
         <Container fluid className="mission-list mt-4">
             <Card>
@@ -197,8 +210,9 @@ export default function MissionList() {
                                             Aucune mission trouvée
                                         </td>
                                     </tr>
-                                ) : filteredMissions.map(m => (
+                                ) : currentMissions.map(m => (
                                     <tr key={m.id}>
+                                        {/* ...existing code for each row... */}
                                         <td>{m.id}</td>
                                         <td>
                                             <div className="fw-bold">{m.titre}</div>
@@ -225,7 +239,14 @@ export default function MissionList() {
                                         </td>
                                         <td>
                                             <Dropdown>
-                                                <Dropdown.Toggle variant="light" size="sm" id={`dropdown-mission-${m.id}`}>
+                                                <Dropdown.Toggle 
+                                                    variant="primary" 
+                                                    size="md" 
+                                                    id={`dropdown-mission-${m.id}`}
+                                                    className="btn-action-dropdown d-flex align-items-center gap-2"
+                                                    style={{ borderRadius: '2rem', fontWeight: 600, letterSpacing: '0.02em', boxShadow: '0 2px 8px rgba(13,110,253,0.08)' }}
+                                                >
+                                                    <i className="bi bi-list"></i>
                                                     Actions
                                                 </Dropdown.Toggle>
                                                 <Dropdown.Menu>
@@ -267,6 +288,40 @@ export default function MissionList() {
                         </Table>
                     </div>
                 </Card.Body>
+                {/* Pagination controls */}
+                {totalPages > 1 && (
+                    <div className="d-flex justify-content-center align-items-center my-3">
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="me-2"
+                            disabled={currentPage === 1}
+                            onClick={() => handlePageChange(currentPage - 1)}
+                        >
+                            Précédent
+                        </Button>
+                        {[...Array(totalPages)].map((_, idx) => (
+                            <Button
+                                key={idx + 1}
+                                variant={currentPage === idx + 1 ? "primary" : "outline-primary"}
+                                size="sm"
+                                className="mx-1"
+                                onClick={() => handlePageChange(idx + 1)}
+                            >
+                                {idx + 1}
+                            </Button>
+                        ))}
+                        <Button
+                            variant="outline-primary"
+                            size="sm"
+                            className="ms-2"
+                            disabled={currentPage === totalPages}
+                            onClick={() => handlePageChange(currentPage + 1)}
+                        >
+                            Suivant
+                        </Button>
+                    </div>
+                )}
             </Card>
         </Container>
     );
