@@ -10,7 +10,7 @@ export default function MissionDetail() {
     const [error, setError] = useState("");
 
     useEffect(() => {
-        MissionService.getById(id)
+        MissionService.getMissionById(id)
             .then(({ data }) => setMission(data))
             .catch(() => setError("Impossible de charger la mission."));
     }, [id]);
