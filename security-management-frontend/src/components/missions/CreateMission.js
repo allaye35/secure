@@ -59,6 +59,7 @@ export default function CreateMission() {
   const handleChange = e => {
     const { name, value } = e.target;
     if (name === "tarif") {
+      // On ne stocke que l'id du tarif sélectionné (string ou number)
       setMission(m => ({ ...m, tarifMissionId: value }));
     } else if (name === "devis") {
       setMission(m => ({ ...m, devisId: value }));
@@ -144,7 +145,13 @@ export default function CreateMission() {
                   >
                     <option value="SURVEILLANCE">Surveillance</option>
                     <option value="GARDE_DU_CORPS">Garde du corps</option>
-                    <option value="SECURITE_INCENDIE">Sécurité incendie</option>
+                    <option value="SSIAP_1">SSIAP 1</option>
+                    <option value="SSIAP_2">SSIAP 2</option>
+                    <option value="SSIAP_3">SSIAP 3</option>
+                    <option value="TELESURVEILLANCE">Télésurveillance</option>
+                    <option value="SECURITE_EVENEMENTIELLE">Sécurité événementielle</option>
+                    <option value="RONDIER">Rondier</option>
+                    <option value="CQP_APS">CQP APS</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -224,6 +231,7 @@ export default function CreateMission() {
                     onChange={handleChange}
                   >
                     <option value="PLANIFIEE">Planifiée</option>
+                    <option value="EN_ATTENTE_DE_VALIDATION_DEVIS">En attente de validation devis</option>
                     <option value="EN_COURS">En cours</option>
                     <option value="TERMINEE">Terminée</option>
                     <option value="ANNULEE">Annulée</option>
@@ -269,7 +277,7 @@ export default function CreateMission() {
                     <option value="">— Sélectionner un tarif —</option>
                     {tarifs.map(t => (
                       <option key={t.id} value={t.id}>
-                        {t.libelle} ({t.prixUnitaireHT} € HT)
+                        {t.typeMission ? t.typeMission + ' - ' : ''}{t.libelle} ({t.prixUnitaireHT} € HT)
                       </option>
                     ))}
                   </Form.Select>

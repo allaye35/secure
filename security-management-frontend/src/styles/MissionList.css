@@ -1,3 +1,10 @@
+/* Empêche le débordement du texte dans les colonnes sensibles (ex: titre) */
+.cell-truncate {
+    max-width: 160px; /* Ajustez selon la largeur souhaitée */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 /* src/components/missions/MissionList.css */
 
 .mission-list {
@@ -156,3 +163,13 @@
 .tbl-missions tbody tr:hover {
     background-color: rgba(0, 123, 255, 0.05) !important;
 }
+/* Le conteneur du tableau ne doit pas couper le menu */
+.table-responsive {
+  overflow-y: visible !important; /* on garde le scroll horizontal par Bootstrap */
+}
+
+/* Empêche la création d’un contexte de positionnement qui perturbe Popper */
+.actions-dropdown { position: static; }
+
+/* S’assure que le menu passe au-dessus de tout (navbar, headers…) */
+.dropdown-menu { z-index: 2000; }

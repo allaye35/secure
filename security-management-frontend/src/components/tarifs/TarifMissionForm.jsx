@@ -11,15 +11,13 @@ import "../../styles/TarifMissionFormV2.css";
 const TYPE_MISSIONS = [
     "GARDE_DU_CORPS",
     "SECURITE_EVENEMENTIELLE",
-    "CONTROLEUR_ACCES",
     "CQP_APS",
     "SURVEILLANCE",
     "SSIAP_1",
     "SSIAP_2",
     "SSIAP_3",
-    "RONDEUR",
+    "RONDIER",
     "TELESURVEILLANCE",
-    "AGENT_SURVEILLANCE_VIDEO"
 ];
 
 export default function TarifMissionForm() {
@@ -49,7 +47,7 @@ export default function TarifMissionForm() {
 
         // Récupérer toutes les missions disponibles
         setMissionsLoading(true);
-        MissionService.getAll()
+        MissionService.getAllMissions()
             .then(({ data }) => {
                 setAllMissions(data);
                 setMissionsLoading(false);

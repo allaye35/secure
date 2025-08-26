@@ -79,7 +79,7 @@ export default function FactureDetail() {
                 // Récupérer les missions associées
                 if (data.missionIds && data.missionIds.length > 0) {
                     const missionPromises = data.missionIds.map(missionId => 
-                        MissionService.getById(missionId)
+                        MissionService.getMissionById(missionId)
                             .then(response => response.data)
                             .catch(err => {
                                 console.error(`Erreur lors du chargement de la mission ${missionId}:`, err);

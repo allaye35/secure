@@ -42,12 +42,12 @@ export default function RapportDetail() {
     useEffect(() => {
         if (!report?.missionId) return;
 
-        MissionService.getById(report.missionId)
-            .then(({ data }) => setMission(data))
-            .catch(err => {
-                console.error("Erreur lors du chargement de la mission:", err);
-                // On ne bloque pas l'affichage du rapport si la mission n'est pas trouvée
-            });
+            MissionService.getMissionById(report.missionId)
+                .then(({ data }) => setMission(data))
+                .catch(err => {
+                    console.error("Erreur lors du chargement de la mission:", err);
+                    // On ne bloque pas l'affichage du rapport si la mission n'est pas trouvée
+                });
     }, [report]);
 
     // Fonction pour obtenir la couleur du badge selon le statut
