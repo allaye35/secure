@@ -56,7 +56,6 @@ public class MissionControleur {
     /* ────────────── Simulation ────────────── */
     
     // Modifions l'endpoint pour éviter les conflits potentiels
-    @CrossOrigin(origins = "http://localhost:3000", methods = {RequestMethod.POST})
     @PostMapping("/simuler-calcul")
     public ResponseEntity<?> simulerCalculMontants(
             @Valid @RequestBody MissionCreateDto missionDto,

@@ -61,6 +61,8 @@ public class ServiceMissionImpl implements IMissionService {
             mission.setGeolocalisationGPS(creerEtSauverGeoloc(adresseSite));
         }
 
+        
+
         // --- Tarifs / devis (devis optionnel) ---
 TarifMission tarif = repTarif.findById(dto.getTarifMissionId())
         .orElseThrow(() -> new NoSuchElementException("Tarif introuvable id=" + dto.getTarifMissionId()));
