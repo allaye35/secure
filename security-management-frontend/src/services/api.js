@@ -1,40 +1,67 @@
 import axios from "axios";
+import { tokenService } from "./auth/tokenService";
 
-const api = axios.create({
-    baseURL: "http://localhost:8080/api"
+const BASE_URL = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
+
+// --- instance principale
+const api = axios.create({ baseURL: BASE_URL, timeout: 20000 });
+
+// --- instance "nue" pour refresh
+const plain = axios.create({ baseURL: BASE_URL, timeout: 20000 });
+
+// REQUEST: Content-Type + Authorization
+api.interceptors.request.use((config) => {
+  if (config.data instanceof FormData) {
+    delete config.headers["Content-Type"];
+  } else {
+    config.headers["Content-Type"] = "application/json";
+  }
+  const access = tokenService.getAccess();
+  if (access && !config.headers.Authorization) {
+    config.headers.Authorization = `Bearer ${access}`;
+  }
+  return config;
 });
 
-// Configuration simple sans authentification
-api.interceptors.request.use(config => {
-    // Gestion automatique du Content-Type
-    if (config.data instanceof FormData) {
-        delete config.headers['Content-Type'];
-    } else {
-        config.headers['Content-Type'] = 'application/json';
-    }
-    
-    return config;
-}, error => {
-    console.error("API Request Error:", error);
-    return Promise.reject(error);
-});
+// RESPONSE: refresh auto sur 401 (une seule tentative)
+let refreshPromise = null;
 
-// Gestion simplifiée des erreurs
 api.interceptors.response.use(
-    response => response,
-    error => {
-        if (error.response) {
-            console.error(
-                `API Error: ${error.config?.method?.toUpperCase()} ${error.config?.url}`,
-                `Status: ${error.response.status}`
-            );
-        } else if (error.request) {
-            console.error("API Error: No response received");
-        } else {
-            console.error("API Error:", error.message);
-        }
-        return Promise.reject(error);
+  (res) => res,
+  async (error) => {
+    const status = error?.response?.status;
+    const original = error.config;
+
+    const isAuthUrl =
+      original?.url?.includes("/auth/login") ||
+      original?.url?.includes("/auth/refresh");
+
+    if (status === 401 && !original?._retry && !isAuthUrl) {
+      original._retry = true;
+
+      if (!refreshPromise) {
+        const refreshToken = tokenService.getRefresh();
+        refreshPromise = plain
+          .post("/auth/refresh", { refreshToken })
+          .then((r) => r.data?.accessToken)
+          .catch(() => null)
+          .finally(() => { setTimeout(() => (refreshPromise = null), 0); });
+      }
+
+      const newAccess = await refreshPromise;
+      if (newAccess) {
+        tokenService.setTokens({ accessToken: newAccess });
+        original.headers.Authorization = `Bearer ${newAccess}`;
+        return api(original); // rejoue la requête
+      } else {
+        tokenService.clear();
+         window.location.replace("/login");
+      }
     }
+
+    return Promise.reject(error);
+  }
 );
 
 export default api;
+export { plain };

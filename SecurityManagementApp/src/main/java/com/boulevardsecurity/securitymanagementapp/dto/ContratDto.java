@@ -18,10 +18,6 @@ public class ContratDto {
     private Boolean taciteReconduction;
     private Integer preavisMois;
 
-    /** Contenu du contrat au format PDF (bytes) */
-    private byte[] documentPdf;
-
-    /** Relations (IDs uniquement) */
     private Long devisId;
     private List<Long> missionIds;
     private List<Long> articleIds;

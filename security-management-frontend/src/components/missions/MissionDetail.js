@@ -2,16 +2,153 @@
 import React, { useState, useEffect } from "react";
 import { useParams, Link } from "react-router-dom";
 import MissionService from "../../services/MissionService";
+import SiteService from "../../services/SiteService";
+import ContratService from "../../services/ContratService";
+import DevisService from "../../services/DevisService";
+import PlanningService from "../../services/PlanningService";
+import FactureService from "../../services/FactureService";
+import RapportService from "../../services/RapportService";
+import PointageService from "../../services/PointageService";
+import AgentService from "../../services/AgentService";
 import { Card, Container, Row, Col, Badge, ListGroup, Button, Table } from 'react-bootstrap';
+
 
 export default function MissionDetail() {
     const { id } = useParams();
     const [mission, setMission] = useState(null);
     const [error, setError] = useState("");
+    const [site, setSite] = useState(null);
+    const [contrat, setContrat] = useState(null);
+    const [devis, setDevis] = useState(null);
+    const [planning, setPlanning] = useState(null);
+    const [factures, setFactures] = useState([]);
+    const [rapports, setRapports] = useState([]);
+    const [pointages, setPointages] = useState([]);
+    const [agents, setAgents] = useState([]);
 
     useEffect(() => {
-        MissionService.getById(id)
-            .then(({ data }) => setMission(data))
+        MissionService.getMissionById(id)
+            .then(async ({ data }) => {
+                setMission(data);
+                // Site
+                if (data.siteId && !data.site) {
+                    SiteService.getSiteById(data.siteId)
+                        .then(res => setSite(res.data))
+                        .catch(() => setSite(null));
+                } else if (data.site) {
+                    setSite(data.site);
+                }
+                // Contrat
+                if ((data.contratId || (data.contrat && data.contrat.id)) && !data.contrat) {
+                    const cid = data.contratId || (data.contrat && data.contrat.id);
+                    ContratService.getById(cid)
+                        .then(res => setContrat(res.data))
+                        .catch(() => setContrat(null));
+                } else if (data.contrat) {
+                    setContrat(data.contrat);
+                }
+                // Devis
+                if ((data.devisId || (data.devis && data.devis.id)) && !data.devis) {
+                    const did = data.devisId || (data.devis && data.devis.id);
+                    DevisService.getById(did)
+                        .then(res => setDevis(res.data))
+                        .catch(() => setDevis(null));
+                } else if (data.devis) {
+                    setDevis(data.devis);
+                }
+                // Planning
+                if ((data.planningId || (data.planning && data.planning.id)) && !data.planning) {
+                    const pid = data.planningId || (data.planning && data.planning.id);
+                    PlanningService.getPlanningById(pid)
+                        .then(res => setPlanning(res.data))
+                        .catch(() => setPlanning(null));
+                } else if (data.planning) {
+                    setPlanning(data.planning);
+                }
+                // Factures (supporte mission.factures ou mission.factureIds)
+                if (Array.isArray(data.factures) && data.factures.length > 0) {
+                    const facturesPromises = data.factures.map(f => {
+                        // Toujours hydrater si la date n'est pas présente
+                        const hasDate = f && (f.dateFacture || f.date_emission || f.dateEmission || f.date || f.date_creation || f.createdAt);
+                        if (f && f.id && !hasDate) {
+                            return FactureService.getById(f.id).then(res => res.data).catch(() => null);
+                        } else {
+                            return Promise.resolve(f);
+                        }
+                    });
+                    const facturesDetails = await Promise.all(facturesPromises);
+                    setFactures(facturesDetails.filter(f => !!f));
+                } else if (Array.isArray(data.factureIds) && data.factureIds.length > 0) {
+                    // Ajout : supporte mission.factureIds (liste d'IDs)
+                    const facturesPromises = data.factureIds.map(id =>
+                        FactureService.getById(id).then(res => res.data).catch(() => null)
+                    );
+                    const facturesDetails = await Promise.all(facturesPromises);
+                    setFactures(facturesDetails.filter(f => !!f));
+                } else {
+                    setFactures([]);
+                }
+                // Rapports (supporte mission.rapports ou mission.rapportIds)
+                if (Array.isArray(data.rapports) && data.rapports.length > 0) {
+                    const rapportsPromises = data.rapports.map(r => {
+                        if (r && r.id && (Object.keys(r).length === 1 || !r.dateIntervention)) {
+                            return RapportService.getRapportById(r.id).then(res => res.data).catch(() => null);
+                        } else {
+                            return Promise.resolve(r);
+                        }
+                    });
+                    const rapportsDetails = await Promise.all(rapportsPromises);
+                    setRapports(rapportsDetails.filter(r => !!r));
+                } else if (Array.isArray(data.rapportIds) && data.rapportIds.length > 0) {
+                    // Ajout : supporte mission.rapportIds (liste d'IDs)
+                    const rapportsPromises = data.rapportIds.map(id =>
+                        RapportService.getRapportById(id).then(res => res.data).catch(() => null)
+                    );
+                    const rapportsDetails = await Promise.all(rapportsPromises);
+                    setRapports(rapportsDetails.filter(r => !!r));
+                } else {
+                    setRapports([]);
+                }
+                // Pointages (si mission.pointages est une liste d'IDs ou d'objets incomplets)
+                if (Array.isArray(data.pointages) && data.pointages.length > 0) {
+                    const pointagesPromises = data.pointages.map(p => {
+                        if (p && p.id && (Object.keys(p).length === 1 || !p.date)) {
+                            return PointageService.getById(p.id).then(res => res.data).catch(() => null);
+                        } else {
+                            return Promise.resolve(p);
+                        }
+                    });
+                    const pointagesDetails = await Promise.all(pointagesPromises);
+                    setPointages(pointagesDetails.filter(p => !!p));
+                } else {
+                    setPointages([]);
+                }
+                // Agents (hydrate agent details if only IDs are present, or if only agentIds is present)
+                console.log('MissionDetail: data.agentIds =', data.agentIds);
+                if (Array.isArray(data.agents) && data.agents.length > 0) {
+                    const agentsPromises = data.agents.map(a => {
+                        if (a && a.id && (Object.keys(a).length === 1 || !a.nom)) {
+                            return AgentService.getAgentById(a.id).then(res => res.data).catch(() => null);
+                        } else {
+                            return Promise.resolve(a);
+                        }
+                    });
+                    const agentsDetails = await Promise.all(agentsPromises);
+                    setAgents(agentsDetails.filter(a => !!a));
+                    console.log('MissionDetail: agents récupérés (via agents)', agentsDetails.filter(a => !!a));
+                } else if (Array.isArray(data.agentIds) && data.agentIds.length > 0) {
+                    // Si on reçoit uniquement une liste d'IDs, on hydrate chaque agent
+                    const agentsPromises = data.agentIds.map(agentId =>
+                        AgentService.getAgentById(agentId).then(res => res.data).catch((e) => {console.error('Erreur récupération agent', agentId, e); return null;})
+                    );
+                    const agentsDetails = await Promise.all(agentsPromises);
+                    setAgents(agentsDetails.filter(a => !!a));
+                    console.log('MissionDetail: agents récupérés (via agentIds)', agentsDetails.filter(a => !!a));
+                } else {
+                    setAgents([]);
+                    console.log('MissionDetail: Aucun agent à afficher');
+                }
+            })
             .catch(() => setError("Impossible de charger la mission."));
     }, [id]);
 
@@ -59,6 +196,21 @@ export default function MissionDetail() {
             </div>
         </Container>
     );
+
+    // Ajout d'une fonction pour parser les dates au format DD/MM/YYYY si besoin
+    const parseDate = (d) => {
+        if (!d) return null;
+        // Si format ISO ou timestamp
+        if (/\d{4}-\d{2}-\d{2}/.test(d) || !isNaN(Date.parse(d))) {
+            return new Date(d);
+        }
+        // Si format DD/MM/YYYY
+        if (/^\d{2}\/\d{2}\/\d{4}$/.test(d)) {
+            const [day, month, year] = d.split('/');
+            return new Date(`${year}-${month}-${day}`);
+        }
+        return null;
+    };
 
     return (
         <Container className="mt-4 mb-4">
@@ -132,9 +284,9 @@ export default function MissionDetail() {
                                         </ListGroup.Item>
                                         <ListGroup.Item>
                                             <strong>Devis associé :</strong>{" "}
-                                            {mission.devis ? 
-                                                <Link to={`/devis/${mission.devis.id}`} className="btn btn-sm btn-outline-primary">
-                                                    <i className="bi bi-file-earmark-text"></i> Devis #{mission.devis.id}
+                                            {devis ? 
+                                                <Link to={`/devis/${devis.id}`} className="btn btn-sm btn-outline-primary">
+                                                    <i className="bi bi-file-earmark-text"></i> {devis.referenceDevis ? `Devis ${devis.referenceDevis}` : `Devis #${devis.id}`}
                                                 </Link> : "-"}
                                         </ListGroup.Item>
                                     </ListGroup>
@@ -151,41 +303,58 @@ export default function MissionDetail() {
                                     <ListGroup variant="flush">
                                         <ListGroup.Item>
                                             <strong>Planning :</strong>{" "}
-                                            {mission.planning ? 
-                                                <Link to={`/plannings/${mission.planning.id}`} className="btn btn-sm btn-outline-primary">
-                                                    <i className="bi bi-calendar"></i> Planning #{mission.planning.id}
-                                                </Link> : "-"}
+                                            {planning ? (
+                                                <Link to={`/plannings/${planning.id}`} className="btn btn-sm btn-outline-primary">
+                                                    <i className="bi bi-calendar"></i> {planning.nom ? `Planning ${planning.nom}` : `#${planning.id}`}
+                                                </Link>
+                                            ) : "-"}
                                         </ListGroup.Item>
                                         <ListGroup.Item>
                                             <strong>Site :</strong>{" "}
-                                            {mission.site ? 
-                                                <Link to={`/sites/${mission.site.id}`} className="btn btn-sm btn-outline-primary">
-                                                    <i className="bi bi-geo"></i> #{mission.site.id} – {mission.site.nom}
+                                            {site ? 
+                                                <Link to={`/sites/${site.id}`} className="btn btn-sm btn-outline-primary">
+                                                    <i className="bi bi-geo"></i> #{site.id} – {site.nom || site.name}
                                                 </Link> : "-"}
                                         </ListGroup.Item>
                                         <ListGroup.Item>
                                             <strong>Géolocalisation :</strong>{" "}
-                                            {mission.geolocalisationGPS ? 
+                                            {site && site.latitude && site.longitude ? (
                                                 <span>
-                                                    <i className="bi bi-geo-alt"></i> Lat {mission.geolocalisationGPS.position?.lat}, 
-                                                    Lng {mission.geolocalisationGPS.position?.lng}
-                                                </span> : "-"}
+                                                    <i className="bi bi-geo-alt"></i> Lat {site.latitude}, Lng {site.longitude}
+                                                </span>
+                                            ) : mission.geolocalisationGPS ? (
+                                                <span>
+                                                    <i className="bi bi-geo-alt"></i> Lat {mission.geolocalisationGPS.position?.lat}, Lng {mission.geolocalisationGPS.position?.lng}
+                                                </span>
+                                            ) : "-"}
                                         </ListGroup.Item>
                                         <ListGroup.Item>
                                             <strong>Contrat :</strong>{" "}
-                                            {mission.contrat ? 
-                                                <Link to={`/contrats/${mission.contrat.id}`} className="btn btn-sm btn-outline-primary">
-                                                    <i className="bi bi-file-earmark"></i> Contrat #{mission.contrat.id}
+                                            {contrat ? 
+                                                <Link to={`/contrats/${contrat.id}`} className="btn btn-sm btn-outline-primary">
+                                                    <i className="bi bi-file-earmark"></i> {contrat.referenceContrat ? `Contrat ${contrat.referenceContrat}` : `Contrat #${contrat.id}`}
                                                 </Link> : "-"}
                                         </ListGroup.Item>
                                         <ListGroup.Item>
                                             <strong>Factures associées :</strong>{" "}
-                                            {mission.factures?.length > 0 ? 
-                                                mission.factures.map(f => 
-                                                    <Link key={f.id} to={`/factures/${f.id}`} className="btn btn-sm btn-outline-primary me-2 mb-1">
-                                                        <i className="bi bi-receipt"></i> #{f.id}
-                                                    </Link>
-                                                ) : "-"}
+                                            {factures.length > 0 ? 
+                                                factures.map(f => {
+                                                    // Ajout : gestion de dateEmission (camelCase) et parsing DD/MM/YYYY
+                                                    let dateValue = f.dateFacture || f.date_emission || f.dateEmission || f.date || f.date_creation || f.createdAt;
+                                                    let dateAffiche = dateValue ? parseDate(dateValue) : null;
+                                                    return (
+                                                        <div key={f.id} className="mb-2">
+                                                            <Link to={`/factures/${f.id}`} className="btn btn-sm btn-outline-primary me-2 mb-1">
+                                                                <i className="bi bi-receipt"></i> {f.referenceFacture ? f.referenceFacture : `#${f.id}`}
+                                                            </Link>
+                                                            <div className="ms-3 d-inline-block">
+                                                                <span><strong>Montant TTC :</strong> {f.montantTTC !== undefined && f.montantTTC !== null ? f.montantTTC : '-'} €</span>{' | '}
+                                                                <span><strong>Date :</strong> {dateAffiche ? dateAffiche.toLocaleDateString() : '-'}</span>{' | '}
+                                                                <span><strong>Statut :</strong> {f.statutFacture || f.statut || '-'}</span>
+                                                            </div>
+                                                        </div>
+                                                    );
+                                                }) : "-"}
                                         </ListGroup.Item>
                                     </ListGroup>
                                 </Card.Body>
@@ -196,7 +365,7 @@ export default function MissionDetail() {
                                     <h4 className="mb-0">Agents assignés</h4>
                                 </Card.Header>
                                 <Card.Body>
-                                    {mission.agents?.length > 0 ? (
+                                    {agents.length > 0 ? (
                                         <Table hover responsive>
                                             <thead>
                                                 <tr>
@@ -207,7 +376,7 @@ export default function MissionDetail() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {mission.agents.map(a => (
+                                                {agents.map(a => (
                                                     <tr key={a.id}>
                                                         <td>{a.nom} {a.prenom}</td>
                                                         <td>{a.email}</td>
@@ -238,20 +407,26 @@ export default function MissionDetail() {
                                     <h4 className="mb-0">Rapports d'intervention</h4>
                                 </Card.Header>
                                 <Card.Body>
-                                    {mission.rapports?.length > 0 ? (
+                                    {rapports.length > 0 ? (
                                         <Table hover responsive>
                                             <thead>
                                                 <tr>
                                                     <th>ID</th>
                                                     <th>Date</th>
+                                                    <th>Titre</th>
+                                                    <th>Description</th>
+                                                    <th>Statut</th>
                                                     <th>Actions</th>
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {mission.rapports.map(r => (
+                                                {rapports.map(r => (
                                                     <tr key={r.id}>
                                                         <td>{r.id}</td>
                                                         <td>{formatDate(r.dateIntervention)}</td>
+                                                        <td>{r.titre || '-'}</td>
+                                                        <td>{r.description || '-'}</td>
+                                                        <td>{r.statut ? getStatusBadge(r.statut) : '-'}</td>
                                                         <td>
                                                             <Link to={`/rapports/${r.id}`} className="btn btn-sm btn-outline-primary">
                                                                 <i className="bi bi-eye"></i>
@@ -276,7 +451,7 @@ export default function MissionDetail() {
                                     <h4 className="mb-0">Pointages</h4>
                                 </Card.Header>
                                 <Card.Body>
-                                    {mission.pointages?.length > 0 ? (
+                                    {pointages.length > 0 ? (
                                         <Table hover responsive>
                                             <thead>
                                                 <tr>
@@ -286,7 +461,7 @@ export default function MissionDetail() {
                                                 </tr>
                                             </thead>
                                             <tbody>
-                                                {mission.pointages.map(p => (
+                                                {pointages.map(p => (
                                                     <tr key={p.id}>
                                                         <td>{p.id}</td>
                                                         <td>{formatDate(p.date)}</td>

@@ -98,6 +98,12 @@ export default function DevisDetail() {
                 }
             </div>
 
+            <div className="field-group">
+                <div className="field"><span className="label">Montant HT :</span><span>{(devis.montantHT||0).toFixed?.(2) || devis.montantHT} €</span></div>
+                <div className="field"><span className="label">Montant TVA :</span><span>{(devis.montantTVA||0).toFixed?.(2) || devis.montantTVA} €</span></div>
+                <div className="field"><span className="label">Montant TTC :</span><span>{(devis.montantTTC||0).toFixed?.(2) || devis.montantTTC} €</span></div>
+            </div>
+
             <div className="actions">
                 <button onClick={() => navigate("/devis")}>← Retour</button>
                 <button onClick={() => navigate(`/devis/edit/${devis.id}`)}>✏️ Modifier</button>

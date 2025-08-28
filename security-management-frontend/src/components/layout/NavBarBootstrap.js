@@ -3,11 +3,21 @@ import React from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { Navbar, Nav, NavDropdown, Container, Button } from "react-bootstrap";
 import { FaUserShield, FaBriefcase, FaFileInvoiceDollar, FaSignOutAlt, FaUser } from "react-icons/fa";
-import AuthService from "../../services/AuthService";
+import AuthService from "../../services/auth/AuthService";
+
 
 export default function NavBarBootstrap() {
     const navigate = useNavigate();
-    const user = localStorage.getItem("user");
+    // Récupérer et parser l'utilisateur
+    const userRaw = localStorage.getItem("user");
+    let user = null;
+    if (userRaw) {
+        try {
+            user = JSON.parse(userRaw);
+        } catch (e) {
+            user = null;
+        }
+    }
 
     const handleLogout = () => {
         AuthService.logout();
@@ -131,7 +141,7 @@ export default function NavBarBootstrap() {
                         {user ? (
                             <>
                                 <Navbar.Text className="me-3 text-light">
-                                    <FaUser className="me-1" /> Bonjour, {user}
+                                    <FaUser className="me-1" /> Bonjour, {user.prenom} {user.nom} ({user.role})
                                 </Navbar.Text>
                                 <Button 
                                     variant="outline-light" 

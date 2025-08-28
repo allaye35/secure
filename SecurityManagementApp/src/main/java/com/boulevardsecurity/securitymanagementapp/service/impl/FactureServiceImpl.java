@@ -3,20 +3,21 @@ package com.boulevardsecurity.securitymanagementapp.service.impl;
 import com.boulevardsecurity.securitymanagementapp.dto.FactureCreateDto;
 import com.boulevardsecurity.securitymanagementapp.dto.FactureDto;
 import com.boulevardsecurity.securitymanagementapp.mapper.FactureMapper;
+import com.boulevardsecurity.securitymanagementapp.model.Client;
 import com.boulevardsecurity.securitymanagementapp.model.Devis;
 import com.boulevardsecurity.securitymanagementapp.model.Facture;
 import com.boulevardsecurity.securitymanagementapp.model.Mission;
-import com.boulevardsecurity.securitymanagementapp.model.Client;
 import com.boulevardsecurity.securitymanagementapp.Enums.StatutFacture;
+import com.boulevardsecurity.securitymanagementapp.repository.ClientRepository;
 import com.boulevardsecurity.securitymanagementapp.repository.DevisRepository;
 import com.boulevardsecurity.securitymanagementapp.repository.FactureRepository;
-import com.boulevardsecurity.securitymanagementapp.repository.ClientRepository;
 import com.boulevardsecurity.securitymanagementapp.repository.MissionRepository;
 import com.boulevardsecurity.securitymanagementapp.service.FactureService;
 import com.boulevardsecurity.securitymanagementapp.service.TarificationDomainService;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
 import org.xhtmlrenderer.pdf.ITextRenderer;
@@ -25,9 +26,7 @@ import java.io.ByteArrayOutputStream;
 import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
-import java.util.Optional;
-import java.util.UUID;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
@@ -44,6 +43,11 @@ public class FactureServiceImpl implements FactureService {
     @Autowired
     private TemplateEngine templateEngine;
 
+    /* ---------- utilitaires ---------- */
+    private static BigDecimal nz(BigDecimal v) { return v == null ? BigDecimal.ZERO : v; }
+
+    /* ================= CRUD de base ================= */
+
     @Override
     public FactureDto create(FactureCreateDto dto) {
         Facture entity = mapper.toEntity(dto);
@@ -53,28 +57,23 @@ public class FactureServiceImpl implements FactureService {
 
     @Override
     public List<FactureDto> findAll() {
-        return repo.findAll().stream()
-                .map(mapper::toDto)
-                .collect(Collectors.toList());
+        return repo.findAll().stream().map(mapper::toDto).collect(Collectors.toList());
     }
 
     @Override
     public Optional<FactureDto> findById(Long id) {
-        return repo.findById(id)
-                .map(mapper::toDto);
+        return repo.findById(id).map(mapper::toDto);
     }
 
     @Override
     public Optional<FactureDto> findByReference(String reference) {
-        return repo.findByReferenceFacture(reference)
-                .map(mapper::toDto);
+        return repo.findByReferenceFacture(reference).map(mapper::toDto);
     }
 
     @Override
     public FactureDto update(Long id, FactureCreateDto dto) {
         Facture updated = repo.findById(id)
                 .map(existing -> {
-                    // on reconstruit l'entité à partir du DTO
                     Facture rebuilt = mapper.toEntity(dto);
                     rebuilt.setId(existing.getId());
                     return repo.save(rebuilt);
@@ -85,149 +84,152 @@ public class FactureServiceImpl implements FactureService {
 
     @Override
     public void delete(Long id) {
-        if (!repo.existsById(id)) {
-            throw new IllegalArgumentException("Facture introuvable id=" + id);
-        }
+        if (!repo.existsById(id)) throw new IllegalArgumentException("Facture introuvable id=" + id);
         repo.deleteById(id);
     }
-    
+
+    /* ================= Génération métier ================= */
+
     /**
-     * Crée une facture à partir d'un devis existant
+     * Crée une facture à partir d'un devis existant.
+     * On calcule HT/TVA/TTC sur chaque mission UNE SEULE FOIS, puis on agrège
+     * les champs posés (et non un nouveau calcul).
      */
+    @Transactional
     public Facture creerDepuisDevis(Long devisId) {
         Devis d = repDevis.findById(devisId)
                 .orElseThrow(() -> new IllegalArgumentException("Devis introuvable id=" + devisId));
 
-        // Pour chaque mission, applique le chiffrage correct avant de créer la facture
-        d.getMissions().forEach(this::appliquerChiffrage);
+        List<Mission> missions = Optional.ofNullable(d.getMissions()).orElseGet(List::of);
+        if (missions.isEmpty()) {
+            // facture "vide" autorisée ou non ? Ici on autorise avec montants à 0.
+        }
 
-        // Calcul du total HT à partir des missions
-        BigDecimal totalHT = d.getMissions().stream()
-                              .map(tarification::montantHT)
-                              .reduce(BigDecimal.ZERO, BigDecimal::add);
+        // 1) Poser les montants sur chaque mission (HT/TVA/TTC)
+        appliquerChiffrageSurMissions(missions);
 
-        // Utilisation du même taux de TVA que celui du devis ou un calcul moyen
-        BigDecimal tauxTVA = d.getMissions().isEmpty() ? 
-            BigDecimal.valueOf(0.2) : // Taux par défaut si pas de mission
-            d.getMissions().get(0).getTarif().getTauxTVA(); // Prend le taux de la première mission
-            
-        BigDecimal tva = tarification.tva(totalHT, tauxTVA);
-        BigDecimal ttc = tarification.ttc(totalHT, tva);
+        // 2) Agréger les valeurs déjà posées (gère des TVA différentes par mission)
+        BigDecimal totalHT  = missions.stream().map(Mission::getMontantHT).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalTVA = missions.stream().map(Mission::getMontantTVA).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalTTC = missions.stream().map(Mission::getMontantTTC).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         Facture f = Facture.builder()
-            .referenceFacture(genererReference())
-            .dateEmission(LocalDate.now())
-            .statut(StatutFacture.EN_ATTENTE)
-            .montantHT(totalHT)
-            .montantTVA(tva)
-            .montantTTC(ttc)
-            .devis(d)
-            .entreprise(d.getEntreprise())
-            .client(d.getClient())
-            .missions(d.getMissions())
-            .build();
+                .referenceFacture(genererReference())
+                .dateEmission(LocalDate.now())
+                .statut(StatutFacture.EN_ATTENTE)
+                .montantHT(totalHT)
+                .montantTVA(totalTVA)
+                .montantTTC(totalTTC)
+                .devis(d)
+                .entreprise(d.getEntreprise())
+                .client(d.getClient())
+                .missions(missions)
+                .build();
 
         return repo.save(f);
     }
-    
+
     /**
-     * Crée une facture pour un client sur une période donnée
+     * Crée une facture pour un client sur une période donnée.
+     * Idem : on pose d'abord HT/TVA/TTC sur chaque mission, puis on agrège.
      */
+    @Transactional
     public Facture creerPourClientEtPeriode(Long clientId, LocalDate debut, LocalDate fin) {
         Client client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new IllegalArgumentException("Client introuvable id=" + clientId));
-                
-        // Récupère toutes les missions du client dans la période spécifiée en utilisant la relation via Devis
-        List<Mission> missions = missionRepository.findByDevis_Client_IdAndDateDebutBetween(clientId, debut, fin);
-        
+
+        List<Mission> missions = missionRepository
+                .findByDevis_Client_IdAndDateDebutBetween(clientId, debut, fin);
+
         if (missions.isEmpty()) {
             throw new IllegalArgumentException("Aucune mission trouvée pour ce client dans la période spécifiée");
         }
-        
-        // Pour chaque mission, applique le chiffrage correct
-        missions.forEach(this::appliquerChiffrage);
-        
-        // Calcul du total HT à partir des missions
-        BigDecimal totalHT = missions.stream()
-                              .map(tarification::montantHT)
-                              .reduce(BigDecimal.ZERO, BigDecimal::add);
-                              
-        // Utilisation du même taux de TVA que celui des missions ou un calcul moyen
-        BigDecimal tauxTVA = missions.get(0).getTarif().getTauxTVA();
-        BigDecimal tva = tarification.tva(totalHT, tauxTVA);
-        BigDecimal ttc = tarification.ttc(totalHT, tva);
-        
-        // Trouver l'entreprise à partir de la première mission ou du premier devis
-        var entreprise = missions.isEmpty() || missions.get(0).getDevis() == null ?
-            null : missions.get(0).getDevis().getEntreprise();
-        
+
+        // 1) Poser HT/TVA/TTC sur chaque mission
+        appliquerChiffrageSurMissions(missions);
+
+        // 2) Agréger les montants posés
+        BigDecimal totalHT  = missions.stream().map(Mission::getMontantHT).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalTVA = missions.stream().map(Mission::getMontantTVA).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        BigDecimal totalTTC = missions.stream().map(Mission::getMontantTTC).map(FactureServiceImpl::nz)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+
+        var entreprise = missions.get(0).getDevis() != null ? missions.get(0).getDevis().getEntreprise() : null;
+
         Facture f = Facture.builder()
-            .referenceFacture(genererReference())
-            .dateEmission(LocalDate.now())
-            .statut(StatutFacture.EN_ATTENTE)
-            .montantHT(totalHT)
-            .montantTVA(tva)
-            .montantTTC(ttc)
-            .client(client)
-            .entreprise(entreprise)
-            .missions(missions)
-            .build();
-            
+                .referenceFacture(genererReference())
+                .dateEmission(LocalDate.now())
+                .statut(StatutFacture.EN_ATTENTE)
+                .montantHT(totalHT)
+                .montantTVA(totalTVA)
+                .montantTTC(totalTTC)
+                .client(client)
+                .entreprise(entreprise)
+                .missions(missions)
+                .build();
+
         return repo.save(f);
     }
-    
+
     /**
-     * Applique le chiffrage d'une mission en tenant compte des majorations
+     * Pose HT/TVA/TTC sur une mission selon les règles de TarificationDomainService.
+     * (On ne persistait auparavant qu'à l'intérieur de cette méthode mission par mission.
+     *  Ici on laisse l'appelant faire un saveAll après la boucle pour limiter les I/O.)
      */
     private void appliquerChiffrage(Mission m) {
-        BigDecimal ht = tarification.montantHT(m);
+        BigDecimal ht   = tarification.montantHT(m);
         BigDecimal taux = m.getTarif().getTauxTVA();
-        BigDecimal tva = tarification.tva(ht, taux);
+        BigDecimal tva  = tarification.tva(ht, taux);
+        BigDecimal ttc  = tarification.ttc(ht, tva);
 
         m.setMontantHT(ht);
         m.setMontantTVA(tva);
-        m.setMontantTTC(tarification.ttc(ht, tva));
-        
-        // Sauvegarde les changements
-        missionRepository.save(m);
+        m.setMontantTTC(ttc);
     }
-    
-    /**
-     * Génère une référence unique pour une facture
-     */
+
+    /** Applique le chiffrage à une liste puis persiste en une seule fois. */
+    private void appliquerChiffrageSurMissions(List<Mission> missions) {
+        if (missions == null || missions.isEmpty()) return;
+        missions.forEach(this::appliquerChiffrage);
+        missionRepository.saveAll(missions); // un seul batch d'écritures
+    }
+
+    /** Génère une référence unique pour une facture. */
     private String genererReference() {
         return "FACT-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase();
     }
+
+    /* ================= PDF ================= */
 
     @Override
     public byte[] generatePdf(Long id) {
         Facture facture = repo.findById(id)
                 .orElseThrow(() -> new IllegalArgumentException("Facture non trouvée avec l'ID: " + id));
 
-        // Vérifier que les relations sont chargées
         Client client = facture.getClient();
         if (client == null) {
             throw new IllegalStateException("Client non trouvé pour la facture: " + id);
         }
 
         try {
-            // Préparation du contexte Thymeleaf
             Context context = new Context();
             context.setVariable("facture", facture);
             context.setVariable("client", client);
             context.setVariable("missions", facture.getMissions());
-            context.setVariable("dateEmission", 
-                facture.getDateEmission().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
-            // Use dateEmission as a fallback instead of dateEcheance since it's not defined
-            LocalDate dateEcheance = LocalDate.now().plusDays(30); // Default due date: 30 days from now
-            context.setVariable("dateEcheance", 
-                dateEcheance.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            context.setVariable("dateEmission",
+                    facture.getDateEmission().format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
+            LocalDate dateEcheance = LocalDate.now().plusDays(30);
+            context.setVariable("dateEcheance",
+                    dateEcheance.format(DateTimeFormatter.ofPattern("dd/MM/yyyy")));
             context.setVariable("montantTotal", facture.getMontantTTC());
 
-            // Génération du HTML à partir du template
             String htmlContent = templateEngine.process("facture-template", context);
 
-            // Conversion du HTML en PDF
             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
             ITextRenderer renderer = new ITextRenderer();
             renderer.setDocumentFromString(htmlContent);

@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MissionService from "../../services/MissionService";
 import { Container, Form, Button, Card, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import TarifMissionService from "../../services/TarifMissionService";
+import DevisService from "../../services/DevisService";
 
 export default function CreateMission() {
   const navigate = useNavigate();
@@ -16,15 +18,11 @@ export default function CreateMission() {
       try {
         setLoading(true);
         const [tarifsResponse, devisResponse] = await Promise.all([
-          fetch("http://localhost:8080/api/tarifs"),
-          fetch("http://localhost:8080/api/devis")
+          TarifMissionService.getAll(),
+          DevisService && DevisService.getDisponibles ? DevisService.getDisponibles() : Promise.resolve({ data: [] })
         ]);
-        
-        const tarifsData = await tarifsResponse.json();
-        const devisData = await devisResponse.json();
-        
-        setTarifs(tarifsData);
-        setDevisList(devisData);
+        setTarifs(tarifsResponse.data);
+        setDevisList(devisResponse.data);
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);
         setError("Impossible de charger les données nécessaires.");
@@ -48,20 +46,21 @@ export default function CreateMission() {
     typeMission: "SURVEILLANCE",
     nombreAgents: 1,
     quantite: 1,
-    tarif: { id: "" },
-    devis: { id: "" },
+    tarifMissionId: "",
+    devisId: "",
   });
 
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // 3) Mise à jour des champs (gère aussi tarif.id et devis.id)
+  // 3) Mise à jour des champs (gère aussi tarifMissionId et devisId)
   const handleChange = e => {
     const { name, value } = e.target;
     if (name === "tarif") {
-      setMission(m => ({ ...m, tarif: { id: value } }));
+      // On ne stocke que l'id du tarif sélectionné (string ou number)
+      setMission(m => ({ ...m, tarifMissionId: value }));
     } else if (name === "devis") {
-      setMission(m => ({ ...m, devis: { id: value } }));
+      setMission(m => ({ ...m, devisId: value }));
     } else {
       setMission(m => ({ ...m, [name]: value }));
     }
@@ -79,8 +78,7 @@ export default function CreateMission() {
       !mission.description ||
       !mission.dateDebut ||
       !mission.dateFin ||
-      !mission.tarif.id ||
-      !mission.devis.id
+      !mission.tarifMissionId
     ) {
       setError("Tous les champs marqués * sont obligatoires.");
       setIsSubmitting(false);
@@ -145,7 +143,13 @@ export default function CreateMission() {
                   >
                     <option value="SURVEILLANCE">Surveillance</option>
                     <option value="GARDE_DU_CORPS">Garde du corps</option>
-                    <option value="SECURITE_INCENDIE">Sécurité incendie</option>
+                    <option value="SSIAP_1">SSIAP 1</option>
+                    <option value="SSIAP_2">SSIAP 2</option>
+                    <option value="SSIAP_3">SSIAP 3</option>
+                    <option value="TELESURVEILLANCE">Télésurveillance</option>
+                    <option value="SECURITE_EVENEMENTIELLE">Sécurité événementielle</option>
+                    <option value="RONDIER">Rondier</option>
+                    <option value="CQP_APS">CQP APS</option>
                   </Form.Select>
                 </Form.Group>
               </Col>
@@ -225,6 +229,7 @@ export default function CreateMission() {
                     onChange={handleChange}
                   >
                     <option value="PLANIFIEE">Planifiée</option>
+                    <option value="EN_ATTENTE_DE_VALIDATION_DEVIS">En attente de validation devis</option>
                     <option value="EN_COURS">En cours</option>
                     <option value="TERMINEE">Terminée</option>
                     <option value="ANNULEE">Annulée</option>
@@ -263,14 +268,14 @@ export default function CreateMission() {
                   <Form.Label>Tarif <span className="text-danger">*</span></Form.Label>
                   <Form.Select 
                     name="tarif" 
-                    value={mission.tarif.id} 
+                    value={mission.tarifMissionId} 
                     onChange={handleChange} 
                     required
                   >
                     <option value="">— Sélectionner un tarif —</option>
                     {tarifs.map(t => (
                       <option key={t.id} value={t.id}>
-                        {t.libelle} ({t.prixUnitaireHT} € HT)
+                        {t.typeMission ? t.typeMission + ' - ' : ''}{t.libelle} ({t.prixUnitaireHT} € HT)
                       </option>
                     ))}
                   </Form.Select>
@@ -279,17 +284,16 @@ export default function CreateMission() {
             </Row>
 
             <Form.Group className="mb-4">
-              <Form.Label>Devis <span className="text-danger">*</span></Form.Label>
+              <Form.Label>Devis <span className="text-muted">(optionnel)</span></Form.Label>
               <Form.Select 
                 name="devis" 
-                value={mission.devis.id} 
-                onChange={handleChange} 
-                required
+                value={mission.devisId} 
+                onChange={handleChange}
               >
-                <option value="">— Sélectionner un devis —</option>
+                <option value="">— Aucun devis associé —</option>
                 {devisList.map(d => (
                   <option key={d.id} value={d.id}>
-                    #{d.id} – {d.reference}
+                    #{d.id} – {d.referenceDevis || 'Pas de référence'} - {d.description || 'Sans description'}
                   </option>
                 ))}
               </Form.Select>

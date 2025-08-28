@@ -35,6 +35,5 @@ public class ContratDeTravailDto {
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
-    // le PDF peut être envoyé en base64 si besoin
-    private byte[] documentPdf;
+
 }

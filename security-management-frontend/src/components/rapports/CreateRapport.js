@@ -59,7 +59,7 @@ export default function CreateRapport() {
         }
 
         setLoading(true);
-        MissionService.getById(mid)
+        MissionService.getMissionById(mid)
             .then(({ data: m }) => {
                 const ids = Array.from(m.agentIds || []);
                 return Promise.all(ids.map(id =>

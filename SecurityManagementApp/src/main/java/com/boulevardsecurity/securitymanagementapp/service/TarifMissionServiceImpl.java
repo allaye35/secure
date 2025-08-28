@@ -1,5 +1,5 @@
 // src/main/java/com/boulevardsecurity/securitymanagementapp/service/impl/TarifMissionServiceImpl.java
-package com.boulevardsecurity.securitymanagementapp.service.impl;
+package com.boulevardsecurity.securitymanagementapp.service;
 
 import com.boulevardsecurity.securitymanagementapp.dto.TarifMissionCreateDto;
 import com.boulevardsecurity.securitymanagementapp.dto.TarifMissionDto;

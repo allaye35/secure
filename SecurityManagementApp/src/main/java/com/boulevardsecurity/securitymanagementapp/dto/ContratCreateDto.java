@@ -16,13 +16,10 @@ public class ContratCreateDto {
     /** Tacite reconduction (true = reconduction automatique) */
     private Boolean taciteReconduction;
     /** Préavis (en mois) en cas de non reconduction */
-    private Integer preavisMois;
-    /** Fichier PDF signé (bytes) */
-    private byte[] documentPdf;
-    /** Devis accepté (obligatoire) */
+    private Integer preavisMois;    /** ID du devis associé (optionnel) */
     private Long devisId;
-    /** Missions liées au contrat */
+    /** Missions liées au contrat (optionnel) */
     private List<Long> missionIds;
-    /** Articles juridiques liés au contrat */
+    /** Articles juridiques liés au contrat (optionnel) */
     private List<Long> articleIds;
 }

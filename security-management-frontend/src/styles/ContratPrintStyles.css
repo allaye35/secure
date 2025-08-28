@@ -1,0 +1,104 @@
+/* Styles spécifiques pour l'impression du contrat */
+
+/* Styles pour les boutons d'action */
+.print-button {
+  transition: all 0.3s ease;
+}
+
+.print-button:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Améliorations pour l'impression */
+@media print {
+  /* Règles générales d'impression */
+  @page {
+    size: A4 portrait;
+    margin: 10mm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+    background-color: white !important;
+  }
+
+  /* Assurer que les couleurs s'impriment correctement */
+  .contrat-header {
+    background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%) !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Gestion correcte des sauts de page */
+  .print-section {
+    page-break-inside: avoid;
+    margin-bottom: 15mm;
+  }
+
+  /* Assurer que les tableaux s'impriment correctement */
+  table { 
+    page-break-inside: auto; 
+    width: 100%;
+  }
+  
+  tr { 
+    page-break-inside: avoid; 
+    page-break-after: auto;
+  }
+  
+  thead { 
+    display: table-header-group;
+  }
+  
+  tfoot { 
+    display: table-footer-group;
+  }
+
+  /* Assurer la visibilité des badges et étiquettes */
+  .badge {
+    border: 1px solid #dee2e6 !important;
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+
+  /* Amélioration du rendu des cartes */
+  .card {
+    break-inside: avoid;
+    box-shadow: none !important;
+    border: 1px solid #dee2e6 !important;
+  }
+
+  /* Cacher les éléments non nécessaires pour l'impression */
+  .no-print, 
+  button:not(.print-content-only), 
+  .btn:not(.print-content-only),
+  input[type="button"] {
+    display: none !important;
+  }
+
+  /* S'assurer que le contenu s'adapte à la page */
+  .container {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+
+  /* Améliorer la visibilité des textes importants */
+  h1, h2, h3, h4, h5, h6 {
+    page-break-after: avoid;
+    page-break-inside: avoid;
+  }
+
+  h1, h2, h3 {
+    margin-top: 20px !important;
+  }
+
+  /* Optimisation pour éviter les coupures entre les sections */
+  .signatures {
+    page-break-inside: avoid;
+    page-break-before: auto;
+  }
+}

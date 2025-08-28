@@ -77,9 +77,7 @@ public class ContratDeTravail {
     @Builder.Default
     private List<FicheDePaie> fichesDePaie = new ArrayList<>();
 
-    /** Fichier PDF du contrat signé (optionnel) */
-    @Lob
-    private byte[] documentPdf;
+
 
     /* ---------- audit ---------- */
     @Column(nullable = false, updatable = false)

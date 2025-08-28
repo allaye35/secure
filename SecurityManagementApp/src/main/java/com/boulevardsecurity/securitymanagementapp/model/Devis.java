@@ -1,15 +1,14 @@
 package com.boulevardsecurity.securitymanagementapp.model;
 
 import com.boulevardsecurity.securitymanagementapp.Enums.StatutDevis;
-import com.fasterxml.jackson.annotation.JsonIdentityInfo;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
-import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Entity
 @Table(name = "devis")
@@ -71,4 +70,30 @@ public class Devis {
     )
     @Builder.Default
     private List<Mission> missions = new ArrayList<>();
+
+    /** Totaux agrégés (calculés à partir des missions) */
+    @Builder.Default
+    @Column(precision = 15, scale = 2)
+    private BigDecimal montantHT = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(precision = 15, scale = 2)
+    private BigDecimal montantTVA = BigDecimal.ZERO;
+
+    @Builder.Default
+    @Column(precision = 15, scale = 2)
+    private BigDecimal montantTTC = BigDecimal.ZERO;
+
+    /** Recalcule les totaux à partir des missions liées */
+    public void recalculerTotaux() {
+        this.montantHT = missions.stream()
+                .map(m -> m.getMontantHT() == null ? BigDecimal.ZERO : m.getMontantHT())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.montantTVA = missions.stream()
+                .map(m -> m.getMontantTVA() == null ? BigDecimal.ZERO : m.getMontantTVA())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+        this.montantTTC = missions.stream()
+                .map(m -> m.getMontantTTC() == null ? BigDecimal.ZERO : m.getMontantTTC())
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
 }

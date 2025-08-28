@@ -1,29 +1,28 @@
-import axios from "axios";
-const BASE = `${process.env.REACT_APP_API_BASE}/contrats-de-travail`;
-const API_BASE = process.env.REACT_APP_API_BASE;
+import api from "./api";
+const BASE = "/contrats-de-travail";
 
 const ContratDeTravailService = {
-    getAll:        () => axios.get(BASE),
-    getById:     id => axios.get(`${BASE}/${id}`),
-    create:      dto => axios.post(BASE, dto),
-    update:    (id, dto) => axios.put(`${BASE}/${id}`, dto),
-    delete:       id => axios.delete(`${BASE}/${id}`),
+    getAll:        () => api.get(BASE),
+    getById:     id => api.get(`${BASE}/${id}`),
+    create:      dto => api.post(BASE, dto),
+    update:    (id, dto) => api.put(`${BASE}/${id}`, dto),
+    delete:       id => api.delete(`${BASE}/${id}`),
     prolonger: (id, date) =>
-        axios.patch(`${BASE}/${id}/prolonger`, null, { params: { nouvelleDateFin: date } }),
-    getByAgent: agentId => axios.get(`${BASE}/agent/${agentId}`),
+        api.patch(`${BASE}/${id}/prolonger`, null, { params: { nouvelleDateFin: date } }),
+    getByAgent: agentId => api.get(`${BASE}/agent/${agentId}`),
     uploadContratDocument: (id, formData) => 
-        axios.post(`${BASE}/${id}/upload-document`, formData, {
+        api.post(`${BASE}/${id}/upload-document`, formData, {
             headers: { 'Content-Type': 'multipart/form-data' }
         }),
     checkReferenceExists: (reference) => 
-        axios.get(`${BASE}/check-reference/${reference}`),
+        api.get(`${BASE}/check-reference/${reference}`),
 };
 
 export const MetaService = {
-    getMissions: () => axios.get(`${API_BASE}/missions`),
-    getAgents: () => axios.get(`${API_BASE}/agents`),
-    getEntreprises: () => axios.get(`${API_BASE}/entreprises`),
-    getClauses: () => axios.get(`${API_BASE}/articles-contrat-travail`)
+    getMissions: () => api.get(`/missions`),
+    getAgents: () => api.get(`/agents`),
+    getEntreprises: () => api.get(`/entreprises`),
+    getClauses: () => api.get(`/articles-contrat-travail`)
 };
 
 export default ContratDeTravailService;

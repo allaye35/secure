@@ -1,7 +1,7 @@
-// src/pages/RegisterPage.js
+import AuthService from "../services/auth/AuthService";
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import AuthService from "../services/AuthService";
+
 import "../styles/Auth.css";
 
 const RegisterPage = () => {

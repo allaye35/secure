@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import ContratDeTravailService, { MetaService } from "../../services/ContratDeTravailService";
-import { Container, Row, Col, Form, Table, Card, Button, InputGroup, Badge, Spinner } from "react-bootstrap";
+import { Container, Row, Col, Form, Table, Card, Button, InputGroup, Badge, Spinner, Pagination } from "react-bootstrap";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faSearch, faFilter, faPlus, faEye, faPencilAlt, faTrash, faFileContract } from "@fortawesome/free-solid-svg-icons";
 
@@ -12,6 +12,10 @@ const ContratDeTravailList = () => {
     const [error, setError] = useState(null);
     const [agents, setAgents] = useState([]);
     const [entreprises, setEntreprises] = useState([]);
+    
+    // État de pagination
+    const [currentPage, setCurrentPage] = useState(1);
+    const [itemsPerPage, setItemsPerPage] = useState(10);
     
     // États des filtres
     const [searchTerm, setSearchTerm] = useState("");
@@ -133,6 +137,18 @@ const ContratDeTravailList = () => {
         });
         setSearchTerm("");
         setFilteredContrats(contrats);
+        setCurrentPage(1); // Réinitialiser la pagination lors de la réinitialisation des filtres
+    };
+
+    // Calculer les indices pour la pagination
+    const indexOfLastItem = currentPage * itemsPerPage;
+    const indexOfFirstItem = indexOfLastItem - itemsPerPage;
+    const currentContrats = filteredContrats.slice(indexOfFirstItem, indexOfLastItem);
+    const totalPages = Math.ceil(filteredContrats.length / itemsPerPage);
+
+    // Gérer le changement de page
+    const handlePageChange = (pageNumber) => {
+        setCurrentPage(pageNumber);
     };
 
     const handleDelete = (id) => {
@@ -366,9 +382,9 @@ const ContratDeTravailList = () => {
                                         </tr>
                                     </thead>
                                     <tbody>
-                                        {filteredContrats.map((c, i) => (
+                                        {currentContrats.map((c, i) => (
                                             <tr key={c.id}>
-                                                <td>{i + 1}</td>
+                                                <td>{indexOfFirstItem + i + 1}</td>
                                                 <td>{c.referenceContrat}</td>
                                                 <td>{c.typeContrat}</td>
                                                 <td>{getAgentName(c.agentDeSecuriteId)}</td>
@@ -391,7 +407,7 @@ const ContratDeTravailList = () => {
                                                     </div>
                                                 </td>
                                             </tr>
-                                        ))}
+                                        ))} 
                                     </tbody>
                                 </Table>
                             </div>
@@ -407,9 +423,82 @@ const ContratDeTravailList = () => {
                                 </div>
                             )}
                             
+                            {/* Pagination */}
+                            {filteredContrats.length > 0 && (
+                                <div className="d-flex justify-content-between align-items-center mt-4">
+                                    <div className="d-flex align-items-center">
+                                        <span className="me-2">Afficher </span>
+                                        <Form.Select 
+                                            className="form-select-sm" 
+                                            style={{ width: '70px' }}
+                                            value={itemsPerPage}
+                                            onChange={(e) => {
+                                                setItemsPerPage(Number(e.target.value));
+                                                setCurrentPage(1);
+                                            }}
+                                        >
+                                            <option value={5}>5</option>
+                                            <option value={10}>10</option>
+                                            <option value={20}>20</option>
+                                            <option value={50}>50</option>
+                                        </Form.Select>
+                                        <span className="ms-2">éléments</span>
+                                    </div>
+                                    
+                                    {filteredContrats.length > itemsPerPage && (
+                                        <Pagination>
+                                            <Pagination.First 
+                                                onClick={() => handlePageChange(1)} 
+                                                disabled={currentPage === 1}
+                                            />
+                                            <Pagination.Prev 
+                                                onClick={() => handlePageChange(currentPage - 1)} 
+                                                disabled={currentPage === 1}
+                                            />
+                                            
+                                            {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                                                // Logique pour montrer les pages autour de la page courante
+                                                let pageToShow;
+                                                if (totalPages <= 5) {
+                                                    pageToShow = i + 1;
+                                                } else if (currentPage <= 3) {
+                                                    pageToShow = i + 1;
+                                                } else if (currentPage >= totalPages - 2) {
+                                                    pageToShow = totalPages - 4 + i;
+                                                } else {
+                                                    pageToShow = currentPage - 2 + i;
+                                                }
+                                                
+                                                return (
+                                                    <Pagination.Item 
+                                                        key={pageToShow}
+                                                        active={pageToShow === currentPage}
+                                                        onClick={() => handlePageChange(pageToShow)}
+                                                    >
+                                                        {pageToShow}
+                                                    </Pagination.Item>
+                                                );
+                                            })}
+                                            
+                                            <Pagination.Next 
+                                                onClick={() => handlePageChange(currentPage + 1)} 
+                                                disabled={currentPage === totalPages}
+                                            />
+                                            <Pagination.Last 
+                                                onClick={() => handlePageChange(totalPages)} 
+                                                disabled={currentPage === totalPages}
+                                            />
+                                        </Pagination>
+                                    )}
+                                </div>
+                            )}
+                            
                             <div className="mt-3 text-end">
                                 <small className="text-muted">
-                                    {filteredContrats.length} contrat(s) sur {contrats.length} au total
+                                    {filteredContrats.length > 0 
+                                        ? `Affichage de ${indexOfFirstItem + 1} à ${Math.min(indexOfLastItem, filteredContrats.length)} sur ${filteredContrats.length} contrats (${contrats.length} au total)`
+                                        : `${filteredContrats.length} contrat(s) sur ${contrats.length} au total`
+                                    }
                                 </small>
                             </div>
                         </>

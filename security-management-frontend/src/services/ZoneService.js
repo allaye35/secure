@@ -1,24 +1,5 @@
 // src/services/ZoneService.js
-import axios from "axios";
-
-// Utiliser une valeur par défaut si REACT_APP_API_BASE n'est pas défini
-const API_BASE = process.env.REACT_APP_API_BASE || "http://localhost:8080/api";
-const BASE = `${API_BASE}/zones`;
-
-// Configuration d'axios avec timeout et gestion d'erreur globale
-const api = axios.create({
-    baseURL: API_BASE,
-    timeout: 10000, // 10 secondes de timeout
-});
-
-// Intercepteur pour les erreurs
-api.interceptors.response.use(
-    (response) => response,
-    (error) => {
-        console.error("Erreur API:", error.response?.data || error.message);
-        return Promise.reject(error);
-    }
-);
+import api from "./api";
 
 const ZoneService = {
     getAll : ()          => api.get('/zones'),

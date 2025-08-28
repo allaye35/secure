@@ -1,0 +1,52 @@
+/* Liste de clients avec pagination et filtres */
+
+.cursor-pointer {
+  cursor: pointer;
+}
+
+.cursor-pointer:hover {
+  background-color: rgba(0, 123, 255, 0.05);
+}
+
+.table-responsive {
+  overflow-x: auto;
+  min-height: 300px;
+}
+
+.pagination {
+  justify-content: flex-end;
+}
+
+/* Animation de chargement pour le spinner */
+.spinner-border {
+  width: 3rem;
+  height: 3rem;
+}
+
+/* Style pour les badges */
+.badge {
+  font-weight: 500;
+  padding: 0.5em 0.85em;
+}
+
+/* Style pour les boutons d'action */
+.table .btn {
+  padding: 0.25rem 0.5rem;
+  margin: 0 0.1rem;
+}
+
+/* Responsive pour petits écrans */
+@media (max-width: 768px) {
+  .table .btn {
+    padding: 0.2rem 0.4rem;
+    font-size: 0.8rem;
+  }
+  
+  .table {
+    font-size: 0.9rem;
+  }
+  
+  .pagination {
+    font-size: 0.9rem;
+  }
+}

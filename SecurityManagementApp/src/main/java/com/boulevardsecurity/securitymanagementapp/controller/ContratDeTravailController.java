@@ -21,6 +21,7 @@ public class ContratDeTravailController {
 
     @GetMapping
     public ResponseEntity<List<ContratDeTravailDto>> all() {
+
         return ResponseEntity.ok(service.getAllContrats());
     }
 

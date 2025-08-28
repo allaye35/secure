@@ -7,6 +7,9 @@ const DevisService = {
     /** Récupérer tous les devis */
     getAll: () => api.get(PATH),
     
+    /** Récupérer uniquement les devis disponibles (non liés à un contrat) */
+    getDisponibles: () => api.get(`${PATH}/disponibles`),
+    
     /** Récupérer un devis par son ID */
     getById: (id) => api.get(`${PATH}/${id}`),
     
@@ -20,7 +23,10 @@ const DevisService = {
     delete: (id) => api.delete(`${PATH}/${id}`),
     
     /** Rechercher un devis par sa référence */
-    search: (ref) => api.get(`${PATH}/search`, { params: { reference: ref } })
+    search: (ref) => api.get(`${PATH}/search`, { params: { reference: ref } }),
+
+    /** Ajouter des missions existantes à un devis */
+    addMissions: (devisId, missionIds) => api.post(`${PATH}/${devisId}/missions`, missionIds)
 };
 
 export default DevisService;

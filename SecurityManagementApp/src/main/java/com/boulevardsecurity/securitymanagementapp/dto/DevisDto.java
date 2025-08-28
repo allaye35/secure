@@ -5,6 +5,7 @@ import lombok.*;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.math.BigDecimal;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor @Builder
 public class DevisDto {
@@ -27,4 +28,9 @@ public class DevisDto {
     private Long        clientId;       // bénéficiaire
     private Long        contratId;      // s’il existe déjà
     private List<Long>  missionIds;     // missions rattachées
+
+    /* ------- totaux agrégés ------- */
+    private BigDecimal montantHT;
+    private BigDecimal montantTVA;
+    private BigDecimal montantTTC;
 }

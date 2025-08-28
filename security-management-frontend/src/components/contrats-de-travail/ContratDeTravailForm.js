@@ -9,22 +9,18 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faFileContract, faUserTie, faBuilding, faBriefcase, faSave, 
     faTimes, faCalendarAlt, faEuroSign, faClipboardList,
-    faInfoCircle, faFileUpload, faQuestionCircle, faClock,
+    faInfoCircle, faQuestionCircle, faClock,
     faArrowRight, faArrowLeft, faCheck, faUsers, faClipboardCheck
 } from "@fortawesome/free-solid-svg-icons";
 import Select from 'react-select';
-import ArticleContratTravailService from "../../services/ArticleContratTravailService";
 import FicheDePaieService from "../../services/FicheDePaieService";
 import "../../styles/ContratDeTravailForm.css";
 
 export default function ContratDeTravailForm({
     title, data, setData, onSubmit, error, isLoading,
     missions, agents, entreprises, clauses
-}) {
-    const [dateError, setDateError] = useState("");
-    const [articles, setArticles] = useState([]);
+}) {    const [dateError, setDateError] = useState("");
     const [fichesDePaie, setFichesDePaie] = useState([]);
-    const [articlesLoading, setArticlesLoading] = useState(false);
     const [fichesLoading, setFichesLoading] = useState(false);
     const [activeStep, setActiveStep] = useState("informations");
     const [formValidated, setFormValidated] = useState(false);
@@ -32,7 +28,6 @@ export default function ContratDeTravailForm({
     
     // Options pour les selects
     const [clausesOptions, setClausesOptions] = useState([]);
-    const [articlesOptions, setArticlesOptions] = useState([]);
     const [fichesOptions, setFichesOptions] = useState([]);
     const [missionsOptions, setMissionsOptions] = useState([]);
     const [agentsOptions, setAgentsOptions] = useState([]);
@@ -45,29 +40,7 @@ export default function ContratDeTravailForm({
         const date = new Date(dateString);
         return `${date.getDate().toString().padStart(2, '0')}/${(date.getMonth() + 1).toString().padStart(2, '0')}/${date.getFullYear()}`;
     };
-    
-    // Chargement des articles de contrat de travail
-    useEffect(() => {
-        setArticlesLoading(true);
-        ArticleContratTravailService.getAll()
-            .then(response => {
-                setArticles(response.data);
-                // Formatage pour React Select
-                setArticlesOptions(response.data.map(article => ({
-                    value: article.id,
-                    label: article.libelle,
-                    description: article.description
-                })));
-            })
-            .catch(error => {
-                console.error("Erreur lors du chargement des articles:", error);
-            })
-            .finally(() => {
-                setArticlesLoading(false);
-            });
-    }, []);
-    
-    // Chargement des fiches de paie
+      // Chargement des fiches de paie
     useEffect(() => {
         setFichesLoading(true);
         FicheDePaieService.getAll()
@@ -158,16 +131,16 @@ export default function ContratDeTravailForm({
                 }));
             }
         }
-    }, [data.typeContrat, data.missionId, missions, setData]);    // Gérer les changements dans les champs du formulaire
+    }, [data.typeContrat, data.missionId, missions, setData]);
+    
+    // Gérer les changements dans les champs du formulaire
     const handleChange = e => {
-        const { name, value, type, checked, files } = e.target;
+        const { name, value, type, checked } = e.target;
         
         // Marquer le champ comme touché
         setTouchedFields({...touchedFields, [name]: true});
         
-        if (type === "file") {
-            setData(d => ({ ...d, documentPdf: files[0] }));
-        } else if (type === "checkbox") {
+        if (type === "checkbox") {
             setData(d => ({ ...d, [name]: checked }));
         } else if (name === "missionId") {
             // Pour la mission, on met à jour directement et l'effect s'occupera des dates
@@ -785,36 +758,9 @@ export default function ContratDeTravailForm({
                                                                 </Card.Body>
                                                             </Card>
                                                         );
-                                                    })}
-                                                </div>
+                                                    })}                                                </div>
                                             </div>
                                         )}
-
-                                        <Form.Group className="mb-4">
-                                            <Form.Label>
-                                                <FontAwesomeIcon icon={faClipboardList} className="me-2" />
-                                                Articles de contrat de travail
-                                            </Form.Label>
-                                            <Select
-                                                id="articleIds"
-                                                name="articleIds"
-                                                options={articlesOptions}
-                                                value={articlesOptions.filter(option => 
-                                                    data.articleIds && data.articleIds.includes(option.value)
-                                                )}
-                                                onChange={(options) => handleSelectChange(options, { name: 'articleIds' })}
-                                                placeholder="Sélectionnez des articles..."
-                                                noOptionsMessage={() => "Aucun article disponible"}
-                                                isMulti
-                                                isLoading={articlesLoading}
-                                                styles={customSelectStyles}
-                                                className="react-select-container"
-                                                classNamePrefix="react-select"
-                                            />
-                                            <Form.Text className="text-muted">
-                                                Sélectionnez les articles spécifiques à inclure dans le contrat
-                                            </Form.Text>
-                                        </Form.Group>
 
                                         <div className="d-flex justify-content-between mt-3">
                                             <Button 
@@ -836,8 +782,7 @@ export default function ContratDeTravailForm({
                                 </Card.Body>
                             </Card>
                         </Tab>
-                        
-                        <Tab eventKey="documents" title={
+                          <Tab eventKey="documents" title={
                             <span>
                                 <Badge bg="primary" className="me-2">4</Badge>
                                 Documents
@@ -846,23 +791,6 @@ export default function ContratDeTravailForm({
                             <Card className="border-0 shadow-sm">
                                 <Card.Body className="p-4">
                                     <Form noValidate validated={formValidated} onSubmit={validateForm}>
-                                        <Form.Group className="mb-4">
-                                            <Form.Label>
-                                                <FontAwesomeIcon icon={faFileUpload} className="me-2" />
-                                                Fichier PDF du contrat signé (optionnel)
-                                            </Form.Label>
-                                            <Form.Control
-                                                id="documentPdf"
-                                                name="documentPdf"
-                                                type="file"
-                                                accept="application/pdf"
-                                                onChange={handleChange}
-                                            />
-                                            <Form.Text className="text-muted">
-                                                Format accepté: PDF uniquement
-                                            </Form.Text>
-                                        </Form.Group>
-
                                         <Form.Group className="mb-4">
                                             <Form.Label>
                                                 <FontAwesomeIcon icon={faClipboardList} className="me-2" />
@@ -915,12 +843,8 @@ export default function ContratDeTravailForm({
                                                     <p>
                                                         <strong>Mission:</strong> {selectedMission ? 
                                                             selectedMission.titreMission : "Non sélectionnée"}
-                                                    </p>
-                                                    <p>
+                                                    </p>                                                    <p>
                                                         <strong>Clauses:</strong> {data.clauseIds?.length || 0} sélectionnée(s)
-                                                    </p>
-                                                    <p>
-                                                        <strong>Articles:</strong> {data.articleIds?.length || 0} sélectionné(s)
                                                     </p>
                                                 </Col>
                                             </Row>

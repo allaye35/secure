@@ -9,7 +9,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } f
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faFileContract, faSave, faArrowLeft, faCalendarAlt, 
-    faClipboardCheck, faFileInvoice, faTasks, faFilePdf, 
+    faClipboardCheck, faFileInvoice, faTasks, 
     faClock, faCheck, faGavel, faEdit
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -116,7 +116,7 @@ export default function EditContrat() {
                 ...data,
                 dureeMois: data.dureeMois ? Number(data.dureeMois) : null,
                 preavisMois: data.preavisMois ? Number(data.preavisMois) : null,
-                devisId: Number(data.devisId),
+                devisId: data.devisId ? Number(data.devisId) : null,
                 missionIds: data.missionIds.map(v => Number(v)),
                 articleIds: data.articleIds.map(v => Number(v))
             };
@@ -230,17 +230,15 @@ export default function EditContrat() {
                             </Col>
                             
                             <Col md={6} className="mb-3">
-                                <Form.Group controlId="devisId">
-                                    <Form.Label>
+                                <Form.Group controlId="devisId">                                    <Form.Label>
                                         <FontAwesomeIcon icon={faFileInvoice} className="me-1" />
-                                        Devis associé<span className="text-danger">*</span>
+                                        Devis associé
                                     </Form.Label>
                                     <InputGroup>
                                         <Form.Select
                                             name="devisId"
                                             value={data.devisId}
                                             onChange={handleChange}
-                                            required
                                             disabled={loading.devis}
                                         >
                                             <option value="">— Sélectionner un devis —</option>

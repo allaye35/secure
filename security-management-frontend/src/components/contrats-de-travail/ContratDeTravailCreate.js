@@ -6,8 +6,7 @@ import ContratDeTravailService, { MetaService } from "../../services/ContratDeTr
 import ContratDeTravailForm from "./ContratDeTravailForm";
 
 export default function ContratDeTravailCreate() {
-    const navigate = useNavigate();
-    const [data, setData] = useState({
+    const navigate = useNavigate();    const [data, setData] = useState({
         referenceContrat: "",
         typeContrat: "CDD",
         dateDebut: "",
@@ -20,8 +19,7 @@ export default function ContratDeTravailCreate() {
         missionId: "",
         clauseIds: [],
         articleIds: [],
-        ficheDePaieIds: [],
-        documentPdf: null
+        ficheDePaieIds: []
     });
     const [meta, setMeta] = useState({
         missions: [], 
@@ -95,39 +93,21 @@ export default function ContratDeTravailCreate() {
                 agentDeSecuriteId: parseInt(data.agentDeSecuriteId) || null,
                 entrepriseId: parseInt(data.entrepriseId) || null,
                 missionId: parseInt(data.missionId) || null
-            };
-
-            // Ajouter les IDs des clauses si sélectionnées
+            };            // Ajouter les IDs des clauses si sélectionnées
             if (data.clauseIds && data.clauseIds.length > 0) {
                 jsonData.clauseIds = data.clauseIds.map(id => parseInt(id));
-            }
-            
-            // Ajouter les IDs des articles si sélectionnés
-            if (data.articleIds && data.articleIds.length > 0) {
-                jsonData.articleIds = data.articleIds.map(id => parseInt(id));
             }
             
             // Ajouter les IDs des fiches de paie si sélectionnées
             if (data.ficheDePaieIds && data.ficheDePaieIds.length > 0) {
                 jsonData.ficheDePaieIds = data.ficheDePaieIds.map(id => parseInt(id));
-            }
-
-            console.log("Données JSON à envoyer:", jsonData);
+            }            console.log("Données JSON à envoyer:", jsonData);
             
             // Créer le contrat
             const response = await ContratDeTravailService.create(jsonData);
             console.log("Réponse de création:", response);
             
-            // Si un fichier PDF est présent, l'envoyer séparément
-            if (data.documentPdf) {
-                const formData = new FormData();
-                formData.append('file', data.documentPdf);
-                
-                await ContratDeTravailService.uploadContratDocument(response.data.id, formData);
-                console.log("Document PDF uploadé avec succès");
-            }
-            
-            navigate("/contrats-de-travail");        } catch (err) {
+            navigate("/contrats-de-travail");} catch (err) {
             console.error("Erreur lors de la création:", err);
             let errorMessage = err.response?.data?.message || err.message || "Erreur inconnue";
             

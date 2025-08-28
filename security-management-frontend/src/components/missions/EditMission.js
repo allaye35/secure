@@ -163,7 +163,13 @@ const EditMission = () => {
                   >
                     <option value="SURVEILLANCE">Surveillance</option>
                     <option value="GARDE_DU_CORPS">Garde du corps</option>
-                    <option value="SECURITE_INCENDIE">Sécurité incendie</option>
+                    <option value="SSIAP_1">SSIAP 1</option>
+                    <option value="SSIAP_2">SSIAP 2</option>
+                    <option value="SSIAP_3">SSIAP 3</option>
+                    <option value="TELESURVEILLANCE">Télésurveillance</option>
+                    <option value="SECURITE_EVENEMENTIELLE">Sécurité événementielle</option>
+                    <option value="RONDIER">Rondier</option>
+                    <option value="CQP_APS">CQP APS</option>
                   </Form.Select>
                 </Form.Group>
               </Col>

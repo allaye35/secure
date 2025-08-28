@@ -67,7 +67,7 @@ export default function FacturePrint() {
         // Promesse pour charger les missions
         if (factureData.missionIds && factureData.missionIds.length > 0) {
           const missionPromises = factureData.missionIds.map(missionId => 
-            MissionService.getById(missionId)
+            MissionService.getMissionById(missionId)
               .then(response => response.data)
               .catch(err => {
                 console.error(`Erreur lors du chargement de la mission ${missionId}:`, err);

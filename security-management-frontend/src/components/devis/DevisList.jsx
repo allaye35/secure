@@ -111,13 +111,10 @@ export default function DevisList() {
                 <tr>
                     <th>ID</th>
                     <th>Référence</th>
-                    <th>Description</th>
                     <th>Statut</th>
-                    <th>Date création</th>
-                    <th>Date validité</th>
-                    <th>Entreprise</th>
-                    <th>Client</th>
                     <th># Missions</th>
+                    <th>HT (€)</th>
+                    <th>TTC (€)</th>
                     <th>Actions</th>
                 </tr>
                 </thead>
@@ -125,7 +122,7 @@ export default function DevisList() {
                 {devis.length === 0
                     ? (
                         <tr>
-                            <td colSpan="10" className="no-data">
+                            <td colSpan="7" className="no-data">
                                 Aucun devis disponible
                             </td>
                         </tr>
@@ -134,19 +131,13 @@ export default function DevisList() {
                         <tr key={d.id}>
                             <td>{d.id}</td>
                             <td>{d.referenceDevis}</td>
-                            <td title={d.description}>
-                                {d.description?.slice(0, 30)}…
-                            </td>
                             <td>{d.statut}</td>
-                            <td>{new Date(d.dateCreation).toLocaleDateString()}</td>
-                            <td>{new Date(d.dateValidite).toLocaleDateString()}</td>
-                            <td>{d.entrepriseId ?? "-"}</td>
-                            <td>{d.clientId     ?? "-"}</td>
-                            <td>{d.missionIds?.length ?? 0}</td>
+                            <td>{d.missionIds?.length || 0}</td>
+                            <td>{(d.montantHT||0).toFixed?.(2) || d.montantHT}</td>
+                            <td>{(d.montantTTC||0).toFixed?.(2) || d.montantTTC}</td>
                             <td className="actions">
-                                <button onClick={() => navigate(`/devis/edit/${d.id}`)}>✏️</button>
-                                <button onClick={() => handleDelete(d.id)} style={{ color: "red" }}>🗑️</button>
                                 <button onClick={() => navigate(`/devis/${d.id}`)}>👁️</button>
+                                <button onClick={() => navigate(`/devis/edit/${d.id}`)}>✏️</button>
                             </td>
                         </tr>
                     ))

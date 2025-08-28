@@ -25,8 +25,13 @@ public class DevisController {
     /** Tous les devis */
     @GetMapping
     public ResponseEntity<List<DevisDto>> getAll() {
-
         return ResponseEntity.ok(service.getAll());
+    }
+    
+    /** Devis disponibles pour la création de contrats */
+    @GetMapping("/disponibles")
+    public ResponseEntity<List<DevisDto>> getDevisDisponibles() {
+        return ResponseEntity.ok(service.getDevisDisponibles());
     }
 
     /** Devis par ID */
@@ -94,6 +99,24 @@ public class DevisController {
                     .body(new ErrorResponseDto(400, e.getMessage()));
         } catch (Exception e) {
             log.error("Erreur serveur lors de la suppression du devis", e);
+            return ResponseEntity.internalServerError()
+                    .body(new ErrorResponseDto(500, "Erreur serveur: " + e.getMessage()));
+        }
+    }
+
+    /** Ajout de missions existantes à un devis */
+    @PostMapping("/{id}/missions")
+    public ResponseEntity<?> ajouterMissions(
+            @PathVariable Long id,
+            @RequestBody List<Long> missionIds) {
+        try {
+            DevisDto dto = service.ajouterMissions(id, missionIds);
+            return ResponseEntity.ok(dto);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest()
+                    .body(new ErrorResponseDto(400, e.getMessage()));
+        } catch (Exception e) {
+            log.error("Erreur serveur ajout missions devis", e);
             return ResponseEntity.internalServerError()
                     .body(new ErrorResponseDto(500, "Erreur serveur: " + e.getMessage()));
         }

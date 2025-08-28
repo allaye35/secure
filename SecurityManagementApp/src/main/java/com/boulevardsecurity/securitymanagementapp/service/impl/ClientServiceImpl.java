@@ -10,6 +10,7 @@ import com.boulevardsecurity.securitymanagementapp.service.ClientService;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.security.crypto.password.PasswordEncoder;
 
 import java.util.List;
 import java.util.Optional;
@@ -17,15 +18,18 @@ import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
+
 public class ClientServiceImpl implements ClientService {
 
     private final ClientRepository repo;
     private final ClientMapper    mapper;
+    private final org.springframework.security.crypto.password.PasswordEncoder passwordEncoder;
 
     @Override
     public ClientDto createClient(ClientCreateDto dto) {
         // conversion DTO ➜ ENTITÉ (on conserve le mot de passe tel quel)
         Client ent = mapper.toEntity(dto);
+        ent.setPassword(passwordEncoder.encode(ent.getPassword()));
         Client saved = repo.save(ent);
         return mapper.toDto(saved);
     }
@@ -61,6 +65,8 @@ public class ClientServiceImpl implements ClientService {
         Client existing = repo.findById(id)
                 .orElseThrow(() -> new EntityNotFoundException("Client introuvable : " + id));
         // mise à jour des champs (hors mot de passe)
+        // si tu ajoutes la possibilité de changer le mdp via un DTO dédié, encode-le ici
+        // existing.setPassword(passwordEncoder.encode(nouveauMdp));
         mapper.updateEntityFromDto(dto, existing);
         Client saved = repo.save(existing);
         return mapper.toDto(saved);

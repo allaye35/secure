@@ -1,14 +1,14 @@
-import axios from "axios";
-const BASE = `${process.env.REACT_APP_API_BASE}/notifications`;
+import api from "./api";
+const BASE = "/notifications";
 
 const NotificationService = {
-    getAll:      () => axios.get(BASE),
-    getById:     id => axios.get(`${BASE}/${id}`),
-    getByAgent:  aid => axios.get(`${BASE}/agent/${aid}`),
-    getByClient: cid => axios.get(`${BASE}/client/${cid}`),
-    create:     data => axios.post(BASE, data),
-    update: (id, data) => axios.put(`${BASE}/${id}`, data),
-    delete:      id => axios.delete(`${BASE}/${id}`),
+    getAll:      () => api.get(BASE),
+    getById:     id => api.get(`${BASE}/${id}`),
+    getByAgent:  aid => api.get(`${BASE}/agent/${aid}`),
+    getByClient: cid => api.get(`${BASE}/client/${cid}`),
+    create:     data => api.post(BASE, data),
+    update: (id, data) => api.put(`${BASE}/${id}`, data),
+    delete:      id => api.delete(`${BASE}/${id}`),
 };
 
 export default NotificationService;

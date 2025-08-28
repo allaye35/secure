@@ -1,3 +1,10 @@
+/* Empêche le débordement du texte dans les colonnes sensibles (ex: titre) */
+.cell-truncate {
+    max-width: 160px; /* Ajustez selon la largeur souhaitée */
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
 /* src/components/missions/MissionList.css */
 
 .mission-list {
@@ -17,9 +24,9 @@
     text-align: left;
     vertical-align: middle;
     max-width: 120px;
-    overflow: hidden;
     white-space: nowrap;
     text-overflow: ellipsis;
+    /* overflow: hidden; supprimé pour permettre au dropdown de dépasser */
 }
 
 .tbl-missions th {
@@ -84,14 +91,15 @@
 
 .text-truncate {
     white-space: nowrap;
-    overflow: hidden;
     text-overflow: ellipsis;
+    /* overflow: hidden; supprimé pour permettre au dropdown de dépasser */
 }
 
 /* Pour rendre la table responsive sur les petits écrans */
 @media (max-width: 992px) {
     .table-responsive {
         overflow-x: auto;
+        overflow-y: visible !important;
     }
 }
 
@@ -109,20 +117,59 @@
 
 /* Style pour les dropdown menus */
 .dropdown-menu {
-    min-width: 230px;
+        min-width: 230px;
+        z-index: 1050 !important;
+        border-radius: 0.5rem;
+        box-shadow: 0 8px 24px rgba(0,0,0,0.18), 0 1.5px 4px rgba(0,0,0,0.08);
+        padding: 0.5rem 0;
+        border: none;
+        margin-top: 0.5rem;
+        animation: dropdown-fade-in 0.18s cubic-bezier(0.4,0,0.2,1);
+        background: #fff;
+}
+
+@keyframes dropdown-fade-in {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
 }
 
 .dropdown-item {
     display: flex;
     align-items: center;
-    padding: 0.5rem 1rem;
+    padding: 0.55rem 1.2rem;
+    font-size: 1rem;
+    color: #222;
+    border-radius: 0.35rem;
+    transition: background 0.15s, color 0.15s;
 }
 
 .dropdown-item i {
-    margin-right: 0.5rem;
+    margin-right: 0.7rem;
+    font-size: 1.1em;
+    opacity: 0.8;
+}
+.dropdown-item:hover, .dropdown-item:focus {
+    background: #e9f3ff;
+    color: #0d6efd;
+}
+
+/* Séparateur plus doux pour le menu */
+.dropdown-divider {
+    margin: 0.2rem 0;
+    border-top: 1px solid #e3e3e3;
 }
 
 /* Effet de survol pour les lignes du tableau */
 .tbl-missions tbody tr:hover {
     background-color: rgba(0, 123, 255, 0.05) !important;
 }
+/* Le conteneur du tableau ne doit pas couper le menu */
+.table-responsive {
+  overflow-y: visible !important; /* on garde le scroll horizontal par Bootstrap */
+}
+
+/* Empêche la création d’un contexte de positionnement qui perturbe Popper */
+.actions-dropdown { position: static; }
+
+/* S’assure que le menu passe au-dessus de tout (navbar, headers…) */
+.dropdown-menu { z-index: 2000; }

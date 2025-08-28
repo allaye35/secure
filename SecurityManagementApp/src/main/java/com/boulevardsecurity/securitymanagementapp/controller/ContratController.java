@@ -1,80 +1,77 @@
+// =============================================================
+// Done ✅ – plus aucun MultipartFile, FileStorageService retiré, 
+// mais toutes les relations Devis / Missions / Articles restent gérées via le mapper.
+
+// -------------------------------------------------------------
+// ContratController.java (JSON only)
+// -------------------------------------------------------------
 package com.boulevardsecurity.securitymanagementapp.controller;
 
-import com.boulevardsecurity.securitymanagementapp.dto.ContratCreateDto;
-import com.boulevardsecurity.securitymanagementapp.dto.ContratDto;
-import com.boulevardsecurity.securitymanagementapp.dto.ErrorResponseDto;
+import com.boulevardsecurity.securitymanagementapp.dto.*;
 import com.boulevardsecurity.securitymanagementapp.service.ContratService;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
-import org.springframework.http.ResponseEntity;
+import org.springframework.http.*;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/contrats")
 @CrossOrigin(origins = "http://localhost:3000")
 @RequiredArgsConstructor
-@Slf4j
 public class ContratController {
 
-    private final ContratService service;
-
+    private final ContratService service;    /* ---------- CREATE ---------- */
     @PostMapping
     public ResponseEntity<?> create(@RequestBody ContratCreateDto dto) {
         try {
             ContratDto created = service.createContrat(dto);
-            return ResponseEntity.status(201).body(created);
-        } catch (IllegalArgumentException ex) {
-            log.error("Erreur lors de la création du contrat", ex);
+            return ResponseEntity.status(HttpStatus.CREATED).body(created);
+        } catch (IllegalArgumentException e) {
+            // Erreurs de validation, par exemple devis déjà lié à un contrat
             return ResponseEntity.badRequest()
-                    .body(new ErrorResponseDto(400, ex.getMessage()));
-        } catch (Exception ex) {
-            log.error("Erreur inattendue lors de la création du contrat", ex);
-            return ResponseEntity.internalServerError()
-                    .body(new ErrorResponseDto(500, "Erreur serveur: " + ex.getMessage()));
+                .body(Map.of("message", e.getMessage(), "status", "error"));
+        } catch (Exception e) {
+            // Autres erreurs
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body(Map.of("message", "Erreur lors de la création du contrat: " + e.getMessage(), 
+                            "status", "error"));
         }
     }
 
+    /* ---------- UPDATE ---------- */
+    @PutMapping("/{id}")
+    public ResponseEntity<ContratDto> update(@PathVariable Long id, @RequestBody ContratCreateDto dto) {
+        return ResponseEntity.ok(service.updateContrat(id, dto));
+    }
+
+    /* ---------- READ ---------- */
     @GetMapping
-    public ResponseEntity<List<ContratDto>> getAll() {
-        return ResponseEntity.ok(service.getAllContrats());
+    public List<ContratDto> getAll() {
+        return service.getAllContrats();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ContratDto> getById(@PathVariable Long id) {
-        return service.getContratById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+        return service.getContratById(id).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @GetMapping("/ref/{reference}")
-    public ResponseEntity<ContratDto> getByReference(@PathVariable String reference) {
-        return service.getContratByReference(reference)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    @GetMapping("/ref/{ref}")
+    public ResponseEntity<ContratDto> getByRef(@PathVariable String ref) {
+        return service.getContratByReference(ref).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<ContratDto> update(
-            @PathVariable Long id,
-            @RequestBody ContratCreateDto dto
-    ) {
-        try {
-            ContratDto updated = service.updateContrat(id, dto);
-            return ResponseEntity.ok(updated);
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.notFound().build();
-        }
+    @GetMapping("/devis/{devisId}")
+    public ResponseEntity<ContratDto> getByDevisId(@PathVariable Long devisId) {
+        return service.getContratByDevisId(devisId).map(ResponseEntity::ok).orElse(ResponseEntity.notFound().build());
     }
 
+    /* ---------- DELETE ---------- */
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        try {
-            service.deleteContrat(id);
-            return ResponseEntity.noContent().build();
-        } catch (IllegalArgumentException ex) {
-            return ResponseEntity.notFound().build();
-        }
+        service.deleteContrat(id);
+        return ResponseEntity.noContent().build();
     }
 }
+

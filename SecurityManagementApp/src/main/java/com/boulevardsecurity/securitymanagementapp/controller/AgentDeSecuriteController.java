@@ -1,5 +1,4 @@
 package com.boulevardsecurity.securitymanagementapp.controller;
-
 import com.boulevardsecurity.securitymanagementapp.Enums.Role;
 import com.boulevardsecurity.securitymanagementapp.dto.*;
 import com.boulevardsecurity.securitymanagementapp.service.AgentDeSecuriteService;
@@ -7,6 +6,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.security.access.prepost.PreAuthorize;
+
 
 import java.util.List;
 
@@ -49,6 +50,9 @@ public class AgentDeSecuriteController {
     // ────────────────────────────────────────────────
     // 🔹 Créer un agent (DTO creation)
     // ────────────────────────────────────────────────
+    // 🔹 Créer un agent (DTO creation)
+    // ────────────────────────────────────────────────
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping
     public ResponseEntity<AgentDeSecuriteDto> createAgent(
             @RequestBody AgentDeSecuriteCreationDto creationDto
@@ -76,6 +80,8 @@ public class AgentDeSecuriteController {
     // ────────────────────────────────────────────────
     // 🔹 Supprimer un agent
     // ────────────────────────────────────────────────
+    
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteAgent(@PathVariable Long id) {
         try {

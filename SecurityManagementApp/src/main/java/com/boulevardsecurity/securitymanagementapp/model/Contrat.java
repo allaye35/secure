@@ -40,7 +40,7 @@ public class Contrat {
     private List<Mission> missions = new ArrayList<>();
 
     // ==== Articles juridiques du contrat ====
-    @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL, orphanRemoval = true)
+    @OneToMany(mappedBy = "contrat", cascade = CascadeType.ALL)
     @Builder.Default
     private List<ArticleContrat> articles = new ArrayList<>();
 
@@ -54,8 +54,4 @@ public class Contrat {
     @Column(nullable = true)
     private Integer preavisMois;
 
-    // ==== Fichier PDF signé du contrat (en base64/byte[]) ====
-    @Lob
-    @Column(name = "document_pdf")
-    private byte[] documentPdf;
 }

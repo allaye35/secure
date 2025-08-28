@@ -9,7 +9,7 @@ import { Container, Row, Col, Card, Form, Button, Alert, Spinner, InputGroup } f
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { 
     faFileContract, faSave, faArrowLeft, faCalendarAlt, 
-    faClipboardCheck, faFileInvoice, faTasks, faFilePdf, 
+    faClipboardCheck, faFileInvoice, faTasks, 
     faClock, faCheck, faGavel
 } from "@fortawesome/free-solid-svg-icons";
 
@@ -22,7 +22,6 @@ export default function CreateContrat() {
         dureeMois: "",
         taciteReconduction: false,
         preavisMois: "",
-        documentPdf: null,
         devisId: "",
         missionIds: [],
         articleIds: []
@@ -32,16 +31,14 @@ export default function CreateContrat() {
     const [articlesList, setArticlesList] = useState([]);
     const [error, setError] = useState("");
     const [loading, setLoading] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [selectedFile, setSelectedFile] = useState(null);
-
-    useEffect(() => {
+    const [isSubmitting, setIsSubmitting] = useState(false);    useEffect(() => {
         // Charger les données nécessaires avec gestion d'erreur
         const loadData = async () => {
             setLoading(true);
             try {
                 const [devis, missions, articles] = await Promise.all([
-                    DevisService.getAll(),
+                    // Utiliser la méthode getDisponibles pour ne récupérer que les devis sans contrat
+                    DevisService.getDisponibles(),
                     MissionService.getAllMissions(),
                     ArticleService.getAll()
                 ]);
@@ -61,13 +58,9 @@ export default function CreateContrat() {
     }, []);
 
     const handleChange = e => {
-        const { name, type, checked, files, value } = e.target;
+        const { name, type, checked, value } = e.target;
 
-        if (type === "file") {
-            const file = files[0];
-            setForm(f => ({ ...f, documentPdf: file }));
-            setSelectedFile(file ? file.name : null);
-        } else if (type === "checkbox") {
+        if (type === "checkbox") {
             setForm(f => ({ ...f, [name]: checked }));
         } else if (name === "missionIds" || name === "articleIds") {
             // Pour les sélections multiples
@@ -83,54 +76,60 @@ export default function CreateContrat() {
         setError("");
         setIsSubmitting(true);
 
-        try {
-            // Créer l'objet JSON pour l'envoi
+        try {            // Créer l'objet JSON pour l'envoi
             const contratData = {
                 referenceContrat: form.referenceContrat,
                 dateSignature: form.dateSignature,
                 dureeMois: form.dureeMois ? parseInt(form.dureeMois, 10) : null,
                 taciteReconduction: form.taciteReconduction,
                 preavisMois: form.preavisMois ? parseInt(form.preavisMois, 10) : null,
-                devisId: parseInt(form.devisId, 10),
+                devisId: form.devisId ? parseInt(form.devisId, 10) : null,
                 missionIds: form.missionIds,
                 articleIds: form.articleIds
-            };
-
-            // Si nous avons un fichier PDF, nous devons le convertir en base64
-            if (form.documentPdf) {
-                const fileReader = new FileReader();
-                fileReader.readAsDataURL(form.documentPdf);
-                
-                fileReader.onload = async () => {
-                    try {
-                        // Extrait la partie base64 du résultat (supprime le préfixe "data:application/pdf;base64,")
-                        const base64Data = fileReader.result.split(',')[1];
-                        
-                        // Ajoute la représentation base64 du fichier à l'objet contrat
-                        contratData.documentPdf = base64Data;
-                        
-                        // Envoi des données avec le document PDF encodé
-                        await ContratService.create(contratData);
-                        navigate("/contrats");
-                    } catch (innerErr) {
-                        console.error("Création contrat avec PDF :", innerErr.response || innerErr);
-                        setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
-                        setIsSubmitting(false);
-                    }
-                };
-                
-                fileReader.onerror = () => {
-                    setError("Erreur lors de la lecture du fichier PDF.");
+            };            
+            
+            // Vérifions d'abord que le devis n'est pas déjà lié (double vérification)
+            if (contratData.devisId !== null) {
+                const devisCheck = await DevisService.getById(contratData.devisId);
+                if (devisCheck.data && devisCheck.data.contratId) {
+                    setError("Ce devis est déjà lié à un autre contrat. Veuillez en choisir un autre.");
                     setIsSubmitting(false);
-                };
-            } else {
-                // Sans fichier PDF, envoi direct de l'objet
-                await ContratService.create(contratData);
-                navigate("/contrats");
+                    return;
+                }
             }
+            
+            // Envoi direct de l'objet
+            await ContratService.create(contratData);
+            navigate("/contrats");
         } catch (err) {
             console.error("Création contrat :", err.response || err);
-            setError("Impossible de créer le contrat. Vérifiez les données et réessayez.");
+            // Gestion plus détaillée des erreurs
+            if (err.response) {
+                const status = err.response.status;
+                const errorMessage = err.response.data?.message || "";
+                
+                if (status === 500) {
+                    if (errorMessage.includes("déjà lié") || errorMessage.includes("already linked")) {
+                        setError("Ce devis est déjà lié à un autre contrat. Veuillez rafraîchir la page et choisir un autre devis.");
+                        // Rechargeons les devis disponibles
+                        try {
+                            const response = await DevisService.getDisponibles();
+                            setDevisList(response.data || []);
+                            setForm(prev => ({ ...prev, devisId: "" })); // Reset le devis sélectionné
+                        } catch (e) {
+                            console.error("Erreur lors du rechargement des devis:", e);
+                        }
+                    } else {
+                        setError("Erreur serveur lors de la création du contrat: " + errorMessage);
+                    }
+                } else if (status === 400) {
+                    setError("Données invalides: " + errorMessage);
+                } else {
+                    setError("Erreur " + status + " lors de la création du contrat: " + errorMessage);
+                }
+            } else {
+                setError("Impossible de contacter le serveur. Vérifiez votre connexion internet.");
+            }
             setIsSubmitting(false);
         }
     };
@@ -220,24 +219,28 @@ export default function CreateContrat() {
                                 </Form.Group>
                             </Col>
                             
-                            <Col md={6} className="mb-3">
-                                <Form.Group controlId="devisId">
+                            <Col md={6} className="mb-3">                                <Form.Group controlId="devisId">
                                     <Form.Label>
                                         <FontAwesomeIcon icon={faFileInvoice} className="me-1" />
-                                        Devis associé<span className="text-danger">*</span>
-                                    </Form.Label>
-                                    <Form.Select
+                                        Devis associé
+                                    </Form.Label>                                    <Form.Select
                                         name="devisId"
                                         value={form.devisId}
                                         onChange={handleChange}
-                                        required
+                                        disabled={devisList.length === 0}
                                     >
                                         <option value="">— Sélectionner un devis —</option>
-                                        {devisList.map(d => (
-                                            <option key={d.id} value={d.id}>
-                                                {d.referenceDevis} ({new Date(d.dateDevis).toLocaleDateString()})
-                                            </option>
-                                        ))}
+                                        {devisList.length === 0 ? (
+                                            <option value="" disabled>Aucun devis disponible</option>
+                                        ) : (
+                                            devisList
+                                                .filter(d => d.contratId === null) // Double vérification
+                                                .map(d => (
+                                                <option key={d.id} value={d.id}>
+                                                    {d.referenceDevis} ({new Date(d.dateValidite).toLocaleDateString()})
+                                                </option>
+                                            ))
+                                        )}
                                     </Form.Select>
                                 </Form.Group>
                             </Col>
@@ -273,31 +276,6 @@ export default function CreateContrat() {
                                         checked={form.taciteReconduction}
                                         onChange={handleChange}
                                     />
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        
-                        <Row className="mb-4">
-                            <Col md={12}>
-                                <Form.Group controlId="documentPdf">
-                                    <Form.Label>
-                                        <FontAwesomeIcon icon={faFilePdf} className="me-1" />
-                                        Document PDF signé
-                                    </Form.Label>
-                                    <InputGroup>
-                                        <Form.Control
-                                            type="file"
-                                            name="documentPdf"
-                                            accept="application/pdf"
-                                            onChange={handleChange}
-                                            className="form-control-file"
-                                        />
-                                    </InputGroup>
-                                    {selectedFile && (
-                                        <small className="text-muted d-block mt-1">
-                                            Fichier sélectionné: {selectedFile}
-                                        </small>
-                                    )}
                                 </Form.Group>
                             </Col>
                         </Row>
