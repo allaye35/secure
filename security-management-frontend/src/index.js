@@ -5,12 +5,15 @@ import 'bootstrap-icons/font/bootstrap-icons.css'; // Import Bootstrap Icons
 import 'animate.css'; // Import Animate.css for animations
 import './index.css';
 import App from './App';
+import { AuthProvider } from './context/AuthContext';
 import reportWebVitals from './reportWebVitals';
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    <App />
+   <AuthProvider>
+      <App />
+    </AuthProvider>
   </React.StrictMode>
 );
 

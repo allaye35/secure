@@ -1,14 +1,12 @@
-import axios from "axios";
-
-const BASE_URL = `${process.env.REACT_APP_API_BASE}/disponibilites`;
+import api from "./api";
 
 const DisponibiliteService = {
-    getAll: () => axios.get(BASE_URL),
-    getById: id => axios.get(`${BASE_URL}/${id}`),
-    getByAgent: agentId => axios.get(`${BASE_URL}/agent/${agentId}`),
-    create: data => axios.post(BASE_URL, data),
-    update: (id, data) => axios.put(`${BASE_URL}/${id}`, data),
-    delete: id => axios.delete(`${BASE_URL}/${id}`),
+    getAll: () => api.get("/disponibilites"),
+    getById: id => api.get(`/disponibilites/${id}`),
+    getByAgent: agentId => api.get(`/disponibilites/agent/${agentId}`),
+    create: data => api.post("/disponibilites", data),
+    update: (id, data) => api.put(`/disponibilites/${id}`, data),
+    delete: id => api.delete(`/disponibilites/${id}`),
 };
 
 export default DisponibiliteService;

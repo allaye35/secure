@@ -1,4 +1,4 @@
-// src/components/layout/NavBar.js
+import AuthService from '../../services/auth/AuthService';
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { 
@@ -24,7 +24,7 @@ import {
   FaBell
 } from 'react-icons/fa';
 
-import AuthService from '../../services/AuthService';
+
 import NotificationBadge from './NotificationBadge';
 
 // Importer le logo si disponible

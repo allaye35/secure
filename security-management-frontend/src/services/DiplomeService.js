@@ -1,13 +1,12 @@
-import axios from "axios";
-const BASE = `${process.env.REACT_APP_API_BASE}/diplomes-ssiap`;
+import api from "./api";
 
 const DiplomeService = {
-    getAll:       () => axios.get(BASE),
-    getById:      id => axios.get(`${BASE}/${id}`),
-    getByAgent:   aid => axios.get(`${BASE}/agent/${aid}`),
-    create:      data => axios.post(BASE, data),
-    update: (id, data) => axios.put(`${BASE}/${id}`, data),
-    delete:       id => axios.delete(`${BASE}/${id}`),
+    getAll:       () => api.get("/diplomes-ssiap"),
+    getById:      id => api.get(`/diplomes-ssiap/${id}`),
+    getByAgent:   aid => api.get(`/diplomes-ssiap/agent/${aid}`),
+    create:      data => api.post("/diplomes-ssiap", data),
+    update: (id, data) => api.put(`/diplomes-ssiap/${id}`, data),
+    delete:       id => api.delete(`/diplomes-ssiap/${id}`),
 };
 
 export default DiplomeService;
