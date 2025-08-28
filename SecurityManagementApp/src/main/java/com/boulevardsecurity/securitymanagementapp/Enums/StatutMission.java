@@ -6,5 +6,6 @@ public enum StatutMission {
     EN_ATTENTE_DE_VALIDATION_DEVIS, // ← ajouté pour correspondre aux valeurs déjà présentes en base
     EN_COURS,
     TERMINEE,
-    ANNULEE
+    ANNULEE,
+    EN_ATTENTE_DE_VALIDATION_DEVIS
 }

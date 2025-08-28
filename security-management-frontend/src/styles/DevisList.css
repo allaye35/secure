@@ -1,3 +1,4 @@
+/* Style pour l'ancienne version (conservé pour compatibilité) */
 .devis-list .btn-add {
     margin-bottom: 1em;
     background: #1976d2;
@@ -25,4 +26,46 @@
 }
 .error {
     color: red;
+}
+
+/* Nouveaux styles pour la version avec pagination */
+.table th {
+    cursor: pointer;
+    font-weight: 600;
+    white-space: nowrap;
+}
+
+tr:hover {
+    background-color: rgba(0, 123, 255, 0.03);
+}
+
+.btn:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    transition: all 0.2s ease;
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.pagination {
+    justify-content: center;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}
+
+.shadow-hover:hover {
+    box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+    transform: translateY(-2px);
+    transition: all 0.3s ease;
+}
+
+@media (max-width: 768px) {
+    .table th, .table td {
+        padding: 0.5rem 0.2rem;
+        font-size: 0.85rem;
+    }
 }

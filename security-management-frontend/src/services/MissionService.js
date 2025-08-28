@@ -4,6 +4,7 @@ import api from "./api";
 const PATH = "/missions";
 
 const MissionService = {
+<<<<<<< Updated upstream
   getAllMissions: () => api.get(PATH),
   getMissionById: (id) => api.get(`${PATH}/${id}`),
   getByDevis: (devisId) => api.get(`${PATH}/devis/${devisId}`),
@@ -13,6 +14,20 @@ const MissionService = {
 
   // 👇 NOUVEAU : missions sans devis (global)
   getSansDevis: () => api.get(`${PATH}/sans-devis`),
+=======
+  
+
+    /**
+     * Récupérer toutes les missions (alias pour getAll)
+     */
+    getAllMissions: () => api.get(PATH),    /**
+    
+    
+    /**
+     * Alias pour getById (pour compatibilité avec le code existant)
+     */
+    getMissionById: (id) => api.get(`${PATH}/${id}`),
+>>>>>>> Stashed changes
 
   createMission: (missionData) => api.post(PATH, missionData),
   update: (id, missionData) => api.patch(`${PATH}/${id}`, missionData),

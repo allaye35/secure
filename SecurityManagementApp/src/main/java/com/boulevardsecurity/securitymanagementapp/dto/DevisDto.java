@@ -24,6 +24,7 @@ public class DevisDto {
     private String      conditionsGenerales;
 
     /* ------- relations (ID only) ------- */
+<<<<<<< Updated upstream
     private Long        entrepriseId;   // prestataire
     private Long        clientId;       // bénéficiaire
     private Long        contratId;      // s’il existe déjà
@@ -33,4 +34,10 @@ public class DevisDto {
     private BigDecimal montantHT;
     private BigDecimal montantTVA;
     private BigDecimal montantTTC;
+=======
+    private Long        entrepriseId;
+    private Long        clientId;
+    private Long        contratId;
+    private List<Long>  missionIds;
+>>>>>>> Stashed changes
 }

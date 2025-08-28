@@ -30,7 +30,12 @@ public class DevisCreateDto {
     private LocalDate dateValidite;
 
     private String conditionsGenerales;
+<<<<<<< Updated upstream
 
     /* Missions existantes à rattacher (optionnel) */
     private List<Long> missionIds;
+=======
+    private List<MissionCreateDto> missions;
+
+>>>>>>> Stashed changes
 }

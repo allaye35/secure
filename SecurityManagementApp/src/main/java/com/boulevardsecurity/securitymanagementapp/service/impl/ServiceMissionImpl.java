@@ -101,10 +101,13 @@ if (dto.getDevisId() != null) {
         notifierAgentsMajMission(sauvegardee);
         return mappeur.toDto(sauvegardee);
     }
-    @Override public MissionDto majMission(Long id, MissionCreateDto dto){ return majMission(id,dto,null); }
+    @Override
+    public MissionDto majMission(Long id, MissionCreateDto dto){
+        return majMission(id,dto,null); }
 
     /* ─────────────── Suppression ─────────────── */
-    @Override public void supprimerMission(Long id){
+    @Override
+    public void supprimerMission(Long id){
         Mission m = trouverMission(id);
         notifierAgentsSuppression(m);
         repMission.delete(m);

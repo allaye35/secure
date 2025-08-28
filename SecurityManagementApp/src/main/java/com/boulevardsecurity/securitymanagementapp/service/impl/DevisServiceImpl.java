@@ -120,6 +120,7 @@ public DevisDto create(DevisCreateDto dto) {
         Devis saved = repo.save(existing);
         return mapper.toDto(saved);
     }
+<<<<<<< Updated upstream
 
     @Override
     public DevisDto ajouterMissions(Long devisId, List<Long> missionIds) {
@@ -153,6 +154,8 @@ public DevisDto create(DevisCreateDto dto) {
         return mapper.toDto(saved);
     }
 
+=======
+>>>>>>> Stashed changes
     @Override
     public void delete(Long id) {
         if (!repo.existsById(id)) {
