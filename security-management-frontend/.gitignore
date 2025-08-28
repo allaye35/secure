@@ -245,3 +245,6 @@ desktop.ini
 # Remove cached files
 git rm --cached -r **/bin/
 git rm --cached -r **/*.mv.db
+
+# Copie de sécurité
+security-management-frontend - Copie
