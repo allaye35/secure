@@ -23,7 +23,14 @@ dependencies {
     implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
     implementation 'org.springframework.boot:spring-boot-starter-validation'
     implementation 'org.springframework.boot:spring-boot-starter-web'
+ // ✅ Sécurité + JWT
+    implementation 'org.springframework.boot:spring-boot-starter-security'
+    implementation 'io.jsonwebtoken:jjwt-api:0.11.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-impl:0.11.5'
+    runtimeOnly   'io.jsonwebtoken:jjwt-jackson:0.11.5'
 
+    // (optionnel mais recommandé) Utiliser WebClient sans embarquer le serveur Netty
+    // implementation 'org.springframework:spring-webflux'
     developmentOnly 'org.springframework.boot:spring-boot-devtools'
     implementation 'org.json:json:20220320'
 
