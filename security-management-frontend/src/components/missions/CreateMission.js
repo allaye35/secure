@@ -2,6 +2,8 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import MissionService from "../../services/MissionService";
 import { Container, Form, Button, Card, Row, Col, Alert, Spinner } from 'react-bootstrap';
+import TarifMissionService from "../../services/TarifMissionService";
+import DevisService from "../../services/DevisService";
 
 export default function CreateMission() {
   const navigate = useNavigate();
@@ -16,15 +18,11 @@ export default function CreateMission() {
       try {
         setLoading(true);
         const [tarifsResponse, devisResponse] = await Promise.all([
-          fetch("http://localhost:8080/api/tarifs"),
-          fetch("http://localhost:8080/api/devis/disponibles")
+          TarifMissionService.getAll(),
+          DevisService && DevisService.getDisponibles ? DevisService.getDisponibles() : Promise.resolve({ data: [] })
         ]);
-        
-        const tarifsData = await tarifsResponse.json();
-        const devisData = await devisResponse.json();
-        
-        setTarifs(tarifsData);
-        setDevisList(devisData);
+        setTarifs(tarifsResponse.data);
+        setDevisList(devisResponse.data);
       } catch (error) {
         console.error("Erreur lors du chargement des données:", error);
         setError("Impossible de charger les données nécessaires.");
